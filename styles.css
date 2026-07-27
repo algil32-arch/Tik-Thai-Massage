@@ -1,0 +1,124 @@
+:root {
+  --bg: #12100f;
+  --panel: #1c1917;
+  --accent: #b48a45;
+  --accent-soft: #e4c98a;
+  --text: #f5f1e9;
+  --muted: #c5b9a3;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  background: radial-gradient(circle at top right, #2d2416, var(--bg) 40%);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+h1,
+h2,
+h3 {
+  font-family: "Playfair Display", Georgia, serif;
+  line-height: 1.2;
+  margin-top: 0;
+}
+
+.hero {
+  min-height: 85vh;
+  padding: 2rem clamp(1rem, 3vw, 3rem);
+  display: grid;
+  align-content: space-between;
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand {
+  font-family: "Playfair Display", serif;
+  font-size: 1.35rem;
+  letter-spacing: 0.02em;
+}
+
+.hero-content {
+  max-width: 640px;
+  margin: 3rem 0;
+}
+
+.eyebrow {
+  color: var(--accent-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-size: 0.78rem;
+}
+
+.hero h1 {
+  font-size: clamp(2rem, 5vw, 4rem);
+  margin-bottom: 1rem;
+}
+
+.section {
+  padding: clamp(2.5rem, 6vw, 5rem) clamp(1rem, 3vw, 3rem);
+}
+
+.cards-section {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.cards {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid rgba(228, 201, 138, 0.2);
+  border-radius: 14px;
+  padding: 1.25rem;
+}
+
+.split {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.highlight {
+  background: linear-gradient(145deg, rgba(180, 138, 69, 0.2), rgba(28, 25, 23, 0.95));
+  border: 1px solid rgba(228, 201, 138, 0.3);
+  border-radius: 14px;
+  padding: 1.2rem;
+}
+
+.cta {
+  text-align: center;
+}
+
+.button {
+  display: inline-block;
+  background: var(--accent);
+  color: #1b160e;
+  text-decoration: none;
+  padding: 0.7rem 1.15rem;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.button-ghost {
+  background: transparent;
+  color: var(--accent-soft);
+  border: 1px solid rgba(228, 201, 138, 0.4);
+}
+
+.footer {
+  text-align: center;
+  color: var(--muted);
+  padding: 1.5rem 1rem 2rem;
+}
