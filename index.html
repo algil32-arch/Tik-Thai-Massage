@@ -1,94 +1,225 @@
 <!doctype html>
-<html lang="en">
+<html lang="it">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tik Thai Massage</title>
+    <meta name="description" content="Tik Thai Massage: trattamenti thailandesi tradizionali, benessere e relax. Scopri i trattamenti e richiedi un appuntamento." />
+    <title>Tik Thai Massage | Massaggio thailandese e benessere</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <style>
       :root {
-        --primary: #7b2cbf;
-        --surface: #f8f5ff;
-        --text: #222;
+        --ink: #2a201d;
+        --muted: #716862;
+        --paper: #fbf9f5;
+        --warm: #eee8df;
+        --accent: #8b4438;
+        --line: #ded5cb;
       }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body { margin: 0; background: var(--paper); color: var(--ink); font: 400 16px/1.65 'DM Sans', sans-serif; }
+      a { color: inherit; }
+      img { display: block; width: 100%; object-fit: cover; }
+      h1, h2, h3, p { margin-top: 0; }
+      h1, h2, h3 { font-family: Manrope, sans-serif; letter-spacing: 0; line-height: 1.17; }
+      .wrap { width: min(100% - 48px, 1160px); margin-inline: auto; }
+      .eyebrow { margin-bottom: 20px; color: var(--accent); font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+      .button { display: inline-flex; justify-content: center; align-items: center; min-height: 50px; padding: 11px 23px; border: 1px solid var(--ink); background: var(--ink); color: #fff; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-decoration: none; text-transform: uppercase; transition: background .2s, color .2s; }
+      .button:hover, .button:focus-visible { background: var(--accent); border-color: var(--accent); }
+      .button-outline { background: transparent; color: var(--ink); }
+      .button-outline:hover, .button-outline:focus-visible { color: #fff; }
 
-      * {
-        box-sizing: border-box;
-      }
+      .site-header { background: var(--paper); }
+      .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 24px; min-height: 82px; }
+      .brand { display: inline-flex; align-items: center; gap: 12px; line-height: 1; text-decoration: none; white-space: nowrap; }
+      .brand-logo { width: 64px; height: 46px; object-fit: contain; }
+      .brand-copy { display: flex; flex-direction: column; }
+      .brand-name { font-family: Manrope, sans-serif; font-size: 22px; font-weight: 700; letter-spacing: .03em; }
+      .brand-sub { margin-top: 7px; color: var(--accent); font-size: 10px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; }
+      .nav { display: flex; align-items: center; gap: 32px; }
+      .nav a { font-size: 13px; font-weight: 600; text-decoration: none; }
+      .nav a:hover, .nav a:focus-visible { color: var(--accent); }
+      .nav .nav-book { border-bottom: 1px solid var(--accent); padding-bottom: 4px; color: var(--accent); text-transform: uppercase; letter-spacing: .05em; }
 
-      body {
-        margin: 0;
-        font-family: Arial, sans-serif;
-        color: var(--text);
-        background: #fff;
-        line-height: 1.5;
-      }
+      .hero { position: relative; display: flex; align-items: end; min-height: min(620px, 72vh); background: #493a30 url('tik-thai-massage.jpg') center 46% / cover no-repeat; color: white; }
+      .hero::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(26,20,17,.8), rgba(26,20,17,.22) 75%), linear-gradient(0deg, rgba(26,20,17,.35), transparent 50%); }
+      .hero-content { position: relative; padding-block: 105px 85px; }
+      .hero .eyebrow { color: #eac7a6; }
+      .hero h1 { max-width: 700px; margin-bottom: 20px; font-size: clamp(42px, 5.5vw, 76px); font-weight: 500; }
+      .hero p:not(.eyebrow) { max-width: 520px; margin-bottom: 28px; font-size: 17px; }
+      .hero .button { background: #fff; border-color: #fff; color: var(--ink); }
+      .hero .button:hover, .hero .button:focus-visible { background: var(--warm); border-color: var(--warm); }
 
-      header {
-        background: linear-gradient(135deg, var(--primary), #9d4edd);
-        color: #fff;
-        padding: 3rem 1.5rem;
-        text-align: center;
-      }
+      .intro { padding-block: 95px 86px; text-align: center; }
+      .intro h2 { max-width: 750px; margin: 0 auto 20px; font-size: clamp(30px, 3.5vw, 47px); font-weight: 500; }
+      .intro > p:not(.eyebrow) { max-width: 630px; margin: 0 auto; color: var(--muted); }
+      .intro a { display: inline-block; margin-top: 20px; color: var(--accent); font-size: 13px; font-weight: 700; text-underline-offset: 4px; }
+      .section-heading { margin-bottom: 34px; }
+      .section-heading h2 { margin-bottom: 0; font-size: clamp(30px, 3vw, 42px); font-weight: 500; }
+      .treatments { padding-block: 77px 94px; background: var(--warm); }
+      .treatment-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+      .treatment { background: var(--paper); }
+      .treatment img { height: 240px; }
+      .treatment-body { padding: 25px 27px 30px; }
+      .treatment h3 { margin-bottom: 12px; font-size: 19px; font-weight: 600; }
+      .treatment p { margin: 0; color: var(--muted); font-size: 14px; }
+      .treatment .price { margin-bottom: 12px; color: var(--accent); font-size: 13px; font-weight: 700; }
+      .treatment .details { display: inline-block; margin-top: 16px; color: var(--accent); font-size: 12px; font-weight: 700; text-decoration-thickness: 1px; text-underline-offset: 4px; }
 
-      main {
-        max-width: 900px;
-        margin: 0 auto;
-        padding: 2rem 1.5rem 3rem;
-      }
+      .locations { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: min(8vw, 100px); padding-block: 105px; }
+      .locations img { aspect-ratio: 1.25; }
+      .locations h2 { margin-bottom: 18px; font-size: clamp(30px, 3vw, 42px); font-weight: 500; }
+      .locations p:not(.eyebrow) { max-width: 480px; color: var(--muted); }
+      .locations .button { margin-top: 17px; }
 
-      section {
-        background: var(--surface);
-        border-radius: 10px;
-        padding: 1.25rem;
-        margin-bottom: 1rem;
-      }
+      .booking { padding-block: 82px; background: #352720; color: #fff; text-align: center; }
+      .booking .eyebrow { color: #eac7a6; }
+      .booking h2 { margin-bottom: 18px; font-size: clamp(32px, 3.5vw, 48px); font-weight: 500; }
+      .booking p:not(.eyebrow) { max-width: 560px; margin: 0 auto 28px; color: #e1d7d0; }
+      .booking .button { background: #fff; border-color: #fff; color: var(--ink); }
+      .booking .button:hover, .booking .button:focus-visible { background: #eac7a6; border-color: #eac7a6; }
+      .booking .notice { max-width: 620px; margin: 34px auto 0; padding-top: 20px; border-top: 1px solid #72635a; font-size: 14px; }
+      .booking .notice p { margin: 0; color: #f5ebe5; }
+      .site-footer { padding-block: 32px; background: #211915; color: #e1d7d0; }
+      .footer-inner { display: flex; justify-content: space-between; gap: 15px; align-items: center; font-size: 13px; }
+      .footer-inner p { margin: 0; }
+      .footer-inner a:hover { color: #fff; }
 
-      h1,
-      h2 {
-        margin-top: 0;
+      @media (max-width: 760px) {
+        .wrap { width: min(100% - 36px, 1160px); }
+        .header-inner { min-height: 72px; }
+        .brand-name { font-size: 18px; }
+        .brand-logo { width: 44px; height: 36px; }
+        .nav { gap: 14px; }
+        .nav a { font-size: 11px; }
+        .nav a:not(.nav-book) { display: none; }
+        .hero { min-height: 570px; background-position: 58% center; }
+        .hero-content { padding-block: 85px 65px; }
+        .hero h1 { font-size: clamp(40px, 10vw, 61px); }
+        .intro { padding-block: 70px; }
+        .treatments { padding-block: 66px 75px; }
+        .treatment-grid { grid-template-columns: 1fr; }
+        .treatment img { height: 250px; }
+        .locations { grid-template-columns: 1fr; gap: 35px; padding-block: 75px; }
+        .locations img { max-height: 350px; }
+        .booking { padding-block: 70px; }
+        .footer-inner { flex-direction: column; align-items: flex-start; }
       }
-
-      ul {
-        padding-left: 1.25rem;
-      }
-
-      .cta {
-        display: inline-block;
-        margin-top: 0.75rem;
-        padding: 0.65rem 1rem;
-        border-radius: 8px;
-        text-decoration: none;
-        background: var(--primary);
-        color: #fff;
-      }
+      @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .button { transition: none; } }
     </style>
   </head>
   <body>
-    <header>
-      <h1>Tik Thai Massage</h1>
-      <p>Traditional Thai massage for relaxation, recovery, and balance.</p>
+    <header class="site-header">
+      <div class="wrap header-inner">
+        <a class="brand" href="#inizio" aria-label="Tik Thai Massage, torna all'inizio">
+          <img class="brand-logo" src="tik-thai-logo.png" alt="" />
+          <span class="brand-copy">
+            <span class="brand-name">Tik Thai Massage</span>
+            <span class="brand-sub">Thai Wellness</span>
+          </span>
+        </a>
+        <nav class="nav" aria-label="Navigazione principale">
+          <a href="#trattamenti">Trattamenti</a>
+          <a href="#sedi">Dove trovarmi</a>
+          <a class="nav-book" href="#prenota">Prenota</a>
+        </nav>
+      </div>
     </header>
 
-    <main>
-      <section>
-        <h2>Our Services</h2>
-        <ul>
-          <li>Traditional Thai Massage</li>
-          <li>Deep Tissue Massage</li>
-          <li>Foot Reflexology</li>
-        </ul>
+    <main id="inizio">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="wrap hero-content">
+          <p class="eyebrow">Il benessere incontra la tradizione</p>
+          <h1 id="hero-title">Ritrova il tuo equilibrio.</h1>
+          <p>Massaggio thailandese e trattamenti dedicati al tuo benessere, con la cura e l'attenzione che meriti.</p>
+          <a class="button" href="#trattamenti">Scopri i trattamenti</a>
+        </div>
       </section>
 
-      <section>
-        <h2>Opening Hours</h2>
-        <p>Monday - Sunday: 10:00 AM - 8:00 PM</p>
+      <section class="intro wrap" aria-labelledby="intro-title">
+        <p class="eyebrow">Benvenuti da Tik Thai Massage</p>
+        <h2 id="intro-title">Un momento per rallentare. Uno spazio per stare bene.</h2>
+        <p>Trattamenti della tradizione thailandese pensati per favorire il rilassamento e il benessere fisico. Scegli il percorso più adatto a te e concediti una pausa dalla routine.</p>
+        <a href="storia-massaggio-thai.html">Scopri le tradizioni del massaggio Thai</a>
       </section>
 
-      <section>
-        <h2>Book an Appointment</h2>
-        <p>Email us at <strong>booking@tikthaimassage.com</strong> to reserve your session.</p>
-        <a class="cta" href="mailto:booking@tikthaimassage.com">Book by Email</a>
+      <section class="treatments" id="trattamenti" aria-labelledby="treatments-title">
+        <div class="wrap">
+          <div class="section-heading">
+            <p class="eyebrow">I trattamenti</p>
+            <h2 id="treatments-title">Il tuo tempo, il tuo benessere.</h2>
+          </div>
+          <div class="treatment-grid">
+            <article class="treatment">
+              <img src="tik-thai-massage.jpg" alt="Massaggio alle spalle" loading="lazy" />
+              <div class="treatment-body">
+                <h3>Massaggio Thai tradizionale</h3>
+                <p class="price">1 ora · 60 €</p>
+                <p>Nuad Boran: pressioni, allungamenti e mobilizzazioni, praticati con abiti comodi su un tappeto.</p>
+                <a class="details" href="massaggio-thai-tradizionale.html">Scopri il trattamento</a>
+              </div>
+            </article>
+            <article class="treatment">
+              <img src="deep-tissue.jpg" alt="Trattamento di massaggio su lettino" loading="lazy" />
+              <div class="treatment-body">
+                <h3>Massaggio sportivo (deep tissue)</h3>
+                <p class="price">1 ora · 60 €</p>
+                <p>Un trattamento profondo dedicato alle tensioni muscolari e alla flessibilità.</p>
+                <a class="details" href="massaggio-sportivo.html">Scopri il trattamento</a>
+              </div>
+            </article>
+            <article class="treatment">
+              <img src="aromatherapy.jpg" alt="Ambiente tranquillo per un trattamento benessere" loading="lazy" />
+              <div class="treatment-body">
+                <h3>Massaggio con oli + aromaterapia</h3>
+                <p class="price">1 ora · 60 €</p>
+                <p>Un'esperienza di benessere con oli e aromi, dedicata al relax.</p>
+                <a class="details" href="massaggio-aromaterapia.html">Scopri il trattamento</a>
+              </div>
+            </article>
+            <article class="treatment">
+              <img src="tik-thai-massage.jpg" alt="Massaggio alle spalle" loading="lazy" />
+              <div class="treatment-body">
+                <h3>Tok Sen Massage</h3>
+                <p class="price">1 ora · 70 €</p>
+                <p>Una tecnica tradizionale che utilizza strumenti in legno per un trattamento ritmico.</p>
+                <a class="details" href="tok-sen.html">Scopri il trattamento</a>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="locations wrap" id="sedi" aria-labelledby="locations-title">
+        <img src="tik-thai-massage.jpg" alt="Trattamento benessere di Tik Thai Wellness" loading="lazy" />
+        <div>
+          <p class="eyebrow">Dove trovarmi</p>
+          <h2 id="locations-title">Il benessere, vicino a te.</h2>
+          <p>Per il massaggio sportivo e il Tok Sen, le schede del sito Tik Thai Wellness indicano Via Giuseppe Gioachino Belli 1, Roma. Per gli altri trattamenti la sede non è specificata: verifica luogo e disponibilità prima di recarti in studio.</p>
+          <a class="button button-outline" href="mailto:tikthaiwellness@gmail.com?subject=Informazioni%20sulle%20sedi">Chiedi le sedi disponibili</a>
+        </div>
+      </section>
+
+      <section class="booking" id="prenota" aria-labelledby="booking-title">
+        <div class="wrap">
+          <p class="eyebrow">Il tuo momento di pausa</p>
+          <h2 id="booking-title">Prenditi cura di te.</h2>
+          <p>Per informazioni su trattamenti, sedi e disponibilità, invia una richiesta via email. Sul precedente sito Wix la prenotazione online non risulta al momento disponibile.</p>
+          <a class="button" href="mailto:tikthaiwellness@gmail.com?subject=Richiesta%20appuntamento">Richiedi un appuntamento</a>
+          <aside class="notice" aria-label="Avviso sui trattamenti">
+            <p><strong>Informazione importante:</strong> il massaggio tradizionale thailandese è un trattamento per il benessere, non è un massaggio erotico. Non saranno tollerate richieste di prestazioni sessuali.</p>
+          </aside>
+        </div>
       </section>
     </main>
+
+    <footer class="site-footer">
+      <div class="wrap footer-inner">
+        <p>Tik Thai Massage · Trattamenti benessere thailandesi</p>
+        <a href="mailto:tikthaiwellness@gmail.com">tikthaiwellness@gmail.com</a>
+      </div>
+    </footer>
   </body>
-  </html>
+</html>
