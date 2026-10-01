@@ -31,15 +31,22 @@
       .button-outline { background: transparent; color: var(--ink); }
       .button-outline:hover, .button-outline:focus-visible { color: #fff; }
 
-      .site-header { background: var(--paper); }
-      .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 24px; min-height: 82px; }
+      .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        background: rgba(251, 249, 245, 0.95);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid rgba(42, 32, 29, 0.08);
+      }
+      .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 24px; min-height: 108px; }
       .brand { display: inline-flex; align-items: center; gap: 12px; line-height: 1; text-decoration: none; white-space: nowrap; }
-      .brand-logo { width: 64px; height: 46px; object-fit: contain; }
+      .brand-logo { width: 112px; height: auto; object-fit: contain; }
       .brand-copy { display: flex; flex-direction: column; }
-      .brand-name { font-family: Manrope, sans-serif; font-size: 22px; font-weight: 700; letter-spacing: .03em; }
-      .brand-sub { margin-top: 7px; color: var(--accent); font-size: 10px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; }
+      .brand-name { font-family: Manrope, sans-serif; font-size: 28px; font-weight: 700; letter-spacing: .03em; }
+      .brand-sub { margin-top: 7px; color: var(--accent); font-size: 11px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; }
       .nav { display: flex; align-items: center; gap: 32px; }
-      .nav a { font-size: 13px; font-weight: 600; text-decoration: none; }
+      .nav a { font-size: 14px; font-weight: 600; text-decoration: none; }
       .nav a:hover, .nav a:focus-visible { color: var(--accent); }
       .nav .nav-book { border-bottom: 1px solid var(--accent); padding-bottom: 4px; color: var(--accent); text-transform: uppercase; letter-spacing: .05em; }
 
@@ -89,9 +96,9 @@
 
       @media (max-width: 760px) {
         .wrap { width: min(100% - 36px, 1160px); }
-        .header-inner { min-height: 72px; }
+        .header-inner { min-height: 88px; }
+        .brand-logo { width: 72px; }
         .brand-name { font-size: 18px; }
-        .brand-logo { width: 44px; height: 36px; }
         .nav { gap: 14px; }
         .nav a { font-size: 11px; }
         .nav a:not(.nav-book) { display: none; }
@@ -122,7 +129,7 @@
         </a>
         <nav class="nav" aria-label="Navigazione principale">
           <a href="#trattamenti">Trattamenti</a>
-          <a href="#sedi">Dove trovarmi</a>
+          <a href="dove-trovarmi.html">Dove trovarmi</a>
           <a class="nav-book" href="#prenota">Prenota</a>
         </nav>
       </div>
@@ -198,7 +205,7 @@
           <p class="eyebrow">Dove trovarmi</p>
           <h2 id="locations-title">Il benessere, vicino a te.</h2>
           <p>Per il massaggio sportivo e il Tok Sen, le schede del sito Tik Thai Wellness indicano Via Giuseppe Gioachino Belli 1, Roma. Per gli altri trattamenti la sede non è specificata: verifica luogo e disponibilità prima di recarti in studio.</p>
-          <a class="button button-outline" href="mailto:tikthaiwellness@gmail.com?subject=Informazioni%20sulle%20sedi">Chiedi le sedi disponibili</a>
+          <a class="button button-outline" href="dove-trovarmi.html">Vedi indirizzi e mappe</a>
         </div>
       </section>
 
