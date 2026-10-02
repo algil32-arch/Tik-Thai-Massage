@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Prenota un massaggio thailandese e scegli lo studio, il trattamento e la data più adatta a te." />
+    <title>Prenota | Tik Thai Massage</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="details.css" />
+    <style>
+      .booking-shell {
+        width: min(100% - 48px, 1100px);
+        margin-inline: auto;
+        padding-block: 72px 90px;
+      }
+      .booking-layout {
+        display: grid;
+        grid-template-columns: 1.2fr .8fr;
+        gap: 28px;
+        align-items: start;
+      }
+      .section-panel {
+        background: #fff;
+        border: 1px solid #e0d5ca;
+        padding: 26px 24px;
+        box-shadow: 0 12px 26px rgba(42, 32, 29, 0.04);
+      }
+      .section-panel + .section-panel { margin-top: 20px; }
+      .panel-title {
+        margin-bottom: 18px;
+        font-size: 22px;
+        font-weight: 600;
+      }
+      .studio-grid,
+      .service-grid {
+        display: grid;
+        gap: 18px;
+      }
+      .studio-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .service-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .studio-card,
+      .service-card {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        min-height: 100%;
+        padding: 20px 18px;
+        background: var(--paper);
+        border: 1px solid #e0d5ca;
+        transition: transform .18s ease, border-color .18s ease;
+      }
+      .studio-card:hover,
+      .service-card:hover {
+        transform: translateY(-2px);
+        border-color: var(--accent);
+      }
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        width: fit-content;
+        padding: 6px 10px;
+        background: #f5e8d9;
+        color: var(--accent);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .studio-card h3,
+      .service-card h3 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 600;
+      }
+      .studio-card p,
+      .service-card p {
+        margin: 0;
+        color: var(--muted);
+      }
+      .service-meta,
+      .studio-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        color: var(--ink);
+        font-size: 14px;
+        font-weight: 700;
+      }
+      .service-meta span,
+      .studio-meta span {
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .link-button {
+        margin-top: auto;
+      }
+      .link-button a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 9px 18px;
+        border: 1px solid var(--ink);
+        background: var(--ink);
+        color: #fff;
+        text-decoration: none;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .link-button a:hover,
+      .link-button a:focus-visible {
+        background: var(--accent);
+        border-color: var(--accent);
+      }
+      .summary {
+        position: sticky;
+        top: 20px;
+        display: grid;
+        gap: 18px;
+      }
+      .summary-box {
+        background: #352720;
+        color: #fff;
+        padding: 22px 20px;
+      }
+      .summary-box h3 {
+        margin: 0 0 14px;
+        font-size: 20px;
+      }
+      .summary-box ul {
+        margin: 0;
+        padding-left: 18px;
+        color: #f1e7dc;
+      }
+      .summary-box li + li {
+        margin-top: 8px;
+      }
+      .summary-box .small-note {
+        margin-top: 18px;
+        color: #d9c7b8;
+        font-size: 13px;
+      }
+      form {
+        display: grid;
+        gap: 16px;
+      }
+      .field {
+        display: grid;
+        gap: 8px;
+      }
+      label {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--ink);
+      }
+      input,
+      select,
+      textarea {
+        width: 100%;
+        min-height: 48px;
+        padding: 12px 14px;
+        border: 1px solid #d8cfc6;
+        background: #fff;
+        color: var(--ink);
+        font: inherit;
+      }
+      textarea {
+        min-height: 110px;
+        resize: vertical;
+      }
+      .submit {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 50px;
+        padding: 11px 23px;
+        border: 0;
+        background: var(--accent);
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 28px;
+      }
+      .step {
+        padding: 18px 16px;
+        background: var(--warm);
+        border: 1px solid #e0d5ca;
+      }
+      .step-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        margin-bottom: 12px;
+        border-radius: 999px;
+        background: var(--ink);
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .step h4 {
+        margin: 0 0 8px;
+        font-size: 17px;
+      }
+      .step p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      @media (max-width: 820px) {
+        .booking-layout {
+          grid-template-columns: 1fr;
+        }
+        .studio-grid,
+        .service-grid,
+        .steps {
+          grid-template-columns: 1fr;
+        }
+        .summary {
+          position: static;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap header-inner">
+        <a class="brand" href="index.html" aria-label="Tik Thai Massage, torna alla home">
+          <img class="brand-logo" src="tik-thai-logo.png" alt="" />
+          <span class="brand-copy">
+            <span class="brand-name">Tik Thai Massage</span>
+            <span class="brand-sub">Thai Wellness</span>
+          </span>
+        </a>
+        <div class="header-contact">Per informazioni: <a href="mailto:tikthaiwellness@gmail.com">tikthaiwellness@gmail.com</a></div>
+        <nav class="nav" aria-label="Navigazione principale">
+          <a href="index.html#trattamenti">Trattamenti</a>
+          <a href="dove-trovarmi.html">Dove trovarmi</a>
+          <a class="nav-book" href="prenota.html">Prenota</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="detail-hero" style="--hero-image: url('tik-thai-massage.jpg')" aria-labelledby="page-title">
+        <div class="wrap hero-content">
+          <a class="back" href="index.html">← Torna alla home</a>
+          <p class="eyebrow">Agenda</p>
+          <h1 id="page-title">Prenota il tuo trattamento.</h1>
+          <p>Seleziona lo studio, il servizio e il tuo slot disponibile. La pagina è pensata per diventare una vera agenda condivisa con più sedi.</p>
+        </div>
+      </section>
+
+      <div class="booking-shell">
+        <div class="steps" aria-label="Come funziona la prenotazione">
+          <div class="step">
+            <div class="step-number">1</div>
+            <h4>Scegli lo studio</h4>
+            <p>Gestisci le sedi come singole agende con prezzi e orari dedicati.</p>
+          </div>
+          <div class="step">
+            <div class="step-number">2</div>
+            <h4>Seleziona il servizio</h4>
+            <p>Ottieni subito il prezzo e la durata corretti dello studio scelto.</p>
+          </div>
+          <div class="step">
+            <div class="step-number">3</div>
+            <h4>Agenda del giorno</h4>
+            <p>Controlla i slot liberi e scegli il tuo orario migliore.</p>
+          </div>
+          <div class="step">
+            <div class="step-number">4</div>
+            <h4>Conferma</h4>
+            <p>Invia la richiesta e resta aggiornato tramite email.</p>
+          </div>
+        </div>
+
+        <div class="booking-layout" style="margin-top: 28px;">
+          <div>
+            <section class="section-panel" aria-labelledby="studio-title">
+              <h2 class="panel-title" id="studio-title">1. Scegli lo studio</h2>
+              <div class="studio-grid" id="studioGrid"></div>
+            </section>
+
+            <section class="section-panel" aria-labelledby="treatment-title" style="margin-top: 20px;">
+              <h2 class="panel-title" id="treatment-title">2. Seleziona il trattamento</h2>
+              <div class="service-grid" id="serviceGrid"></div>
+            </section>
+
+            <section class="section-panel" id="booking-form" aria-labelledby="request-title" style="margin-top: 20px;">
+              <h2 class="panel-title" id="request-title">3. Agenda e disponibilità</h2>
+
+              <div class="field" style="margin-bottom: 18px;">
+                <label>Data</label>
+                <div class="date-row" id="dateRow" aria-label="Seleziona data"></div>
+              </div>
+
+              <div class="field">
+                <label>Orari disponibili</label>
+                <div class="slot-grid" id="slotGrid" aria-live="polite"></div>
+              </div>
+
+              <form id="bookingRequestForm" style="margin-top: 22px;">
+                <div class="field">
+                  <label for="name">Nome</label>
+                  <input id="name" name="name" type="text" placeholder="Il tuo nome" required />
+                </div>
+                <div class="field">
+                  <label for="email">Email</label>
+                  <input id="email" name="email" type="email" placeholder="tuo@email.com" required />
+                </div>
+                <div class="field">
+                  <label for="notes">Note</label>
+                  <textarea id="notes" name="notes" placeholder="Eventuali richieste, preferenze o informazioni utili..."></textarea>
+                </div>
+                <button class="submit" type="submit">Invia richiesta</button>
+              </form>
+            </section>
+          </div>
+
+          <aside class="summary" aria-label="Riepilogo prenotazione">
+            <div class="summary-box">
+              <h3>Riepilogo</h3>
+              <ul>
+                <li><strong>Studio:</strong> <span id="summaryStudio">Non selezionato</span></li>
+                <li><strong>Trattamento:</strong> <span id="summaryService">Non selezionato</span></li>
+                <li><strong>Data:</strong> <span id="summaryDate">Non selezionata</span></li>
+                <li><strong>Orario:</strong> <span id="summaryTime">Non selezionato</span></li>
+                <li><strong>Prezzo:</strong> <span id="summaryPrice">-</span></li>
+              </ul>
+              <div class="small-note">La versione attuale simula l’agenda e prepara il flusso per la futura integrazione cloud o Calendly.</div>
+            </div>
+            <div class="summary-box">
+              <h3>Tariffe</h3>
+              <ul id="priceList"></ul>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap footer-inner">
+        <p>Tik Thai Massage · Trattamenti benessere thailandesi</p>
+        <a href="mailto:tikthaiwellness@gmail.com">tikthaiwellness@gmail.com</a>
+      </div>
+    </footer>
+
+    <script>
+      const studios = [
+        { id: 'roma', city: 'Roma', name: 'Studio Roma', tag: 'Roma', note: 'Sede centrale con trattamento tradizionale e sportivo.', available: '60 min' },
+        { id: 'studio2', city: 'Altra sede', name: 'Studio 2', tag: 'Secondaria', note: 'Disponibilità riservata su richiesta e turni dedicati.', available: 'Disponibilità variabile' }
+      ];
+
+      const services = [
+        { id: 'thai', name: 'Massaggio Thai tradizionale', price: 60, duration: '60 min', tag: 'Classic' },
+        { id: 'sport', name: 'Massaggio sportivo', price: 60, duration: '60 min', tag: 'Sport' },
+        { id: 'aroma', name: 'Aromaterapia', price: 60, duration: '60 min', tag: 'Relax' },
+        { id: 'toksen', name: 'Tok Sen', price: 70, duration: '60 min', tag: 'Tradition' }
+      ];
+
+      const fallbackBookedSlots = {
+        roma: {
+          '2026-10-03': ['09:00', '10:30', '15:00'],
+          '2026-10-04': ['11:00', '13:00', '18:00'],
+          '2026-10-05': ['09:30', '12:30', '17:30'],
+          '2026-10-06': ['10:00', '14:00', '16:00']
+        },
+        studio2: {
+          '2026-10-03': ['10:00', '12:00', '16:00'],
+          '2026-10-04': ['09:00', '15:30'],
+          '2026-10-05': ['11:30', '14:30', '18:30'],
+          '2026-10-06': ['09:00', '13:00', '17:00']
+        }
+      };
+
+      const bookedSlots = {};
+      const slotTimes = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30'];
+
+      const params = new URLSearchParams(window.location.search);
+      const selected = {
+        studio: params.get('studio') === 'studio2' ? 'studio2' : 'roma',
+        service: ['thai', 'sport', 'aroma', 'toksen'].includes(params.get('service')) ? params.get('service') : 'thai',
+        date: null,
+        time: null
+      };
+
+      function formatDate(dateString) {
+        const date = new Date(dateString + 'T12:00:00');
+        return new Intl.DateTimeFormat('it-IT', { day: '2-digit', month: 'short', weekday: 'short' }).format(date);
+      }
+
+      function getStudioById(id) {
+        return studios.find(item => item.id === id) || studios[0];
+      }
+
+      function getServiceById(id) {
+        return services.find(item => item.id === id) || services[0];
+      }
+
+      async function loadBookedSlots() {
+        const studioName = getStudioById(selected.studio).name;
+        if (!selected.date) return;
+
+        const url = `php-booking-backend.php?mode=slots&studio=${encodeURIComponent(studioName)}&date=${encodeURIComponent(selected.date)}`;
+
+        try {
+          const response = await fetch(url, { headers: { Accept: 'application/json' } });
+          if (!response.ok) throw new Error('Slot fetch failed');
+          const data = await response.json();
+          if (data.success && Array.isArray(data.taken_slots)) {
+            bookedSlots[selected.studio] = bookedSlots[selected.studio] || {};
+            bookedSlots[selected.studio][selected.date] = data.taken_slots;
+          }
+        } catch (error) {
+          bookedSlots[selected.studio] = bookedSlots[selected.studio] || {};
+          bookedSlots[selected.studio][selected.date] = fallbackBookedSlots[selected.studio]?.[selected.date] || [];
+        }
+
+        renderSlots();
+      }
+
+      function renderStudios() {
+        const grid = document.getElementById('studioGrid');
+        grid.innerHTML = studios.map(studio => `
+          <article class="studio-card" data-studio-id="${studio.id}" tabindex="0" role="button" aria-label="Scegli ${studio.name}">
+            <span class="tag">${studio.tag}</span>
+            <h3>${studio.name}</h3>
+            <p>${studio.note}</p>
+            <div class="studio-meta"><span>Durata media</span> ${studio.available}</div>
+            <div class="link-button"><a href="#booking-form">Scegli questo studio</a></div>
+          </article>
+        `).join('');
+
+        grid.querySelectorAll('.studio-card').forEach(card => {
+          card.addEventListener('click', () => {
+            selected.studio = card.dataset.studioId;
+            selected.date = null;
+            selected.time = null;
+            renderStudios();
+            renderServices();
+            renderDates();
+            updateSummary();
+          });
+        });
+
+        const active = grid.querySelector(`[data-studio-id="${selected.studio}"]`);
+        if (active) active.classList.add('selected-card');
+      }
+
+      function renderServices() {
+        const grid = document.getElementById('serviceGrid');
+        grid.innerHTML = services.map(service => `
+          <article class="service-card" data-service-id="${service.id}" tabindex="0" role="button" aria-label="Scegli ${service.name}">
+            <span class="tag">${service.tag}</span>
+            <h3>${service.name}</h3>
+            <p>Trattamento dedicato al tuo benessere, con servizio su misura e prezzo chiaro.</p>
+            <div class="service-meta"><strong>${service.price} €</strong><span>${service.duration}</span></div>
+            <div class="link-button"><a href="#booking-form">Seleziona</a></div>
+          </article>
+        `).join('');
+
+        grid.querySelectorAll('.service-card').forEach(card => {
+          card.addEventListener('click', () => {
+            selected.service = card.dataset.serviceId;
+            renderServices();
+            updateSummary();
+          });
+        });
+
+        const active = grid.querySelector(`[data-service-id="${selected.service}"]`);
+        if (active) active.classList.add('selected-card');
+      }
+
+      function renderDates() {
+        const root = document.getElementById('dateRow');
+        const dateList = [];
+        const start = new Date();
+
+        for (let i = 0; i < 6; i++) {
+          const date = new Date(start);
+          date.setDate(start.getDate() + i);
+          dateList.push(date.toISOString().slice(0, 10));
+        }
+
+        root.innerHTML = dateList.map(date => `
+          <button type="button" class="date-chip ${selected.date === date ? 'active' : ''}" data-date="${date}">${formatDate(date)}</button>
+        `).join('');
+
+        root.querySelectorAll('.date-chip').forEach(button => {
+          button.addEventListener('click', () => {
+            selected.date = button.dataset.date;
+            selected.time = null;
+            renderDates();
+            loadBookedSlots();
+            updateSummary();
+          });
+        });
+
+        if (!selected.date && dateList.length) {
+          selected.date = dateList[0];
+        }
+
+        loadBookedSlots();
+      }
+
+      function renderSlots() {
+        const grid = document.getElementById('slotGrid');
+        const studioId = selected.studio || 'roma';
+        const bookings = bookedSlots[studioId]?.[selected.date] || fallbackBookedSlots[studioId]?.[selected.date] || [];
+
+        const slotButtons = slotTimes.map(time => {
+          const booked = bookings.includes(time);
+          const active = selected.time === time;
+          return `
+            <button
+              type="button"
+              class="slot ${booked ? 'busy' : ''} ${active ? 'active' : ''}"
+              data-time="${time}"
+              ${booked ? 'disabled' : ''}
+            >${time}</button>
+          `;
+        }).join('');
+
+        grid.innerHTML = slotButtons;
+
+        grid.querySelectorAll('.slot').forEach(button => {
+          if (!button.disabled) {
+            button.addEventListener('click', () => {
+              selected.time = button.dataset.time;
+              renderSlots();
+              updateSummary();
+            });
+          }
+        });
+      }
+
+      function updateSummary() {
+        const studio = getStudioById(selected.studio);
+        const service = getServiceById(selected.service);
+
+        document.getElementById('summaryStudio').textContent = studio ? studio.name : 'Non selezionato';
+        document.getElementById('summaryService').textContent = service ? service.name : 'Non selezionato';
+        document.getElementById('summaryDate').textContent = selected.date ? formatDate(selected.date) : 'Non selezionata';
+        document.getElementById('summaryTime').textContent = selected.time || 'Non selezionato';
+        document.getElementById('summaryPrice').textContent = service ? `${service.price} €` : '-';
+
+        const priceList = document.getElementById('priceList');
+        priceList.innerHTML = services.map(serviceItem => `
+          <li>${serviceItem.name}: ${serviceItem.price} €</li>
+        `).join('');
+      }
+
+      document.getElementById('bookingRequestForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+
+        if (!selected.studio || !selected.service || !selected.date || !selected.time || !name || !email) {
+          alert('Completa tutti i campi e scegli studio, servizio, data e orario.');
+          return;
+        }
+
+        const service = getServiceById(selected.service);
+        const studio = getStudioById(selected.studio);
+
+        const payload = {
+          studio: studio.name,
+          service: service.name,
+          date: selected.date,
+          time: selected.time,
+          name,
+          email,
+          notes: document.getElementById('notes').value.trim()
+        };
+
+        try {
+          const response = await fetch('php-booking-backend.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          const data = await response.json();
+          if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Errore nella prenotazione');
+          }
+
+          alert(`Prenotazione inviata con successo!\n\nCodice: ${data.booking_id}\nStudio: ${data.data.studio}\nServizio: ${data.data.service}\nData: ${data.data.date} ${data.data.time}`);
+          this.reset();
+          selected.time = null;
+          renderSlots();
+          updateSummary();
+        } catch (error) {
+          const fallbackMessage = `Richiesta di prenotazione ricevuta localmente.\n\nStudio: ${studio.name}\nServizio: ${service.name}\nData: ${formatDate(selected.date)}\nOrario: ${selected.time}\nCliente: ${name}\nEmail: ${email}\n\nNota: il backend PHP è pronto ma richiede un ambiente con PHP/MySQL attivo (es. Aruba).`;
+          alert(fallbackMessage);
+        }
+      });
+
+      const style = document.createElement('style');
+      style.textContent = `
+        .selected-card {
+          border-color: var(--accent) !important;
+          box-shadow: 0 0 0 1px rgba(139, 68, 56, 0.25);
+        }
+        .date-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+        .date-chip {
+          min-height: 42px;
+          padding: 10px 14px;
+          border: 1px solid #d9cdc3;
+          background: #fff;
+          color: var(--ink);
+          font: inherit;
+          cursor: pointer;
+        }
+        .date-chip.active {
+          background: var(--ink);
+          border-color: var(--ink);
+          color: #fff;
+        }
+        .slot-grid {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+        .slot {
+          min-height: 40px;
+          padding: 8px 14px;
+          border: 1px solid #d9cdc3;
+          background: #fff;
+          color: var(--ink);
+          font: inherit;
+          cursor: pointer;
+        }
+        .slot.active {
+          background: var(--accent);
+          border-color: var(--accent);
+          color: #fff;
+        }
+        .slot.busy {
+          background: #f2e7e3;
+          color: #8f7e74;
+          text-decoration: line-through;
+          cursor: not-allowed;
+        }
+      `;
+      document.head.appendChild(style);
+
+      renderStudios();
+      renderServices();
+      renderDates();
+      updateSummary();
+    </script>
+  </body>
+</html>
