@@ -31,24 +31,20 @@
       .button-outline { background: transparent; color: var(--ink); }
       .button-outline:hover, .button-outline:focus-visible { color: #fff; }
 
-      .site-header {
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-        background: rgba(251, 249, 245, 0.95);
-        backdrop-filter: blur(8px);
-        border-bottom: 1px solid rgba(42, 32, 29, 0.08);
-      }
-      .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 24px; min-height: 108px; }
-      .brand { display: inline-flex; align-items: center; gap: 12px; line-height: 1; text-decoration: none; white-space: nowrap; }
-      .brand-logo { width: 112px; height: auto; object-fit: contain; }
+      .site-header { border-top: 3px solid #c8a44d; background: #250c05; color: #f1e4bd; }
+      .header-inner { display: grid; grid-template-columns: 340px 1fr; grid-template-rows: 52px 62px; align-items: center; column-gap: 30px; min-height: 132px; }
+      .brand { grid-row: 1 / 3; display: inline-flex; align-items: center; gap: 12px; line-height: 1; text-decoration: none; white-space: nowrap; }
+      .brand-logo { width: 116px; height: 92px; object-fit: contain; filter: brightness(0) saturate(100%) invert(78%) sepia(29%) saturate(675%) hue-rotate(4deg) brightness(91%) contrast(88%); }
       .brand-copy { display: flex; flex-direction: column; }
-      .brand-name { font-family: Manrope, sans-serif; font-size: 28px; font-weight: 700; letter-spacing: .03em; }
-      .brand-sub { margin-top: 7px; color: var(--accent); font-size: 11px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; }
-      .nav { display: flex; align-items: center; gap: 32px; }
-      .nav a { font-size: 14px; font-weight: 600; text-decoration: none; }
-      .nav a:hover, .nav a:focus-visible { color: var(--accent); }
-      .nav .nav-book { border-bottom: 1px solid var(--accent); padding-bottom: 4px; color: var(--accent); text-transform: uppercase; letter-spacing: .05em; }
+      .brand-name { color: #e2c471; font-family: Georgia, 'Times New Roman', serif; font-size: 21px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; }
+      .brand-sub { margin-top: 7px; color: #d9c99b; font-family: Georgia, 'Times New Roman', serif; font-size: 9px; letter-spacing: .2em; text-transform: uppercase; }
+      .header-contact { grid-column: 2; grid-row: 1; align-self: end; color: #d9c99b; font-family: Georgia, 'Times New Roman', serif; font-size: 12px; text-align: right; }
+      .header-contact a { color: inherit; text-decoration: none; }
+      .header-contact a:hover, .header-contact a:focus-visible { color: #fff1bf; text-decoration: underline; text-underline-offset: 3px; }
+      .nav { grid-column: 2; grid-row: 2; display: flex; align-items: center; justify-content: flex-end; gap: 30px; }
+      .nav a { color: #f1e4bd; font-family: Georgia, 'Times New Roman', serif; font-size: 13px; font-weight: 400; text-decoration: none; text-transform: uppercase; }
+      .nav a:hover, .nav a:focus-visible { color: #e2c471; }
+      .nav .nav-book { border-bottom: 1px solid #c8a44d; padding-bottom: 5px; color: #e2c471; letter-spacing: .03em; }
 
       .hero { position: relative; display: flex; align-items: end; min-height: min(620px, 72vh); background: #493a30 url('tik-thai-massage.jpg') center 46% / cover no-repeat; color: white; }
       .hero::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(26,20,17,.8), rgba(26,20,17,.22) 75%), linear-gradient(0deg, rgba(26,20,17,.35), transparent 50%); }
@@ -96,12 +92,13 @@
 
       @media (max-width: 760px) {
         .wrap { width: min(100% - 36px, 1160px); }
-        .header-inner { min-height: 88px; }
-        .brand-logo { width: 72px; }
+        .header-inner { grid-template-columns: 1fr; grid-template-rows: auto auto auto; row-gap: 12px; min-height: 0; padding-block: 15px; }
+        .brand { grid-row: 1; }
         .brand-name { font-size: 18px; }
-        .nav { gap: 14px; }
-        .nav a { font-size: 11px; }
-        .nav a:not(.nav-book) { display: none; }
+        .brand-logo { width: 84px; height: 72px; }
+        .header-contact { grid-column: 1; grid-row: 2; font-size: 11px; text-align: left; }
+        .nav { grid-column: 1; grid-row: 3; justify-content: space-between; gap: 8px; }
+        .nav a { font-size: 10px; }
         .hero { min-height: 570px; background-position: 58% center; }
         .hero-content { padding-block: 85px 65px; }
         .hero h1 { font-size: clamp(40px, 10vw, 61px); }
@@ -127,6 +124,7 @@
             <span class="brand-sub">Thai Wellness</span>
           </span>
         </a>
+        <div class="header-contact">Per informazioni: <a href="mailto:tikthaiwellness@gmail.com">tikthaiwellness@gmail.com</a></div>
         <nav class="nav" aria-label="Navigazione principale">
           <a href="#trattamenti">Trattamenti</a>
           <a href="dove-trovarmi.html">Dove trovarmi</a>
