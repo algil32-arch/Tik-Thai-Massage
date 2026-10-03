@@ -4,11 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Prenota un massaggio thailandese e scegli lo studio, il trattamento e la data più adatta a te." />
-    <title>Prenota | Tik Thai Massage</title>
+    <title>Prenota | Thai Tik Massage</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="details.css" />
+    <script src="language-selector.js" defer></script>
     <style>
       .booking-shell {
         width: min(100% - 48px, 1100px);
@@ -245,14 +246,14 @@
   <body>
     <header class="site-header">
       <div class="wrap header-inner">
-        <a class="brand" href="index.html" aria-label="Tik Thai Massage, torna alla home">
-          <img class="brand-logo" src="tik-thai-logo.png" alt="" />
+        <a class="brand" href="index.html" aria-label="Thai Tik Massage, torna alla home">
+          <img class="brand-logo" src="tik-thai-logo-transparent.png" alt="" />
           <span class="brand-copy">
-            <span class="brand-name">Tik Thai Massage</span>
-            <span class="brand-sub">Thai Wellness</span>
+            <span class="brand-name">THAI TIK MASSAGE &amp; WELLNESS</span>
           </span>
         </a>
-        <div class="header-contact">Per informazioni: <a href="mailto:tikthaiwellness@gmail.com">tikthaiwellness@gmail.com</a></div>
+        <div class="language-switcher gtranslate_wrapper" aria-label="Seleziona la lingua"></div>
+        <div class="header-contact">Per informazioni: <a href="mailto:info@thaitikmassage.it">info@thaitikmassage.it</a></div>
         <nav class="nav" aria-label="Navigazione principale">
           <a href="index.html#trattamenti">Trattamenti</a>
           <a href="dove-trovarmi.html">Dove trovarmi</a>
@@ -361,8 +362,8 @@
 
     <footer class="site-footer">
       <div class="wrap footer-inner">
-        <p>Tik Thai Massage · Trattamenti benessere thailandesi</p>
-        <a href="mailto:tikthaiwellness@gmail.com">tikthaiwellness@gmail.com</a>
+        <p>Thai Tik Massage · Trattamenti benessere thailandesi</p>
+        <a href="mailto:info@thaitikmassage.it">info@thaitikmassage.it</a>
       </div>
     </footer>
 
@@ -376,7 +377,9 @@
         { id: 'thai', name: 'Massaggio Thai tradizionale', price: 60, duration: '60 min', tag: 'Classic' },
         { id: 'sport', name: 'Massaggio sportivo', price: 60, duration: '60 min', tag: 'Sport' },
         { id: 'aroma', name: 'Aromaterapia', price: 60, duration: '60 min', tag: 'Relax' },
-        { id: 'toksen', name: 'Tok Sen', price: 70, duration: '60 min', tag: 'Tradition' }
+        { id: 'toksen', name: 'Tok Sen', price: 70, duration: '60 min', tag: 'Tradition' },
+        { id: 'foot-express', name: 'Foot Massage Express', price: 35, duration: '30 min', tag: 'Foot Massage' },
+        { id: 'foot-completo', name: 'Foot Massage Completo', price: 50, duration: '60 min', tag: 'Foot Massage' }
       ];
 
       const fallbackBookedSlots = {
@@ -400,7 +403,7 @@
       const params = new URLSearchParams(window.location.search);
       const selected = {
         studio: params.get('studio') === 'studio2' ? 'studio2' : 'roma',
-        service: ['thai', 'sport', 'aroma', 'toksen'].includes(params.get('service')) ? params.get('service') : 'thai',
+        service: ['thai', 'sport', 'aroma', 'toksen', 'foot-express', 'foot-completo'].includes(params.get('service')) ? params.get('service') : 'thai',
         date: null,
         time: null
       };
@@ -612,8 +615,7 @@
           renderSlots();
           updateSummary();
         } catch (error) {
-          const fallbackMessage = `Richiesta di prenotazione ricevuta localmente.\n\nStudio: ${studio.name}\nServizio: ${service.name}\nData: ${formatDate(selected.date)}\nOrario: ${selected.time}\nCliente: ${name}\nEmail: ${email}\n\nNota: il backend PHP è pronto ma richiede un ambiente con PHP/MySQL attivo (es. Aruba).`;
-          alert(fallbackMessage);
+          alert('Non è stato possibile inviare la richiesta. Nessuna prenotazione è stata registrata. Riprova più tardi o contattaci via email.');
         }
       });
 

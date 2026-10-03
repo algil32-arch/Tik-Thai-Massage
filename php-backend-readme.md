@@ -8,6 +8,9 @@ Questo file fornisce il punto di partenza per un backend di prenotazione.
 - salva la prenotazione in `appuntamenti`
 - usa il database MySQL definito nel file `backend-aruba-schema.sql`
 
+## Foot Massage
+Una volta creati gli studi nella tabella `studi`, importa `backend-aruba-foot-massage.sql` in phpMyAdmin. Lo script aggiunge le formule Express e Completo a ogni studio attivo, evitando di inserirle di nuovo se è già stato eseguito.
+
 ## Parametri richiesti
 - studio
 - service

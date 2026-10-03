@@ -1,4 +1,4 @@
-# Tik Thai Massage — Site Ver 3.0
+# Thai Tik Massage — Site Ver 3.0
 
 ## Rilascio
 

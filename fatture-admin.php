@@ -51,7 +51,7 @@ foreach ($invoices as $invoice) {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Fatture | Tik Thai Massage</title>
+    <title>Fatture | Thai Tik Massage</title>
     <style>
       :root {
         --ink: #2a201d;
