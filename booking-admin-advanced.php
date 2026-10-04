@@ -34,7 +34,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $stmt = $pdo->query(
-    "SELECT a.id, a.data_appuntamento, a.ora_inizio, a.stato, s.nome AS servizio, c.nome AS cliente_nome, c.cognome AS cliente_cognome, c.email AS cliente_email, st.nome AS studio_nome, serv.prezzo AS prezzo_servizio
+        "SELECT a.id, a.data_appuntamento, a.ora_inizio, a.stato, a.metodo_pagamento, a.stato_pagamento,
+          s.nome AS servizio, c.nome AS cliente_nome, c.cognome AS cliente_cognome, c.email AS cliente_email, c.telefono AS cliente_telefono,
+          c.tipo_cliente, c.ragione_sociale, c.codice_fiscale, c.partita_iva, c.codice_destinatario, c.pec,
+          c.indirizzo AS cliente_indirizzo, c.citta AS cliente_citta, c.cap AS cliente_cap,
+          st.nome AS studio_nome, serv.prezzo AS prezzo_servizio
      FROM appuntamenti a
      LEFT JOIN servizi serv ON serv.id = a.id_servizio
      LEFT JOIN clienti c ON c.id = a.id_cliente
@@ -173,6 +177,8 @@ $appointments = $stmt->fetchAll();
               <th>Prezzo</th>
               <th>Data</th>
               <th>Ora</th>
+              <th>Pagamento</th>
+              <th>Dati fiscali</th>
               <th>Stato</th>
               <th>Azioni</th>
             </tr>
@@ -190,6 +196,18 @@ $appointments = $stmt->fetchAll();
                 <td><?= htmlspecialchars((string)$booking['prezzo_servizio']) ?> €</td>
                 <td><?= htmlspecialchars((string)$booking['data_appuntamento']) ?></td>
                 <td><?= htmlspecialchars((string)$booking['ora_inizio']) ?></td>
+                <td><?= htmlspecialchars((string)$booking['metodo_pagamento']) ?><br><small><?= htmlspecialchars((string)$booking['stato_pagamento']) ?></small></td>
+                <td>
+                  <?php if (($booking['tipo_cliente'] ?? '') === 'azienda'): ?>
+                    <?= htmlspecialchars((string)$booking['ragione_sociale']) ?><br>
+                    <small>P.IVA <?= htmlspecialchars((string)$booking['partita_iva']) ?></small>
+                    <small><?= htmlspecialchars((string)($booking['codice_destinatario'] ?: $booking['pec'])) ?></small>
+                  <?php else: ?>
+                    <small>CF <?= htmlspecialchars((string)$booking['codice_fiscale']) ?></small>
+                  <?php endif; ?><br>
+                  <small><?= htmlspecialchars(trim((string)$booking['cliente_indirizzo'] . ', ' . (string)$booking['cliente_cap'] . ' ' . (string)$booking['cliente_citta'])) ?></small>
+                  <?php if (!empty($booking['cliente_telefono'])): ?><br><small>Tel. <?= htmlspecialchars((string)$booking['cliente_telefono']) ?></small><?php endif; ?>
+                </td>
                 <td><span class="status"><?= htmlspecialchars((string)$booking['stato']) ?></span></td>
                 <td>
                   <div class="actions">

@@ -24,6 +24,7 @@ Data: 2026-10-04
 - Configurare `private/config.local.php` sull'hosting; il file è escluso da Git e la cartella `private` è protetta da `.htaccess`.
 - Per l'invio email è necessario verificare la funzione PHP `mail()` dal pannello Aruba; la consegna effettiva non è verificabile in locale.
 - Controllati i riferimenti agli orari demo, il parsing JavaScript incorporato e gli errori statici dei file modificati.
+- In anteprima locale su localhost sono disponibili sedi, servizi e slot dimostrativi; l'invio resta disabilitato e nessuna richiesta viene salvata.
 - Il lint PHP da terminale non è stato eseguito: nell'ambiente locale non è installato `php-cli`.
 
 ## Da verificare dopo il caricamento su Aruba

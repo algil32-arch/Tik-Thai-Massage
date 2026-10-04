@@ -7,6 +7,10 @@ Il backend usa PHP con PDO e MySQL/MariaDB. L'agenda applica le fasce settimanal
 2. Importa `backend-aruba-agenda.sql` per creare la tabella delle fasce orarie.
 3. Importa `backend-aruba-seed.sql` per creare Nuttiporn Sriboust, le sedi Studio Prati e APS Studio Montesacro e i servizi attualmente pubblicati. Lo script evita di duplicare professionista, sedi e servizi se viene reimportato.
 4. Per nuovi studi creati successivamente, `backend-aruba-foot-massage.sql` aggiunge le formule Express e Completo.
+5. Sui database già creati con lo schema precedente, importa una sola volta `backend-aruba-prenotazioni-fiscali.sql` per aggiungere ragione sociale, PEC, codice destinatario e campi di pagamento.
+
+## Dati della prenotazione
+Nome, cognome, email e dati fiscali sono richiesti; il telefono è facoltativo. Per i privati è richiesto il codice fiscale, per aziende e professionisti ragione sociale, partita IVA e codice destinatario o PEC. Il metodo `studio` viene registrato sull'appuntamento. Il metodo `online` restituisce un errore esplicito finché il checkout SumUp non viene integrato.
 
 ## Configurazione hosting
 La guida Aruba per Easy Linux documenta versione PHP e parametri `php.ini`, non variabili d'ambiente personalizzate. Per questo progetto usa il file privato:

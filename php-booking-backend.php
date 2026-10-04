@@ -181,7 +181,34 @@ $date = trim((string)$input['date']);
 $time = trim((string)$input['time']);
 $name = trim((string)$input['name']);
 $email = trim((string)$input['email']);
+$phone = trim((string)($input['phone'] ?? ''));
+$paymentMethod = trim((string)($input['payment_method'] ?? 'studio'));
+$customerType = trim((string)($input['customer_type'] ?? 'privato'));
+$companyName = trim((string)($input['ragione_sociale'] ?? ''));
+$taxCode = strtoupper(trim((string)($input['codice_fiscale'] ?? '')));
+$vatNumber = trim((string)($input['partita_iva'] ?? ''));
+$billingAddress = trim((string)($input['indirizzo'] ?? ''));
+$billingCity = trim((string)($input['citta'] ?? ''));
+$billingPostalCode = trim((string)($input['cap'] ?? ''));
+$recipientCode = strtoupper(trim((string)($input['codice_destinatario'] ?? '')));
+$pec = trim((string)($input['pec'] ?? ''));
 $notes = trim((string)($input['notes'] ?? ''));
+
+if (!in_array($paymentMethod, ['studio', 'online'], true)) {
+    apiResponse(400, ['success' => false, 'message' => 'Modalità di pagamento non valida.']);
+}
+if ($paymentMethod === 'online') {
+    apiResponse(503, ['success' => false, 'message' => 'Pagamento SumUp non ancora configurato. Seleziona il pagamento in studio.']);
+}
+if (!in_array($customerType, ['privato', 'azienda'], true) || $billingAddress === '' || $billingCity === '' || $billingPostalCode === '') {
+    apiResponse(400, ['success' => false, 'message' => 'Inserisci i dati fiscali e l’indirizzo di fatturazione.']);
+}
+if ($customerType === 'privato' && $taxCode === '') {
+    apiResponse(400, ['success' => false, 'message' => 'Il codice fiscale è obbligatorio per il cliente privato.']);
+}
+if ($customerType === 'azienda' && ($companyName === '' || $vatNumber === '' || ($recipientCode === '' && $pec === ''))) {
+    apiResponse(400, ['success' => false, 'message' => 'Per aziende e professionisti sono necessari ragione sociale, partita IVA e codice destinatario o PEC.']);
+}
 
 $dateObject = DateTimeImmutable::createFromFormat('!Y-m-d', $date);
 if (!$studioId || !$serviceId || !$dateObject || $dateObject->format('Y-m-d') !== $date || preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $time) !== 1 || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -277,21 +304,29 @@ try {
     }
 
     $customerStmt = $pdo->prepare(
-        'INSERT INTO clienti (nome, cognome, email, telefono, tipo_cliente, created_at)
-         VALUES (:nome, :cognome, :email, :telefono, :tipo, NOW())'
+        'INSERT INTO clienti (nome, cognome, ragione_sociale, email, telefono, codice_fiscale, partita_iva, codice_destinatario, pec, indirizzo, citta, cap, tipo_cliente, created_at)
+         VALUES (:nome, :cognome, :ragione_sociale, :email, :telefono, :codice_fiscale, :partita_iva, :codice_destinatario, :pec, :indirizzo, :citta, :cap, :tipo, NOW())'
     );
     $customerStmt->execute([
         ':nome' => $firstName,
         ':cognome' => $lastName,
+        ':ragione_sociale' => $companyName !== '' ? $companyName : null,
         ':email' => $email,
-        ':telefono' => '',
-        ':tipo' => 'privato',
+        ':telefono' => $phone,
+        ':codice_fiscale' => $taxCode !== '' ? $taxCode : null,
+        ':partita_iva' => $vatNumber !== '' ? $vatNumber : null,
+        ':codice_destinatario' => $recipientCode !== '' ? $recipientCode : null,
+        ':pec' => $pec !== '' ? $pec : null,
+        ':indirizzo' => $billingAddress,
+        ':citta' => $billingCity,
+        ':cap' => $billingPostalCode,
+        ':tipo' => $customerType,
     ]);
     $clienteId = (int)$pdo->lastInsertId();
 
     $bookingStmt = $pdo->prepare(
-        'INSERT INTO appuntamenti (id_studio, id_professionista, id_cliente, id_servizio, data_appuntamento, ora_inizio, ora_fine, stato, note, created_at)
-         VALUES (:studio, :professionista, :cliente, :servizio, :date, :time, :time_end, :status, :note, NOW())'
+        'INSERT INTO appuntamenti (id_studio, id_professionista, id_cliente, id_servizio, data_appuntamento, ora_inizio, ora_fine, stato, metodo_pagamento, stato_pagamento, note, created_at)
+         VALUES (:studio, :professionista, :cliente, :servizio, :date, :time, :time_end, :status, :payment_method, :payment_status, :note, NOW())'
     );
     $bookingStmt->execute([
         ':studio' => $studioRecord['id'],
@@ -302,6 +337,8 @@ try {
         ':time' => $startDateTime->format('H:i:s'),
         ':time_end' => $endDateTime->format('H:i:s'),
         ':status' => 'in_attesa',
+        ':payment_method' => $paymentMethod,
+        ':payment_status' => 'da_saldare',
         ':note' => $notes,
     ]);
     $bookingId = (int)$pdo->lastInsertId();
