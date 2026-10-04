@@ -1,43 +1,44 @@
-# Backend PHP per Aruba
+# Backend e agenda PHP per Aruba
 
-Questo file fornisce il punto di partenza per un backend di prenotazione.
+Il backend usa PHP con PDO e MySQL/MariaDB. L'agenda applica le fasce settimanali configurate per ogni studio e mostra solo gli orari compatibili con durata del servizio e appuntamenti già presenti.
 
-## Come funziona
-- riceve una richiesta POST con i dati di studio, servizio, data e orario
-- salva il cliente in `clienti`
-- salva la prenotazione in `appuntamenti`
-- usa il database MySQL definito nel file `backend-aruba-schema.sql`
+## Installazione database
+1. Importa `backend-aruba-schema.sql` nel database.
+2. Importa `backend-aruba-agenda.sql` per creare la tabella delle fasce orarie.
+3. Importa `backend-aruba-seed.sql` per creare Nuttiporn Sriboust, le sedi Studio Prati e APS Studio Montesacro e i servizi attualmente pubblicati. Lo script evita di duplicare professionista, sedi e servizi se viene reimportato.
+4. Per nuovi studi creati successivamente, `backend-aruba-foot-massage.sql` aggiunge le formule Express e Completo.
 
-## Foot Massage
-Una volta creati gli studi nella tabella `studi`, importa `backend-aruba-foot-massage.sql` in phpMyAdmin. Lo script aggiunge le formule Express e Completo a ogni studio attivo, evitando di inserirle di nuovo se è già stato eseguito.
+## Configurazione hosting
+La guida Aruba per Easy Linux documenta versione PHP e parametri `php.ini`, non variabili d'ambiente personalizzate. Per questo progetto usa il file privato:
 
-## Parametri richiesti
-- studio
-- service
-- date
-- time
-- name
-- email
-- notes (opzionale)
+1. Carica la cartella `private` completa, incluso `.htaccess`.
+2. Copia `private/config.example.php` in `private/config.local.php`.
+3. In `config.local.php`, inserisci la password MySQL in `DB_PASS` e scegli una password robusta per `ADMIN_PASSWORD`.
+4. Non condividere né versionare `config.local.php`. La cartella privata nega l'accesso HTTP; il loader supporta anche variabili d'ambiente, se Aruba le abiliterà in futuro.
 
-## Esempio JSON
+`DB_HOST`, `DB_NAME`, `DB_USER` e `DB_PORT` sono già impostati nel template. `ADMIN_PASSWORD` protegge le pagine di gestione prenotazioni e agenda.
+
+## Email di prenotazione
+Dopo aver salvato la richiesta nel database, il backend usa la funzione PHP `mail()` per inviare una notifica a `BOOKING_NOTIFICATION_EMAIL` e una ricevuta al cliente. Per impostazione predefinita mittente e notifica studio sono `info@thaitikmassage.it`; puoi sovrascriverli in `private/config.local.php` con `MAIL_FROM_EMAIL` e `BOOKING_NOTIFICATION_EMAIL`. La ricevuta specifica che l'appuntamento è ancora in attesa di conferma. Il valore di ritorno di `mail()` indica che Aruba ha accettato il messaggio per l'invio, non garantisce la consegna in inbox.
+
+Prima del test prenotazione, verifica l'invio da **Hosting Linux → Strumenti e impostazioni → Gestione PHP → Test PHP mail**. Se Aruba non accetta o consegna i messaggi, le prenotazioni restano comunque registrate e il form segnala il problema; per SMTP servirà configurare un trasporto autenticato.
+
+## Configurare l'agenda
+Apri `area-admin.html`, accedi con `ADMIN_PASSWORD` e scegli **Prenotazioni e agenda**. Per ogni studio aggiungi una o più fasce per giorno: ora iniziale, ora finale e passo degli slot (15, 30 o 60 minuti). Per chiudere una fascia, rimuovila. I clienti vedranno solo gli slot restituiti dall'agenda; una prenotazione non può superare la fine della fascia né sovrapporsi a una richiesta in attesa o confermata.
+
+## API prenotazioni
+Il catalogo attivo è esposto da `php-booking-backend.php?mode=catalog`. Per verificare gli orari, `mode=slots` richiede `studio_id`, `service_id` e `date`. Il POST richiede gli stessi ID più `date`, `time`, `name` ed `email`; `notes` è facoltativo.
+
+Esempio JSON (gli ID devono esistere nel database):
 
 ```json
 {
-  "studio": "Studio Roma",
-  "service": "Massaggio Thai tradizionale",
-  "date": "2026-10-04",
+  "studio_id": 1,
+  "service_id": 1,
+  "date": "2027-06-15",
   "time": "10:30",
   "name": "Mario Rossi",
   "email": "mario@email.com",
-  "notes": "Vorrei un trattamento rilassante"
+  "notes": "Preferenza oraria"
 }
 ```
-
-## Eventuali modifiche future
-- gestire la conferma da parte dell'admin
-- salvare prezzi e IVA
-- creare fatture
-- generare XML/FatturaPA
-- inviare email di conferma
-- collegare a un pannello admin

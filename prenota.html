@@ -253,7 +253,7 @@
           </span>
         </a>
         <div class="language-switcher gtranslate_wrapper" aria-label="Seleziona la lingua"></div>
-        <div class="header-contact">Per informazioni: <a href="mailto:info@thaitikmassage.it">info@thaitikmassage.it</a></div>
+        <div class="header-contact">Per informazioni: <a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=info%40thaitikmassage.it">info@thaitikmassage.it</a></div>
         <nav class="nav" aria-label="Navigazione principale">
           <a href="index.html#trattamenti">Trattamenti</a>
           <a href="dove-trovarmi.html">Dove trovarmi</a>
@@ -301,6 +301,7 @@
             <section class="section-panel" aria-labelledby="studio-title">
               <h2 class="panel-title" id="studio-title">1. Scegli lo studio</h2>
               <div class="studio-grid" id="studioGrid"></div>
+              <p class="small-note" id="bookingStatus" role="status" hidden></p>
             </section>
 
             <section class="section-panel" aria-labelledby="treatment-title" style="margin-top: 20px;">
@@ -349,7 +350,7 @@
                 <li><strong>Orario:</strong> <span id="summaryTime">Non selezionato</span></li>
                 <li><strong>Prezzo:</strong> <span id="summaryPrice">-</span></li>
               </ul>
-              <div class="small-note">La versione attuale simula l’agenda e prepara il flusso per la futura integrazione cloud o Calendly.</div>
+              <div class="small-note">Gli orari mostrati dipendono dalla sede, dal servizio e dalle fasce configurate nell’agenda.</div>
             </div>
             <div class="summary-box">
               <h3>Tariffe</h3>
@@ -363,50 +364,54 @@
     <footer class="site-footer">
       <div class="wrap footer-inner">
         <p>Thai Tik Massage · Trattamenti benessere thailandesi</p>
-        <a href="mailto:info@thaitikmassage.it">info@thaitikmassage.it</a>
+        <a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=info%40thaitikmassage.it">info@thaitikmassage.it</a>
       </div>
     </footer>
 
     <script>
-      const studios = [
-        { id: 'roma', city: 'Roma', name: 'Studio Roma', tag: 'Roma', note: 'Sede centrale con trattamento tradizionale e sportivo.', available: '60 min' },
-        { id: 'studio2', city: 'Altra sede', name: 'Studio 2', tag: 'Secondaria', note: 'Disponibilità riservata su richiesta e turni dedicati.', available: 'Disponibilità variabile' }
-      ];
-
-      const services = [
-        { id: 'thai', name: 'Massaggio Thai tradizionale', price: 60, duration: '60 min', tag: 'Classic' },
-        { id: 'sport', name: 'Massaggio sportivo', price: 60, duration: '60 min', tag: 'Sport' },
-        { id: 'aroma', name: 'Aromaterapia', price: 60, duration: '60 min', tag: 'Relax' },
-        { id: 'toksen', name: 'Tok Sen', price: 70, duration: '60 min', tag: 'Tradition' },
-        { id: 'foot-express', name: 'Foot Massage Express', price: 35, duration: '30 min', tag: 'Foot Massage' },
-        { id: 'foot-completo', name: 'Foot Massage Completo', price: 50, duration: '60 min', tag: 'Foot Massage' }
-      ];
-
-      const fallbackBookedSlots = {
-        roma: {
-          '2026-10-03': ['09:00', '10:30', '15:00'],
-          '2026-10-04': ['11:00', '13:00', '18:00'],
-          '2026-10-05': ['09:30', '12:30', '17:30'],
-          '2026-10-06': ['10:00', '14:00', '16:00']
-        },
-        studio2: {
-          '2026-10-03': ['10:00', '12:00', '16:00'],
-          '2026-10-04': ['09:00', '15:30'],
-          '2026-10-05': ['11:30', '14:30', '18:30'],
-          '2026-10-06': ['09:00', '13:00', '17:00']
-        }
-      };
-
-      const bookedSlots = {};
-      const slotTimes = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30'];
-
+      let studios = [];
+      let services = [];
+      const availableSlots = {};
       const params = new URLSearchParams(window.location.search);
       const selected = {
-        studio: params.get('studio') === 'studio2' ? 'studio2' : 'roma',
-        service: ['thai', 'sport', 'aroma', 'toksen', 'foot-express', 'foot-completo'].includes(params.get('service')) ? params.get('service') : 'thai',
+        studioId: null,
+        serviceId: null,
         date: null,
         time: null
       };
+
+      const escapeHtml = value => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
+
+      function setBookingStatus(message) {
+        const status = document.getElementById('bookingStatus');
+        status.textContent = message;
+        status.hidden = !message;
+      }
+
+      function servicesForStudio(studioId) {
+        return services.filter(service => Number(service.id_studio) === Number(studioId));
+      }
+
+      function resolveInitialStudio(value) {
+        if (value && /^\d+$/.test(value) && studios.some(studio => Number(studio.id) === Number(value))) {
+          return Number(value);
+        }
+        const keyword = value === 'studio2' ? 'montesacro' : value === 'roma' ? 'prati' : value?.toLowerCase();
+        return studios.find(studio => keyword && studio.name.toLowerCase().includes(keyword))?.id ?? studios[0]?.id ?? null;
+      }
+
+      function resolveInitialService(value, studioId) {
+        const studioServices = servicesForStudio(studioId);
+        if (value && /^\d+$/.test(value) && studioServices.some(service => Number(service.id) === Number(value))) {
+          return Number(value);
+        }
+        const aliases = {
+          thai: 'thai', sport: 'sport', aroma: 'aroma', toksen: 'tok sen',
+          'foot-express': 'express', 'foot-completo': 'completo'
+        };
+        const keyword = aliases[value] || value?.toLowerCase();
+        return studioServices.find(service => keyword && service.name.toLowerCase().includes(keyword))?.id ?? studioServices[0]?.id ?? null;
+      }
 
       function formatDate(dateString) {
         const date = new Date(dateString + 'T12:00:00');
@@ -414,30 +419,72 @@
       }
 
       function getStudioById(id) {
-        return studios.find(item => item.id === id) || studios[0];
+        return studios.find(item => Number(item.id) === Number(id));
       }
 
       function getServiceById(id) {
-        return services.find(item => item.id === id) || services[0];
+        return services.find(item => Number(item.id) === Number(id));
       }
 
-      async function loadBookedSlots() {
-        const studioName = getStudioById(selected.studio).name;
-        if (!selected.date) return;
+      async function loadCatalog() {
+        try {
+          const response = await fetch('php-booking-backend.php?mode=catalog', { headers: { Accept: 'application/json' } });
+          if (!response.ok) throw new Error('Catalog request failed');
+          const data = await response.json();
+          studios = (data.studios || []).map(studio => ({ ...studio, id: Number(studio.id), name: studio.nome }));
+          services = (data.services || []).map(service => ({
+            ...service,
+            id: Number(service.id),
+            id_studio: Number(service.id_studio),
+            name: service.nome,
+            price: Number(service.prezzo),
+            duration: `${Number(service.durata_minuti)} min`,
+            durationMinutes: Number(service.durata_minuti)
+          }));
 
-        const url = `php-booking-backend.php?mode=slots&studio=${encodeURIComponent(studioName)}&date=${encodeURIComponent(selected.date)}`;
+          if (!studios.length) {
+            renderStudios();
+            renderServices();
+            setBookingStatus('Le sedi non sono ancora configurate. Contatta lo studio per informazioni.');
+            return;
+          }
+
+          selected.studioId = resolveInitialStudio(params.get('studio'));
+          selected.serviceId = resolveInitialService(params.get('service'), selected.studioId);
+          renderStudios();
+          renderServices();
+          renderDates();
+          updateSummary();
+        } catch (error) {
+          setBookingStatus('Non è possibile caricare sedi e disponibilità. Riprova più tardi o contatta lo studio.');
+          document.getElementById('slotGrid').innerHTML = '';
+        }
+      }
+
+      async function loadAvailableSlots() {
+        if (!selected.studioId || !selected.serviceId || !selected.date) return;
+
+        availableSlots[selected.studioId] = availableSlots[selected.studioId] || {};
+        availableSlots[selected.studioId][selected.serviceId] = availableSlots[selected.studioId][selected.serviceId] || {};
+        availableSlots[selected.studioId][selected.serviceId][selected.date] = null;
+        renderSlots();
+        const url = `php-booking-backend.php?mode=slots&studio_id=${encodeURIComponent(selected.studioId)}&service_id=${encodeURIComponent(selected.serviceId)}&date=${encodeURIComponent(selected.date)}`;
 
         try {
           const response = await fetch(url, { headers: { Accept: 'application/json' } });
           if (!response.ok) throw new Error('Slot fetch failed');
           const data = await response.json();
-          if (data.success && Array.isArray(data.taken_slots)) {
-            bookedSlots[selected.studio] = bookedSlots[selected.studio] || {};
-            bookedSlots[selected.studio][selected.date] = data.taken_slots;
+          if (data.success && Array.isArray(data.available_slots)) {
+            availableSlots[selected.studioId][selected.serviceId][selected.date] = data.available_slots;
+            if (selected.time && !data.available_slots.includes(selected.time)) selected.time = null;
+            setBookingStatus('');
+          } else {
+            throw new Error('Availability response invalid');
           }
         } catch (error) {
-          bookedSlots[selected.studio] = bookedSlots[selected.studio] || {};
-          bookedSlots[selected.studio][selected.date] = fallbackBookedSlots[selected.studio]?.[selected.date] || [];
+          availableSlots[selected.studioId][selected.serviceId][selected.date] = [];
+          selected.time = null;
+          setBookingStatus('Non è stato possibile caricare gli orari reali. Nessuna disponibilità demo verrà mostrata.');
         }
 
         renderSlots();
@@ -446,19 +493,19 @@
       function renderStudios() {
         const grid = document.getElementById('studioGrid');
         grid.innerHTML = studios.map(studio => `
-          <article class="studio-card" data-studio-id="${studio.id}" tabindex="0" role="button" aria-label="Scegli ${studio.name}">
-            <span class="tag">${studio.tag}</span>
-            <h3>${studio.name}</h3>
-            <p>${studio.note}</p>
-            <div class="studio-meta"><span>Durata media</span> ${studio.available}</div>
+          <article class="studio-card" data-studio-id="${Number(studio.id)}" tabindex="0" role="button" aria-label="Scegli ${escapeHtml(studio.name)}">
+            <span class="tag">Sede</span>
+            <h3>${escapeHtml(studio.name)}</h3>
+            <p>Consulta i giorni e gli orari configurati per questa sede.</p>
+            <div class="studio-meta"><span>Servizi attivi</span> ${servicesForStudio(studio.id).length}</div>
             <div class="link-button"><a href="#booking-form">Scegli questo studio</a></div>
           </article>
         `).join('');
 
         grid.querySelectorAll('.studio-card').forEach(card => {
           card.addEventListener('click', () => {
-            selected.studio = card.dataset.studioId;
-            selected.date = null;
+            selected.studioId = Number(card.dataset.studioId);
+            selected.serviceId = servicesForStudio(selected.studioId)[0]?.id ?? null;
             selected.time = null;
             renderStudios();
             renderServices();
@@ -467,31 +514,38 @@
           });
         });
 
-        const active = grid.querySelector(`[data-studio-id="${selected.studio}"]`);
+        const active = grid.querySelector(`[data-studio-id="${selected.studioId}"]`);
         if (active) active.classList.add('selected-card');
       }
 
       function renderServices() {
         const grid = document.getElementById('serviceGrid');
-        grid.innerHTML = services.map(service => `
-          <article class="service-card" data-service-id="${service.id}" tabindex="0" role="button" aria-label="Scegli ${service.name}">
-            <span class="tag">${service.tag}</span>
-            <h3>${service.name}</h3>
+        const studioServices = servicesForStudio(selected.studioId);
+        grid.innerHTML = studioServices.map(service => `
+          <article class="service-card" data-service-id="${Number(service.id)}" tabindex="0" role="button" aria-label="Scegli ${escapeHtml(service.name)}">
+            <span class="tag">Trattamento</span>
+            <h3>${escapeHtml(service.name)}</h3>
             <p>Trattamento dedicato al tuo benessere, con servizio su misura e prezzo chiaro.</p>
-            <div class="service-meta"><strong>${service.price} €</strong><span>${service.duration}</span></div>
+            <div class="service-meta"><strong>${service.price.toFixed(2)} €</strong><span>${service.duration}</span></div>
             <div class="link-button"><a href="#booking-form">Seleziona</a></div>
           </article>
         `).join('');
 
+        if (!studioServices.length) {
+          grid.innerHTML = '<p class="small-note">Nessun servizio attivo per questa sede.</p>';
+        }
+
         grid.querySelectorAll('.service-card').forEach(card => {
           card.addEventListener('click', () => {
-            selected.service = card.dataset.serviceId;
+            selected.serviceId = Number(card.dataset.serviceId);
+            selected.time = null;
             renderServices();
+            loadAvailableSlots();
             updateSummary();
           });
         });
 
-        const active = grid.querySelector(`[data-service-id="${selected.service}"]`);
+        const active = grid.querySelector(`[data-service-id="${selected.serviceId}"]`);
         if (active) active.classList.add('selected-card');
       }
 
@@ -503,7 +557,10 @@
         for (let i = 0; i < 6; i++) {
           const date = new Date(start);
           date.setDate(start.getDate() + i);
-          dateList.push(date.toISOString().slice(0, 10));
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const dayOfMonth = String(date.getDate()).padStart(2, '0');
+          dateList.push(`${year}-${month}-${dayOfMonth}`);
         }
 
         root.innerHTML = dateList.map(date => `
@@ -515,7 +572,7 @@
             selected.date = button.dataset.date;
             selected.time = null;
             renderDates();
-            loadBookedSlots();
+            loadAvailableSlots();
             updateSummary();
           });
         });
@@ -524,28 +581,24 @@
           selected.date = dateList[0];
         }
 
-        loadBookedSlots();
+        loadAvailableSlots();
       }
 
       function renderSlots() {
         const grid = document.getElementById('slotGrid');
-        const studioId = selected.studio || 'roma';
-        const bookings = bookedSlots[studioId]?.[selected.date] || fallbackBookedSlots[studioId]?.[selected.date] || [];
+        const slots = availableSlots[selected.studioId]?.[selected.serviceId]?.[selected.date];
+        if (slots === null || slots === undefined) {
+          grid.innerHTML = '<p class="small-note">Caricamento disponibilità…</p>';
+          return;
+        }
+        if (!slots.length) {
+          grid.innerHTML = '<p class="small-note">Nessun orario disponibile per questa data.</p>';
+          return;
+        }
 
-        const slotButtons = slotTimes.map(time => {
-          const booked = bookings.includes(time);
-          const active = selected.time === time;
-          return `
-            <button
-              type="button"
-              class="slot ${booked ? 'busy' : ''} ${active ? 'active' : ''}"
-              data-time="${time}"
-              ${booked ? 'disabled' : ''}
-            >${time}</button>
-          `;
-        }).join('');
-
-        grid.innerHTML = slotButtons;
+        grid.innerHTML = slots.map(time => `
+          <button type="button" class="slot ${selected.time === time ? 'active' : ''}" data-time="${escapeHtml(time)}">${escapeHtml(time)}</button>
+        `).join('');
 
         grid.querySelectorAll('.slot').forEach(button => {
           if (!button.disabled) {
@@ -559,18 +612,18 @@
       }
 
       function updateSummary() {
-        const studio = getStudioById(selected.studio);
-        const service = getServiceById(selected.service);
+        const studio = getStudioById(selected.studioId);
+        const service = getServiceById(selected.serviceId);
 
-        document.getElementById('summaryStudio').textContent = studio ? studio.name : 'Non selezionato';
-        document.getElementById('summaryService').textContent = service ? service.name : 'Non selezionato';
+        document.getElementById('summaryStudio').textContent = studio?.name || 'Non selezionato';
+        document.getElementById('summaryService').textContent = service?.name || 'Non selezionato';
         document.getElementById('summaryDate').textContent = selected.date ? formatDate(selected.date) : 'Non selezionata';
         document.getElementById('summaryTime').textContent = selected.time || 'Non selezionato';
         document.getElementById('summaryPrice').textContent = service ? `${service.price} €` : '-';
 
         const priceList = document.getElementById('priceList');
-        priceList.innerHTML = services.map(serviceItem => `
-          <li>${serviceItem.name}: ${serviceItem.price} €</li>
+        priceList.innerHTML = servicesForStudio(selected.studioId).map(serviceItem => `
+          <li>${escapeHtml(serviceItem.name)}: ${serviceItem.price} €</li>
         `).join('');
       }
 
@@ -579,17 +632,15 @@
         const name = document.getElementById('name').value.trim();
         const email = document.getElementById('email').value.trim();
 
-        if (!selected.studio || !selected.service || !selected.date || !selected.time || !name || !email) {
+        if (!selected.studioId || !selected.serviceId || !selected.date || !selected.time || !name || !email) {
           alert('Completa tutti i campi e scegli studio, servizio, data e orario.');
           return;
         }
 
-        const service = getServiceById(selected.service);
-        const studio = getStudioById(selected.studio);
-
+        const service = getServiceById(selected.serviceId);
         const payload = {
-          studio: studio.name,
-          service: service.name,
+          studio_id: selected.studioId,
+          service_id: selected.serviceId,
           date: selected.date,
           time: selected.time,
           name,
@@ -609,10 +660,21 @@
             throw new Error(data.message || 'Errore nella prenotazione');
           }
 
-          alert(`Prenotazione inviata con successo!\n\nCodice: ${data.booking_id}\nStudio: ${data.data.studio}\nServizio: ${data.data.service}\nData: ${data.data.date} ${data.data.time}`);
+          const notifications = data.notifications || {};
+          let emailStatus = 'La richiesta è registrata; lo studio ti ricontatterà per confermare.';
+          if (notifications.studio_sent && notifications.customer_sent) {
+            emailStatus = 'Abbiamo inviato un’email allo studio e una ricevuta al tuo indirizzo.';
+          } else if (!notifications.studio_sent && !notifications.customer_sent) {
+            emailStatus = 'La richiesta è registrata, ma non è stato possibile inviare le email. Contatta lo studio per verificare.';
+          } else if (!notifications.studio_sent) {
+            emailStatus = 'La richiesta è registrata e hai ricevuto la ricevuta; la notifica allo studio non è partita. Contattalo per verificare.';
+          } else {
+            emailStatus = 'La richiesta è registrata e lo studio è stato avvisato, ma la ricevuta email non è partita.';
+          }
+          alert(`${emailStatus}\n\nCodice: ${data.booking_id}\nStudio: ${data.data.studio}\nServizio: ${data.data.service}\nData: ${data.data.date} ${data.data.time}`);
           this.reset();
           selected.time = null;
-          renderSlots();
+          loadAvailableSlots();
           updateSummary();
         } catch (error) {
           alert('Non è stato possibile inviare la richiesta. Nessuna prenotazione è stata registrata. Riprova più tardi o contattaci via email.');
@@ -672,10 +734,7 @@
       `;
       document.head.appendChild(style);
 
-      renderStudios();
-      renderServices();
-      renderDates();
-      updateSummary();
+      loadCatalog();
     </script>
   </body>
 </html>

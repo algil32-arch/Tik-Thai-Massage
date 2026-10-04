@@ -1,16 +1,11 @@
 <?php
-$dbHost = getenv('DB_HOST') ?: 'localhost';
-$dbName = getenv('DB_NAME') ?: 'tikthai_booking';
-$dbUser = getenv('DB_USER') ?: 'root';
-$dbPass = getenv('DB_PASS') ?: '';
+require_once __DIR__ . '/app-config.php';
 
 try {
-    $pdo = new PDO("mysql:host={$dbHost};dbname={$dbName};charset=utf8mb4", $dbUser, $dbPass, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    ]);
+  $pdo = dbConnection();
 } catch (Throwable $e) {
-    die('Database connection error: ' . $e->getMessage());
+  http_response_code(503);
+  die('Database non raggiungibile. Verifica la configurazione privata e i dati Aruba.');
 }
 
 $invoiceStmt = $pdo->query(

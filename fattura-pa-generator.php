@@ -8,17 +8,11 @@
  * - exposes JSON output for HTTP or CLI use
  */
 
+require_once __DIR__ . '/app-config.php';
+
 function dbConnect(): PDO
 {
-    $host = getenv('DB_HOST') ?: 'localhost';
-    $db   = getenv('DB_NAME') ?: 'tikthai_booking';
-    $user = getenv('DB_USER') ?: 'root';
-    $pass = getenv('DB_PASS') ?: '';
-
-    return new PDO("mysql:host={$host};dbname={$db};charset=utf8mb4", $user, $pass, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    ]);
+    return dbConnection();
 }
 
 function ensureDirs(): void
