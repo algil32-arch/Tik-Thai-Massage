@@ -155,6 +155,7 @@ $appointments = $stmt->fetchAll();
     <section class="schedule-panel" id="agenda" aria-labelledby="agenda-title">
       <h2 id="agenda-title">Disponibilità settimanale</h2>
       <p>Configura i giorni di presenza, le fasce orarie e ogni quanti minuti proporre uno slot per ciascuno studio.</p>
+      <p>Il passo resta quello configurato. Dopo una prenotazione, gli orari liberi ripartono dalla fine del trattamento più 5 minuti di pausa, senza spostare gli appuntamenti esistenti.</p>
       <?php if ($adminMessage !== ''): ?>
         <p class="notice" role="status"><?= htmlspecialchars($adminMessage, ENT_QUOTES, 'UTF-8') ?></p>
       <?php endif; ?>

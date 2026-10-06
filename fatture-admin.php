@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/app-config.php';
+require_once __DIR__ . '/admin-auth.php';
 
 try {
   $pdo = dbConnection();
@@ -10,7 +10,8 @@ try {
 
 $invoiceStmt = $pdo->query(
     "SELECT f.id, f.numero_fattura, f.data_emissione, f.importo_totale, f.stato,
-            c.nome AS cliente_nome, c.cognome AS cliente_cognome, c.email AS cliente_email,
+            f.tipo_documento, f.natura_iva, f.importo_rivalsa, f.bollo_virtuale, f.bollo_addebitato,
+            c.nome AS cliente_nome, c.cognome AS cliente_cognome, c.ragione_sociale, c.tipo_cliente, c.email AS cliente_email,
             st.nome AS studio_nome
      FROM fatture f
      LEFT JOIN clienti c ON c.id = f.id_cliente
@@ -141,6 +142,7 @@ foreach ($invoices as $invoice) {
         gap: 16px;
         margin-bottom: 18px;
       }
+      .topbar-actions { display: flex; flex-wrap: wrap; gap: 10px; }
       .btn {
         display: inline-flex;
         align-items: center;
@@ -165,8 +167,14 @@ foreach ($invoices as $invoice) {
     <div class="container">
       <div class="topbar">
         <h1>Gestione fatture</h1>
-        <a class="btn" href="booking-admin-advanced.php">Torna all'admin</a>
+        <div class="topbar-actions">
+          <a class="btn" href="fattura-manuale.php">Nuova fattura manuale</a>
+          <a class="btn" href="booking-admin-advanced.php">Torna all'admin</a>
+        </div>
       </div>
+      <?php if (isset($_GET['manuale']) && $_GET['manuale'] === 'creata'): ?>
+        <p class="empty" role="status">Bozza manuale registrata correttamente.</p>
+      <?php endif; ?>
 
       <div class="overview">
         <div class="chip">Totale fatture: <strong><?= (int)$totalInvoices ?></strong></div>
@@ -194,12 +202,23 @@ foreach ($invoices as $invoice) {
               <tr>
                 <td><?= htmlspecialchars((string)$invoice['numero_fattura']) ?></td>
                 <td>
+                  <?php if (($invoice['tipo_cliente'] ?? '') === 'azienda' && !empty($invoice['ragione_sociale'])): ?>
+                    <strong><?= htmlspecialchars((string)$invoice['ragione_sociale']) ?></strong><br>
+                  <?php endif; ?>
                   <?= htmlspecialchars((string)$invoice['cliente_nome'] . ' ' . ($invoice['cliente_cognome'] ?? '')) ?><br>
                   <span class="muted"><?= htmlspecialchars((string)$invoice['cliente_email']) ?></span>
                 </td>
                 <td><?= htmlspecialchars((string)$invoice['studio_nome']) ?></td>
                 <td><?= htmlspecialchars((string)$invoice['data_emissione']) ?></td>
-                <td>€ <?= number_format((float)$invoice['importo_totale'], 2, ',', '.') ?></td>
+                <td>
+                  € <?= number_format((float)$invoice['importo_totale'], 2, ',', '.') ?><br>
+                  <span class="muted">
+                    <?= htmlspecialchars((string)$invoice['tipo_documento']) ?>
+                    <?php if (!empty($invoice['natura_iva'])): ?> · <?= htmlspecialchars((string)$invoice['natura_iva']) ?><?php endif; ?>
+                    <?php if ((float)$invoice['importo_rivalsa'] > 0): ?> · Rivalsa € <?= number_format((float)$invoice['importo_rivalsa'], 2, ',', '.') ?><?php endif; ?>
+                    <?php if ((int)$invoice['bollo_virtuale'] === 1): ?> · Bollo virtuale<?= (int)$invoice['bollo_addebitato'] === 1 ? ' addebitato' : '' ?><?php endif; ?>
+                  </span>
+                </td>
                 <td>
                   <span class="status <?= (($invoice['stato'] ?? '') === 'pagata') ? 'paid' : '' ?>"><?= htmlspecialchars((string)$invoice['stato']) ?></span>
                 </td>

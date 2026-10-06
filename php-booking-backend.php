@@ -8,6 +8,7 @@ header('Content-Type: application/json; charset=utf-8');
 date_default_timezone_set('Europe/Rome');
 require_once __DIR__ . '/app-config.php';
 require_once __DIR__ . '/booking-mailer.php';
+require_once __DIR__ . '/booking-slots.php';
 
 function apiResponse(int $status, array $payload): void
 {
@@ -100,39 +101,13 @@ if ($method === 'GET') {
         $appointmentsStmt->execute([':studio' => $studioId, ':date' => $date]);
         $appointments = $appointmentsStmt->fetchAll();
 
-        $duration = (int)$service['durata_minuti'];
-        $now = new DateTimeImmutable('now');
-        $available = [];
-        foreach ($scheduleRows as $schedule) {
-            $start = new DateTimeImmutable($date . ' ' . $schedule['ora_inizio']);
-            $end = new DateTimeImmutable($date . ' ' . $schedule['ora_fine']);
-            $lastStart = $end->modify('-' . $duration . ' minutes');
-            $step = max(5, (int)$schedule['intervallo_minuti']);
-
-            for ($slot = $start; $slot <= $lastStart; $slot = $slot->modify('+' . $step . ' minutes')) {
-                if ($slot <= $now) {
-                    continue;
-                }
-
-                $slotEnd = $slot->modify('+' . $duration . ' minutes');
-                $overlaps = false;
-                foreach ($appointments as $appointment) {
-                    $appointmentStart = new DateTimeImmutable($date . ' ' . $appointment['ora_inizio']);
-                    $appointmentEnd = new DateTimeImmutable($date . ' ' . $appointment['ora_fine']);
-                    if ($slot < $appointmentEnd && $slotEnd > $appointmentStart) {
-                        $overlaps = true;
-                        break;
-                    }
-                }
-
-                if (!$overlaps) {
-                    $available[$slot->format('H:i')] = true;
-                }
-            }
-        }
-
-        $availableSlots = array_keys($available);
-        sort($availableSlots);
+        $availableSlots = bookingAvailableSlots(
+            $date,
+            (int)$service['durata_minuti'],
+            $scheduleRows,
+            $appointments,
+            new DateTimeImmutable('now')
+        );
 
         apiResponse(200, [
             'success' => true,
@@ -255,25 +230,6 @@ $scheduleStmt->execute([
     ':weekday' => (int)$startDateTime->format('N'),
 ]);
 $scheduleRows = $scheduleStmt->fetchAll();
-$startMinute = ((int)$startDateTime->format('H') * 60) + (int)$startDateTime->format('i');
-$endMinute = ((int)$endDateTime->format('H') * 60) + (int)$endDateTime->format('i');
-$fitsSchedule = false;
-foreach ($scheduleRows as $schedule) {
-    $windowStart = new DateTimeImmutable($date . ' ' . $schedule['ora_inizio']);
-    $windowEnd = new DateTimeImmutable($date . ' ' . $schedule['ora_fine']);
-    $windowStartMinute = ((int)$windowStart->format('H') * 60) + (int)$windowStart->format('i');
-    $windowEndMinute = ((int)$windowEnd->format('H') * 60) + (int)$windowEnd->format('i');
-    $step = max(5, (int)$schedule['intervallo_minuti']);
-
-    if ($startDateTime >= $windowStart && $endDateTime <= $windowEnd && ($startMinute - $windowStartMinute) % $step === 0) {
-        $fitsSchedule = true;
-        break;
-    }
-}
-if (!$fitsSchedule) {
-    apiResponse(409, ['success' => false, 'message' => 'L’orario selezionato non è più disponibile.']);
-}
-
 $nameParts = preg_split('/\s+/', $name, 2);
 $firstName = $nameParts[0] ?? '';
 $lastName = $nameParts[1] ?? '';
@@ -285,22 +241,26 @@ try {
     $lockStudio = $pdo->prepare('SELECT id FROM studi WHERE id = :studio AND attivo = 1 FOR UPDATE');
     $lockStudio->execute([':studio' => $studioRecord['id']]);
 
-    $overlapStmt = $pdo->prepare(
-        "SELECT id FROM appuntamenti
+    $appointmentsStmt = $pdo->prepare(
+        "SELECT ora_inizio, ora_fine FROM appuntamenti
          WHERE id_studio = :studio AND data_appuntamento = :date
            AND stato IN ('in_attesa', 'confermato')
-           AND ora_inizio < :end_time AND ora_fine > :start_time
-         LIMIT 1"
+         FOR UPDATE"
     );
-    $overlapStmt->execute([
+    $appointmentsStmt->execute([
         ':studio' => $studioRecord['id'],
         ':date' => $date,
-        ':end_time' => $endDateTime->format('H:i:s'),
-        ':start_time' => $startDateTime->format('H:i:s'),
     ]);
-    if ($overlapStmt->fetch()) {
+    $availableSlots = bookingAvailableSlots(
+        $date,
+        (int)$serviceRecord['durata_minuti'],
+        $scheduleRows,
+        $appointmentsStmt->fetchAll(),
+        new DateTimeImmutable('now')
+    );
+    if (!in_array($time, $availableSlots, true)) {
         $pdo->rollBack();
-        apiResponse(409, ['success' => false, 'message' => 'L’orario selezionato è appena stato prenotato. Scegline un altro.']);
+        apiResponse(409, ['success' => false, 'message' => 'Le disponibilità sono cambiate. Scegli un nuovo orario: sono previsti almeno 5 minuti tra i trattamenti.']);
     }
 
     $customerStmt = $pdo->prepare(

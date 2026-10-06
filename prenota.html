@@ -99,9 +99,10 @@
       .studio-card h3,
       .service-card h3 {
         margin: 0;
-        font-size: 22px;
         font-weight: 600;
       }
+      .studio-card h3 { font-size: 22px; }
+      .service-card h3 { color: var(--ink); font-size: 22px; font-weight: 600; }
       .studio-location-link { color: inherit; text-decoration: none; }
       .studio-location-link:hover, .studio-location-link:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
       .studio-card p,
@@ -217,7 +218,8 @@
         <a class="brand" href="index.html" aria-label="Thai Tik Massage, torna alla home">
           <img class="brand-logo" src="tik-thai-logo-transparent.png" alt="" />
           <span class="brand-copy">
-            <span class="brand-name">THAI TIK MASSAGE &amp; WELLNESS</span>
+            <span class="brand-name">THAI TIK MASSAGE</span>
+            <span class="brand-sub">&amp; WELLNESS</span>
           </span>
         </a>
         <div class="language-switcher gtranslate_wrapper" aria-label="Seleziona la lingua"></div>
@@ -236,7 +238,7 @@
           <a class="back" href="index.html">← Torna alla home</a>
           <p class="eyebrow">Agenda</p>
           <h1 id="page-title">Prenota il tuo trattamento.</h1>
-          <p>Seleziona lo studio, il servizio e il tuo slot disponibile. La pagina è pensata per diventare una vera agenda condivisa con più sedi.</p>
+          <p>Seleziona lo studio, il servizio e il tuo slot disponibile.</p>
         </div>
       </section>
 
@@ -277,6 +279,7 @@
             </div>
             <div class="field">
               <label>Orari disponibili</label>
+              <p class="field-help">Gli orari liberi si aggiornano dopo ogni prenotazione, lasciando almeno 5 minuti tra un trattamento e il successivo.</p>
               <div class="slot-grid" id="slotGrid" aria-live="polite"></div>
             </div>
           </section>
@@ -367,7 +370,7 @@
 
     <footer class="site-footer">
       <div class="wrap footer-inner">
-        <p>Thai Tik Massage · Trattamenti benessere thailandesi</p>
+        <p>Thai Tik Massage · Trattamenti benessere thailandesi<br>P.IVA 18730391002</p>
         <a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=info%40thaitikmassage.it">info@thaitikmassage.it</a>
       </div>
     </footer>
@@ -795,6 +798,13 @@
           });
 
           const data = await response.json();
+          if (response.status === 409) {
+            selected.time = null;
+            await loadAvailableSlots();
+            updateSummary();
+            alert(data.message || 'Le disponibilità sono cambiate. Seleziona un nuovo orario.');
+            return;
+          }
           if (!response.ok || !data.success) {
             throw new Error(data.message || 'Errore nella prenotazione');
           }

@@ -5,6 +5,7 @@ CREATE TABLE professionisti (
   id INT PRIMARY KEY AUTO_INCREMENT,
   nome VARCHAR(100) NOT NULL,
   cognome VARCHAR(100) NOT NULL,
+  ragione_sociale VARCHAR(255),
   partita_iva VARCHAR(11),
   codice_fiscale VARCHAR(16),
   email VARCHAR(255) NOT NULL,
@@ -13,8 +14,9 @@ CREATE TABLE professionisti (
   regime_fiscale VARCHAR(50),
   indirizzo VARCHAR(255),
   citta VARCHAR(100),
+  provincia CHAR(2),
   cap VARCHAR(10),
-  attivo TINYINT(1) DEFAULT 1,
+  attivo TINYINT DEFAULT 1,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -27,7 +29,7 @@ CREATE TABLE studi (
   email_studio VARCHAR(255),
   telefono VARCHAR(50),
   id_professionista INT NOT NULL,
-  attivo TINYINT(1) DEFAULT 1,
+  attivo TINYINT DEFAULT 1,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (id_professionista) REFERENCES professionisti(id)
 );
@@ -45,6 +47,7 @@ CREATE TABLE clienti (
   pec VARCHAR(255),
   indirizzo VARCHAR(255),
   citta VARCHAR(100),
+  provincia CHAR(2),
   cap VARCHAR(10),
   tipo_cliente ENUM('privato','azienda') DEFAULT 'privato',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -57,7 +60,7 @@ CREATE TABLE servizi (
   durata_minuti INT NOT NULL,
   prezzo DECIMAL(10,2) NOT NULL,
   iva_percentuale DECIMAL(5,2) DEFAULT 22.00,
-  attivo TINYINT(1) DEFAULT 1,
+  attivo TINYINT DEFAULT 1,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (id_studio) REFERENCES studi(id)
 );
@@ -91,6 +94,13 @@ CREATE TABLE fatture (
   id_cliente INT NOT NULL,
   id_studio INT NOT NULL,
   id_professionista INT NOT NULL,
+  tipo_documento CHAR(4) NOT NULL DEFAULT 'TD01',
+  data_prestazione DATE,
+  natura_iva VARCHAR(4),
+  importo_rivalsa DECIMAL(10,2) NOT NULL DEFAULT 0,
+  bollo_virtuale TINYINT NOT NULL DEFAULT 0,
+  bollo_addebitato TINYINT NOT NULL DEFAULT 0,
+  importo_bollo DECIMAL(10,2) NOT NULL DEFAULT 0,
   importo_netto DECIMAL(10,2) NOT NULL,
   iva_totale DECIMAL(10,2) NOT NULL,
   importo_totale DECIMAL(10,2) NOT NULL,

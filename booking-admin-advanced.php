@@ -152,12 +152,14 @@ $appointments = $stmt->fetchAll();
         letter-spacing: 0.04em;
         text-transform: uppercase;
       }
+      .link-row { flex-wrap: wrap; gap: 10px; }
     </style>
   </head>
   <body>
     <div class="container">
       <h1>Admin prenotazioni</h1>
       <div class="link-row">
+        <a href="fattura-manuale.php">Nuova fattura manuale</a>
         <a href="fatture-admin.php">Gestione fatture</a>
       </div>
       <div class="overview">
