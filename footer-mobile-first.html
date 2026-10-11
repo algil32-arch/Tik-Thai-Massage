@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thai Tik Massage | Footer mobile first</title>
+    <style>
+      :root {
+        --bg: #201915;
+        --panel: #2a231f;
+        --text: #f3eadf;
+        --muted: rgba(243, 234, 223, 0.8);
+        --gold: #e7c79a;
+        --line: rgba(255,255,255,0.08);
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #f4efe9;
+        color: #1f1b19;
+      }
+
+      .demo {
+        padding: 32px 20px;
+        text-align: center;
+      }
+
+      .footer-mobile {
+        background: var(--bg);
+        color: var(--text);
+        padding: 24px 16px 18px;
+      }
+
+      .footer-mobile .brand {
+        margin-bottom: 18px;
+      }
+
+      .footer-mobile h3 {
+        margin: 0 0 8px;
+        font-size: 1.2rem;
+        color: #fff;
+      }
+
+      .footer-mobile p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .footer-mobile .group {
+        margin-top: 18px;
+        padding-top: 16px;
+        border-top: 1px solid var(--line);
+      }
+
+      .footer-mobile h4 {
+        margin: 0 0 10px;
+        font-size: 0.72rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--gold);
+      }
+
+      .footer-mobile ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .footer-mobile li + li {
+        margin-top: 8px;
+      }
+
+      .footer-mobile a {
+        color: var(--muted);
+        text-decoration: none;
+      }
+
+      .footer-mobile a:hover {
+        color: #fff;
+        text-decoration: underline;
+      }
+
+      .footer-mobile .legal {
+        margin-top: 20px;
+        padding-top: 14px;
+        border-top: 1px solid var(--line);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        font-size: 0.78rem;
+      }
+
+      .footer-mobile .legal-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 12px;
+      }
+    </style>
+    <link rel="stylesheet" href="footer.css" />
+    <link rel="stylesheet" href="cookie-consent.css" />
+    <script src="cookie-consent.js" defer></script>
+  </head>
+  <body>
+    <main class="demo"><h1>Anteprima footer mobile-first</h1><p>Lo stesso stile delle pagine del sito, con collegamenti comodi da usare su telefono.</p></main>
+
+    <footer class="footer-mobile" aria-label="Footer Thai Tik Massage">
+      <div class="brand">
+        <h3>Thai Tik Massage</h3>
+      </div>
+      <p>Trattamenti benessere thailandesi con prenotazioni online e servizi in più sedi partner.</p>
+
+      <div class="group">
+        <h4>Documenti</h4>
+        <ul>
+          <li><a href="documenti-legali-premium.html#privacy">Privacy Policy</a></li>
+          <li><a href="documenti-legali-premium.html#cookie">Cookie Policy</a></li>
+          <li><a href="documenti-legali-premium.html#terms">Condizioni d’uso</a></li>
+          <li><a href="documenti-legali-premium.html#accessibility">Accessibilità</a></li>
+        </ul>
+      </div>
+
+      <div class="group">
+        <h4>Sedi</h4>
+        <ul>
+          <li><a href="https://maps.google.com/?q=Barbiere+Prati+Via+Gioacchino+Belli+1" target="_blank" rel="noreferrer">Barbiere Prati</a></li>
+          <li><a href="https://maps.google.com/?q=APS+Jaqueline+Via+Valle+Borbera+49+Roma" target="_blank" rel="noreferrer">APS Jaqueline</a></li>
+        </ul>
+      </div>
+
+      <div class="group">
+        <h4>Contatti</h4>
+        <ul>
+          <li><a href="mailto:info@thaitikmassage.it">info@thaitikmassage.it</a></li>
+          <li><a href="documenti-legali-premium.html#dsar">DSAR</a></li>
+          <li><a href="documenti-legali-premium.html#registry">Registro dei trattamenti</a></li>
+        </ul>
+      </div>
+
+      <div class="legal">
+        <div>© 2026 Thai Tik Massage</div>
+        <div class="legal-links">
+          <a href="documenti-legali-premium.html#privacy">Privacy</a>
+          <a href="documenti-legali-premium.html#cookie">Cookie</a>
+          <a href="documenti-legali-premium.html#terms">Termini</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

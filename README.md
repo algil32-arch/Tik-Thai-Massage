@@ -13,7 +13,52 @@ python3 -m http.server 8000
 
 Then visit `http://localhost:8000`.
 
+## Logo
+
+Le pagine pubbliche, l'area amministrativa e le schede cliente usano
+`thai-tik-logo-alternativo.png`, con la scritta “THAI TIK MASSAGE”, ornamenti
+dorati e verdi e sfondo trasparente. I PDF presenti si
+rigenerano con `generate_cliente_dati_fatturazione.py` e
+`generate_cliente_dati_fatturazione_bilingue_minima.py` (richiedono ReportLab).
+Nelle pagine pubbliche il logo ingrandito e' centrato nell'intestazione,
+con il selettore lingue a sinistra e la navigazione sotto.
+
 The booking page shows clearly labeled sample studios, services, and time slots on `localhost`. It does not submit or save bookings. To test real availability and booking submission, use PHP with PDO MySQL and the configured MySQL database; Python's static server cannot execute PHP.
+
+## Footer condiviso
+
+Il footer delle pagine pubbliche, della pagina documenti legali e dell'anteprima
+`footer-mobile-first.html` usa `footer.css`. Il foglio e' caricato direttamente
+dalla home e dalle due anteprime, e importato da `details.css` nelle altre pagine.
+Pubblicare anche `footer.css` e `thai-tik-logo-alternativo.png` insieme agli HTML.
+Il layout mobile-first passa da una colonna a due e poi quattro; i collegamenti
+hanno un'area di interazione di almeno 44 px e un indicatore di focus da tastiera.
+
+## Consenso ai servizi facoltativi
+
+Le pagine pubbliche caricano `cookie-consent.js` prima di `language-selector.js`
+e usano `cookie-consent.css`. Google Maps non ha un `src` attivo prima
+dell'autorizzazione; GTranslate viene caricato solo autorizzando la traduzione.
+I font usano i fallback del dispositivo e non contattano Google Fonts.
+Pubblicare anche questi due nuovi file insieme agli HTML e allo script lingue.
+
+La scelta locale `thaitik-consent-v1` dura 180 giorni. Il footer permette di
+riaprire le preferenze; la revoca delle mappe rimuove gli iframe attivi, quella
+del traduttore ricarica la pagina per eliminare il codice esterno (attenzione
+ai moduli non salvati). Il consenso non blocca il backend di prenotazione.
+Se JavaScript e' disattivato, le mappe restano nascoste ma i link esterni restano
+disponibili. I problemi di storage sono mostrati al visitatore.
+
+Prima della pubblicazione verificare sul dominio HTTPS: prima visita, rifiuto,
+scelta separata delle categorie, persistenza tra pagine, revoca, scadenza,
+storage indisponibile, tastiera e mobile. Controllare nel pannello Network
+che Maps, GTranslate e Google Fonts non siano contattati prima del consenso
+o dopo il rifiuto. Le tecnologie effettive dei fornitori e i testi legali
+richiedono una verifica sul dominio live; questa implementazione non certifica
+la conformita' legale dell'intero sito.
+
+Test di regressione senza dipendenze aggiuntive:
+`node --test tests/cookie-consent.test.cjs`.
 
 ## Versione 6.0
 

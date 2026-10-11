@@ -16,15 +16,18 @@ def add_header(canvas, doc):
     canvas.setFillColor(colors.HexColor('#c8a44d'))
     canvas.rect(0, HEIGHT - 24 * mm, WIDTH, 3, stroke=0, fill=1)
 
-    logo = ImageReader('tik-thai-logo-transparent.png')
-    canvas.drawImage(logo, 12 * mm, HEIGHT - 20 * mm, width=18 * mm, height=18 * mm, mask='auto')
+    logo = ImageReader('thai-tik-logo-alternativo.png')
+    logo_height = 18 * mm
+    logo_width = logo_height * logo.getSize()[0] / logo.getSize()[1]
+    logo_x, logo_y = 12 * mm, HEIGHT - 21 * mm
+    canvas.drawImage(logo, logo_x, logo_y, width=logo_width, height=logo_height, mask='auto')
 
     canvas.setFillColor(colors.white)
     canvas.setFont('Times-Bold', 15)
-    canvas.drawString(32 * mm, HEIGHT - 15 * mm, 'THAI TIK MASSAGE')
+    canvas.drawString(53 * mm, HEIGHT - 15 * mm, 'THAI TIK MASSAGE')
     canvas.setFont('Times-Roman', 7)
     canvas.setFillColor(colors.HexColor('#f1e4bd'))
-    canvas.drawString(32 * mm, HEIGHT - 19 * mm, '& WELLNESS')
+    canvas.drawString(53 * mm, HEIGHT - 19 * mm, '& WELLNESS')
 
     canvas.restoreState()
 

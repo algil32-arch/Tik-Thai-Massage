@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thai Tik Massage — promo WhatsApp</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Lato, "Arial", sans-serif;
+        background: #101b17;
+        color: #fffaf0;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        justify-items: center;
+        align-content: center;
+        gap: 18px;
+        padding: 24px;
+      }
+
+      canvas {
+        display: block;
+        width: min(100%, 405px);
+        height: auto;
+        aspect-ratio: 9 / 16;
+        border: 1px solid #c8a85a;
+        border-radius: 14px;
+        background: #17211c;
+        box-shadow: 0 18px 60px #0008;
+      }
+
+      button {
+        border: 0;
+        border-radius: 999px;
+        padding: 13px 24px;
+        color: #142019;
+        background: #d6bd79;
+        font: 700 16px Lato, Arial, sans-serif;
+        cursor: pointer;
+      }
+
+      button:disabled {
+        cursor: wait;
+        opacity: 0.65;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="promo" width="1080" height="1920" aria-label="Anteprima video promozionale Thai Tik Massage"></canvas>
+    <button id="export">Esporta video WebM</button>
+    <script>
+      const canvas = document.querySelector("#promo");
+      const context = canvas.getContext("2d");
+      const exportButton = document.querySelector("#export");
+      const width = canvas.width;
+      const height = canvas.height;
+      const scenes = [
+        { image: "deep-tissue.jpg", start: 0, end: 4 },
+        { image: "promo-scene-2.jpg", start: 4, end: 8 },
+        { image: "promo-scene-3.jpg", start: 8, end: 11 },
+        { image: "promo-scene-4.jpg", start: 11, end: 15 },
+      ];
+      const images = scenes.map(({ image }) => {
+        const element = new Image();
+        element.src = image;
+        return element;
+      });
+      const logo = new Image();
+      logo.src = "thai-tik-logo-alternativo.png";
+      const therapistFace = new Image();
+
+      function roundedRect(x, y, w, h, radius, fill) {
+        context.beginPath();
+        context.roundRect(x, y, w, h, radius);
+        context.fillStyle = fill;
+        context.fill();
+      }
+
+      function write(text, x, y, size, color, weight = 700, align = "left") {
+        context.textAlign = align;
+        context.textBaseline = "middle";
+        context.font = `${weight} ${size}px Lato, Arial, sans-serif`;
+        context.fillStyle = color;
+        context.fillText(text, x, y);
+      }
+
+      function drawImageCover(image, progress) {
+        if (!image.complete || !image.naturalWidth) return;
+        const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight) * (1.03 + progress * 0.035);
+        const drawWidth = image.naturalWidth * scale;
+        const drawHeight = image.naturalHeight * scale;
+        const drift = progress * 24;
+        context.drawImage(image, (width - drawWidth) / 2 - drift, (height - drawHeight) / 2, drawWidth, drawHeight);
+      }
+
+      function drawFrame(seconds) {
+        const time = Math.max(0, Math.min(14.999, seconds));
+        const sceneIndex = scenes.findIndex(({ start, end }) => time >= start && time < end);
+        const scene = scenes[sceneIndex];
+        const sceneProgress = (time - scene.start) / (scene.end - scene.start);
+        const fadeIn = Math.min(1, (time - scene.start) / 0.35);
+        context.clearRect(0, 0, width, height);
+        drawImageCover(images[sceneIndex], sceneProgress);
+
+        const therapistPositions = [
+          null,
+          { x: 850, y: 140, w: 290, h: 410, angle: 0.12 },
+          { x: 920, y: 120, w: 310, h: 405, angle: 0.08 },
+          { x: 735, y: 65, w: 375, h: 610, angle: 0.12 },
+        ];
+        const facePosition = therapistPositions[sceneIndex];
+        if (facePosition && therapistFace.complete && therapistFace.naturalWidth) {
+          context.save();
+          context.translate(facePosition.x + facePosition.w / 2, facePosition.y + facePosition.h / 2);
+          context.rotate(facePosition.angle);
+          context.globalAlpha = 1;
+          context.drawImage(therapistFace, -facePosition.w / 2, -facePosition.h / 2, facePosition.w, facePosition.h);
+          context.restore();
+        }
+
+        const overlay = context.createLinearGradient(0, 0, 0, height);
+        overlay.addColorStop(0, "rgba(8, 18, 14, 0.74)");
+        overlay.addColorStop(0.32, "rgba(8, 18, 14, 0.18)");
+        overlay.addColorStop(0.58, "rgba(8, 18, 14, 0.2)");
+        overlay.addColorStop(1, "rgba(8, 18, 14, 0.94)");
+        context.fillStyle = overlay;
+        context.fillRect(0, 0, width, height);
+
+        if (logo.complete && logo.naturalWidth) {
+          context.drawImage(logo, 72, 72, 260, 226);
+        }
+        context.globalAlpha = fadeIn;
+        write("THAI TIK MASSAGE", 970, 145, 24, "#e5d5a6", 700, "right");
+        context.fillStyle = "#cbaa59";
+        context.fillRect(72, 315, 112, 4);
+
+        if (sceneIndex === 0) {
+          write("NUOVO SERVIZIO", 72, 365, 31, "#e5d5a6");
+          write("Il benessere", 72, 465, 68, "#fffaf0");
+          write("della Thailandia", 72, 548, 68, "#fffaf0");
+          write("Massaggio Thai", 72, 635, 34, "#fffaf0", 500);
+          roundedRect(72, 720, 365, 62, 31, "rgba(201, 170, 89, 0.2)");
+          write("THAI TIK MASSAGE", 254, 751, 25, "#f1dfaa", 700, "center");
+        } else if (sceneIndex === 1) {
+          write("QUATTRO MODI", 72, 368, 29, "#e5d5a6");
+          write("per ritrovare", 72, 450, 59, "#fffaf0");
+          write("il tuo equilibrio", 72, 523, 59, "#fffaf0");
+          [
+            ["01", "Thai tradizionale"],
+            ["02", "Deep tissue"],
+            ["03", "Aroma & oil massage"],
+            ["04", "Tok Sen"],
+          ].forEach(([number, name], index) => {
+            const y = 664 + index * 83;
+            write(number, 78, y, 24, "#d6bd79", 700);
+            write(name, 136, y, 34, "#fffaf0", 600);
+            context.fillStyle = "rgba(255, 250, 240, 0.34)";
+            context.fillRect(72, y + 39, 730, 1);
+          });
+        } else if (sceneIndex === 2) {
+          roundedRect(72, 365, 260, 56, 28, "rgba(214, 189, 121, 0.95)");
+          write("OFFERTA LANCIO", 202, 393, 24, "#17211c", 700, "center");
+          write("-20%", 72, 570, 160, "#f0d78f");
+          write("PER I NUOVI CLIENTI", 78, 698, 42, "#fffaf0", 700);
+          context.fillStyle = "#d6bd79";
+          context.fillRect(78, 752, 560, 2);
+          write("e sui pacchetti massaggi", 78, 812, 39, "#fffaf0", 600);
+        } else {
+          write("RILASSA", 72, 374, 29, "#e5d5a6");
+          write("corpo e mente", 72, 471, 56, "#fffaf0");
+          write("con la tua sessione", 72, 566, 65, "#f0d78f");
+          roundedRect(72, 666, 516, 74, 37, "rgba(15, 27, 22, 0.72)");
+          write("Thai tradizionale • Deep tissue • Aroma", 330, 703, 22, "#fffaf0", 600, "center");
+          write("Scopri i trattamenti", 72, 858, 34, "#fffaf0", 500);
+          write("e prenota il tuo momento", 72, 910, 34, "#fffaf0", 500);
+        }
+
+        context.globalAlpha = 1;
+        context.fillStyle = "rgba(13, 24, 19, 0.9)";
+        context.fillRect(0, 1684, width, 236);
+        context.fillStyle = "#cbaa59";
+        context.fillRect(72, 1684, 936, 3);
+        write("TRATTAMENTI E PRENOTAZIONI", width / 2, 1724, 20, "#e5d5a6", 700, "center");
+        write("www.thaitikmassage.it", width / 2, 1778, 29, "#fffaf0", 700, "center");
+        write("SALONE E INFORMAZIONI", width / 2, 1828, 20, "#e5d5a6", 700, "center");
+        write("c/o APS Jaqueline in via Valle Borbera, 49", width / 2, 1868, 22, "#fffaf0", 700, "center");
+        write("e Barbiere Prati in Via Gioacchino Belli, 1", width / 2, 1906, 22, "#fffaf0", 700, "center");
+      }
+
+      function animate() {
+        drawFrame((performance.now() / 1000) % 15);
+        requestAnimationFrame(animate);
+      }
+
+      exportButton.addEventListener("click", () => {
+        if (!MediaRecorder.isTypeSupported("video/webm;codecs=vp9")) {
+          throw new Error("Il browser non supporta la registrazione video VP9 richiesta.");
+        }
+        exportButton.disabled = true;
+        const stream = canvas.captureStream(30);
+        const recorder = new MediaRecorder(stream, {
+          mimeType: "video/webm;codecs=vp9",
+          videoBitsPerSecond: 8000000,
+        });
+        const chunks = [];
+        recorder.addEventListener("dataavailable", (event) => {
+          if (event.data.size) chunks.push(event.data);
+        });
+        recorder.addEventListener("stop", () => {
+          const video = new Blob(chunks, { type: recorder.mimeType });
+          const link = document.createElement("a");
+          link.href = URL.createObjectURL(video);
+          link.download = "thai-tik-massage-promo.webm";
+          link.click();
+          URL.revokeObjectURL(link.href);
+          stream.getTracks().forEach((track) => track.stop());
+          exportButton.disabled = false;
+        }, { once: true });
+        const startedAt = performance.now();
+        recorder.start();
+        function recordFrame() {
+          const elapsed = (performance.now() - startedAt) / 1000;
+          drawFrame(elapsed);
+          if (elapsed >= 15) {
+            recorder.stop();
+            return;
+          }
+          requestAnimationFrame(recordFrame);
+        }
+        requestAnimationFrame(recordFrame);
+      });
+
+      Promise.all([...images, logo, therapistFace].map((image) => new Promise((resolve, reject) => {
+        image.addEventListener("load", resolve, { once: true });
+        image.addEventListener("error", () => reject(new Error(`Impossibile caricare ${image.src}`)), { once: true });
+      }))).then(() => {
+        const previewTime = new URLSearchParams(location.search).get("preview");
+        if (previewTime === null) animate();
+        else drawFrame(Number(previewTime));
+      });
+    </script>
+  </body>
+</html>

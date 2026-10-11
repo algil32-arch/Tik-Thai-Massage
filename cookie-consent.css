@@ -1,0 +1,112 @@
+.consent-banner,
+.consent-dialog,
+.consent-notice {
+  box-sizing: border-box;
+  color: #2a201d;
+  background: #fffaf2;
+  border: 1px solid #a47d48;
+  font: 400 15px/1.6 "Segoe UI", Arial, sans-serif;
+}
+.consent-banner[hidden],
+.consent-notice[hidden],
+.map-consent-placeholder[hidden],
+iframe[data-consent-src][hidden] { display: none; }
+.consent-banner {
+  position: fixed;
+  z-index: 1000;
+  inset: auto 12px 12px;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 22px;
+  border-radius: 16px;
+  box-shadow: 0 12px 50px #0004;
+}
+.consent-banner h2,
+.consent-dialog h2 {
+  margin: 0 0 12px;
+  font: 400 24px/1.25 Georgia, serif;
+  color: #39271a;
+}
+.consent-banner p,
+.consent-dialog p { margin: 0 0 16px; color: #40352e; font-size: 15px; }
+.consent-banner a,
+.consent-dialog a { color: #66351e; text-decoration: underline; }
+.consent-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.consent-actions button,
+.map-consent-placeholder button,
+.translation-consent-button {
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid #85613d;
+  border-radius: 6px;
+  background: #39271a;
+  color: #fff7eb;
+  font: 600 14px/1.4 "Segoe UI", Arial, sans-serif;
+  cursor: pointer;
+}
+.consent-actions button { flex: 1 1 180px; }
+.consent-actions button:hover,
+.map-consent-placeholder button:hover { background: #60432a; }
+.consent-dialog {
+  width: min(560px, calc(100% - 24px));
+  max-height: 85vh;
+  padding: 26px;
+  border-radius: 16px;
+  overflow-y: auto;
+}
+.consent-dialog::backdrop { background: #1e1713b3; }
+.consent-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 0;
+  border-top: 1px solid #d8c9b5;
+  cursor: pointer;
+}
+.consent-option input { width: 24px; height: 24px; flex: 0 0 24px; margin: 0; accent-color: #664628; }
+.consent-option strong { display: block; }
+.consent-notice {
+  position: fixed;
+  z-index: 1100;
+  inset: auto 12px 12px;
+  margin: 0;
+  padding: 16px;
+  border-radius: 8px;
+}
+.consent-notice button {
+  display: block;
+  min-height: 44px;
+  margin-top: 8px;
+  border: 1px solid #85613d;
+  border-radius: 4px;
+  padding: 8px 12px;
+  background: #fffaf2;
+  color: #39271a;
+  font: inherit;
+  cursor: pointer;
+}
+.consent-notice button:focus-visible { outline: 3px solid #a47d48; outline-offset: 3px; }
+.map-consent-placeholder { padding: 28px 22px; color: #40352e; background: #f4efe9; }
+.map-consent-placeholder p { margin: 0 0 16px; }
+.translation-consent-button { max-width: 140px; font-size: 12px; }
+footer .consent-footer-button {
+  min-height: 44px;
+  padding: 7px 0;
+  border: 0;
+  background: transparent;
+  color: #e2d7cb;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 5px;
+  cursor: pointer;
+}
+:is(.consent-banner, .consent-dialog, .map-consent-placeholder) :is(button, a, input):focus-visible,
+.translation-consent-button:focus-visible,
+footer .consent-footer-button:focus-visible {
+  outline: 3px solid #a47d48;
+  outline-offset: 3px;
+}
+@media (min-width: 900px) {
+  .consent-banner { inset-inline: max(24px, calc((100vw - 1160px) / 2)); }
+  .consent-actions button { flex: 0 1 auto; }
+}

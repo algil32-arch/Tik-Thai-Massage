@@ -77,12 +77,51 @@ CREATE TABLE appuntamenti (
   stato ENUM('in_attesa','confermato','completato','annullato') DEFAULT 'in_attesa',
   metodo_pagamento ENUM('studio','online') NOT NULL DEFAULT 'studio',
   stato_pagamento ENUM('da_saldare','in_attesa','pagato','fallito','rimborsato') NOT NULL DEFAULT 'da_saldare',
+  sumup_checkout_id VARCHAR(100) NULL,
+  sumup_checkout_reference VARCHAR(100) NULL,
+  sumup_transaction_id VARCHAR(100) NULL,
+  google_event_id VARCHAR(255) NULL,
+  google_synced_at DATETIME NULL,
   note TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_appuntamenti_sumup_checkout (sumup_checkout_id),
+  UNIQUE KEY uq_appuntamenti_sumup_reference (sumup_checkout_reference),
+  UNIQUE KEY uq_appuntamenti_google_event (google_event_id),
   FOREIGN KEY (id_studio) REFERENCES studi(id),
   FOREIGN KEY (id_professionista) REFERENCES professionisti(id),
   FOREIGN KEY (id_cliente) REFERENCES clienti(id),
   FOREIGN KEY (id_servizio) REFERENCES servizi(id)
+);
+
+CREATE TABLE sumup_payment_intents (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  token CHAR(64) NOT NULL,
+  id_studio INT NOT NULL,
+  id_professionista INT NOT NULL,
+  id_servizio INT NOT NULL,
+  data_appuntamento DATE NOT NULL,
+  ora_inizio TIME NOT NULL,
+  ora_fine TIME NOT NULL,
+  amount DECIMAL(10,2) NOT NULL,
+  customer_data TEXT NOT NULL,
+  note TEXT,
+  status ENUM('pending','paid','failed','expired') NOT NULL DEFAULT 'pending',
+  sumup_checkout_id VARCHAR(100) NOT NULL,
+  sumup_checkout_reference VARCHAR(100) NOT NULL,
+  sumup_transaction_id VARCHAR(100) NULL,
+  appointment_id INT NULL,
+  expires_at DATETIME NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_sumup_intents_token (token),
+  UNIQUE KEY uq_sumup_intents_checkout (sumup_checkout_id),
+  UNIQUE KEY uq_sumup_intents_reference (sumup_checkout_reference),
+  UNIQUE KEY uq_sumup_intents_appointment (appointment_id),
+  INDEX idx_sumup_intents_slot (id_studio, data_appuntamento, status, expires_at),
+  FOREIGN KEY (id_studio) REFERENCES studi(id),
+  FOREIGN KEY (id_professionista) REFERENCES professionisti(id),
+  FOREIGN KEY (id_servizio) REFERENCES servizi(id),
+  FOREIGN KEY (appointment_id) REFERENCES appuntamenti(id)
 );
 
 CREATE TABLE fatture (
@@ -159,3 +198,27 @@ CREATE INDEX idx_servizi_studio ON servizi(id_studio);
 CREATE INDEX idx_appuntamenti_data ON appuntamenti(data_appuntamento, ora_inizio);
 CREATE INDEX idx_fatture_cliente ON fatture(id_cliente);
 CREATE INDEX idx_fatture_studio ON fatture(id_studio);
+
+CREATE TABLE agenda_blocchi (
+  id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  google_event_id VARCHAR(255) NOT NULL,
+  data_blocco DATE NOT NULL,
+  ora_inizio TIME NOT NULL,
+  ora_fine TIME NOT NULL,
+  titolo VARCHAR(255) NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_agenda_blocchi_evento_giorno (google_event_id, data_blocco),
+  INDEX idx_agenda_blocchi_data (data_blocco)
+);
+
+CREATE TABLE google_calendar_stato (
+  id TINYINT UNSIGNED PRIMARY KEY,
+  calendar_id VARCHAR(255) NOT NULL,
+  sync_token VARCHAR(1024) NULL,
+  access_token TEXT NULL,
+  access_token_expires_at DATETIME NULL,
+  last_sync_at DATETIME NULL,
+  last_error VARCHAR(500) NULL,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);

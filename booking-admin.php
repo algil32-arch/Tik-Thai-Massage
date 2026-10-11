@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/admin-auth.php';
+require_once __DIR__ . '/booking-slots.php';
 
 try {
   $pdo = dbConnection();
@@ -29,11 +30,11 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && isset($_POST['schedule_a
       $weekday = (int)($_POST['giorno_settimana'] ?? 0);
       $startTime = trim((string)($_POST['ora_inizio'] ?? ''));
       $endTime = trim((string)($_POST['ora_fine'] ?? ''));
-      $slotInterval = (int)($_POST['intervallo_minuti'] ?? 30);
+      $slotInterval = BOOKING_DISPLAY_INTERVAL_MINUTES;
       $validTime = static fn(string $time): bool => preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $time) === 1;
 
-      if (!isset($weekdays[$weekday]) || !$validTime($startTime) || !$validTime($endTime) || $startTime >= $endTime || !in_array($slotInterval, [15, 30, 60], true)) {
-        $adminMessage = 'Controlla giorno, orari e intervallo degli slot.';
+      if (!isset($weekdays[$weekday]) || !$validTime($startTime) || !$validTime($endTime) || $startTime >= $endTime) {
+        $adminMessage = 'Controlla il giorno e gli orari della fascia.';
       } else {
         $overlap = $pdo->prepare(
           'SELECT COUNT(*) FROM orari_studio
@@ -190,26 +191,21 @@ $appointments = $stmt->fetchAll();
           <label for="end-time">Alle
             <input id="end-time" name="ora_fine" type="time" required />
           </label>
-          <label for="slot-interval">Nuovo slot ogni
-            <select id="slot-interval" name="intervallo_minuti">
-              <option value="15">15 minuti</option>
-              <option value="30" selected>30 minuti</option>
-              <option value="60">60 minuti</option>
-            </select>
-          </label>
+          <input type="hidden" name="intervallo_minuti" value="60" />
+          <p class="small-note">Gli orari mostrati ai clienti hanno una griglia fissa di 60 minuti e un ultimo ingresso 30 minuti prima della fine della fascia.</p>
           <button type="submit">Aggiungi fascia</button>
         </form>
         <?php if (empty($scheduleRows)): ?>
           <div class="empty">Nessuna disponibilità configurata per questo studio. Finché non aggiungi una fascia, il sito non mostrerà orari prenotabili.</div>
         <?php else: ?>
           <table class="schedule-list">
-            <thead><tr><th>Giorno</th><th>Presenza</th><th>Passo slot</th><th>Azioni</th></tr></thead>
+            <thead><tr><th>Giorno</th><th>Presenza</th><th>Griglia clienti</th><th>Azioni</th></tr></thead>
             <tbody>
               <?php foreach ($scheduleRows as $schedule): ?>
                 <tr>
                   <td><?= htmlspecialchars($weekdays[(int)$schedule['giorno_settimana']] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
                   <td><?= htmlspecialchars(substr((string)$schedule['ora_inizio'], 0, 5) . '–' . substr((string)$schedule['ora_fine'], 0, 5), ENT_QUOTES, 'UTF-8') ?></td>
-                  <td><?= (int)$schedule['intervallo_minuti'] ?> min</td>
+                  <td>60 min</td>
                   <td>
                     <form method="post" class="inline-form">
                       <input type="hidden" name="csrf_token" value="<?= htmlspecialchars((string)$_SESSION['admin_csrf'], ENT_QUOTES, 'UTF-8') ?>" />

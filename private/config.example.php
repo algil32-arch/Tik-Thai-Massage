@@ -8,4 +8,11 @@ return [
     'ADMIN_PASSWORD' => '',
     'BOOKING_NOTIFICATION_EMAIL' => 'info@thaitikmassage.it',
     'MAIL_FROM_EMAIL' => 'info@thaitikmassage.it',
+    'SUMUP_API_KEY' => '',
+    'SUMUP_MERCHANT_CODE' => '',
+    'SUMUP_CURRENCY' => 'EUR',
+    'GOOGLE_CALENDAR_ID' => '',
+    'GOOGLE_SERVICE_ACCOUNT_FILE' => __DIR__ . '/google-service-account.json',
+    'GOOGLE_CALENDAR_TIMEZONE' => 'Europe/Rome',
+    'GOOGLE_SYNC_TOKEN' => '',
 ];

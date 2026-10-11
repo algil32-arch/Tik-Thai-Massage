@@ -15,6 +15,13 @@ function appConfig(): array
         'ADMIN_PASSWORD' => getenv('ADMIN_PASSWORD') ?: '',
         'BOOKING_NOTIFICATION_EMAIL' => getenv('BOOKING_NOTIFICATION_EMAIL') ?: 'info@thaitikmassage.it',
         'MAIL_FROM_EMAIL' => getenv('MAIL_FROM_EMAIL') ?: 'info@thaitikmassage.it',
+        'SUMUP_API_KEY' => getenv('SUMUP_API_KEY') ?: '',
+        'SUMUP_MERCHANT_CODE' => getenv('SUMUP_MERCHANT_CODE') ?: '',
+        'SUMUP_CURRENCY' => getenv('SUMUP_CURRENCY') ?: 'EUR',
+        'GOOGLE_CALENDAR_ID' => getenv('GOOGLE_CALENDAR_ID') ?: '',
+        'GOOGLE_SERVICE_ACCOUNT_FILE' => getenv('GOOGLE_SERVICE_ACCOUNT_FILE') ?: __DIR__ . '/private/google-service-account.json',
+        'GOOGLE_CALENDAR_TIMEZONE' => getenv('GOOGLE_CALENDAR_TIMEZONE') ?: 'Europe/Rome',
+        'GOOGLE_SYNC_TOKEN' => getenv('GOOGLE_SYNC_TOKEN') ?: '',
     ];
 
     $privateConfigPath = __DIR__ . '/private/config.local.php';

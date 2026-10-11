@@ -8,10 +8,14 @@ Il backend usa PHP con PDO e MySQL/MariaDB. L'agenda applica le fasce settimanal
 3. Importa `backend-aruba-seed.sql` per creare Nuttiporn Sriboust, le sedi Studio Prati e APS Studio Montesacro e i servizi attualmente pubblicati. Lo script evita di duplicare professionista, sedi e servizi se viene reimportato.
 4. Per nuovi studi creati successivamente, `backend-aruba-foot-massage.sql` aggiunge le formule Express e Completo.
 5. Sui database già creati con lo schema precedente, importa una sola volta `backend-aruba-prenotazioni-fiscali.sql` per aggiungere ragione sociale, PEC, codice destinatario e campi di pagamento.
-6. Per le nuove bozze fiscali manuali, importa una sola volta `backend-aruba-fatturazione-fiscale.sql` sui database esistenti; aggiunge provincia, regime/documento, rivalsa e dati bollo. Su database nuovi queste colonne sono già presenti nello schema principale.
+6. Per attivare il checkout SumUp su un database esistente, importa una sola volta `backend-aruba-sumup.sql`.
+7. Per registrare gli appuntamenti online solo dopo il pagamento, importa una sola volta `backend-aruba-sumup-intents.sql`. Gli intenti temporanei riservano lo slot per 15 minuti senza creare cliente o appuntamento.
+8. Per aggiungere al database esistente le formule Aromaterapia da 90 e 120 minuti e allineare i relativi prezzi, importa una sola volta `backend-aruba-aromaterapia-listino.sql`.
+9. Per le nuove bozze fiscali manuali, importa una sola volta `backend-aruba-fatturazione-fiscale.sql` sui database esistenti; aggiunge provincia, regime/documento, rivalsa e dati bollo. Su database nuovi queste colonne sono già presenti nello schema principale.
+10. Per la sincronizzazione con Google Calendar, importa una sola volta `backend-aruba-google-calendar.sql`: aggiunge `google_event_id` e `google_synced_at` ad `appuntamenti` e crea le tabelle `agenda_blocchi` e `google_calendar_stato`.
 
 ## Dati della prenotazione
-Nome, cognome, email e dati fiscali sono richiesti; il telefono è facoltativo. Per i privati è richiesto il codice fiscale, per aziende e professionisti ragione sociale, partita IVA e codice destinatario o PEC. Il metodo `studio` viene registrato sull'appuntamento. Il metodo `online` restituisce un errore esplicito finché il checkout SumUp non viene integrato.
+Nome, cognome, email e dati fiscali sono richiesti; il telefono è facoltativo. Per i privati è richiesto il codice fiscale, per aziende e professionisti ragione sociale, partita IVA e codice destinatario o PEC. Il metodo `studio` registra subito la richiesta e invia le notifiche. Il metodo `online` crea un intento temporaneo che riserva lo slot per 15 minuti, senza inserire righe in `clienti` o `appuntamenti`. Cliente, appuntamento e notifiche vengono creati solo dopo che il backend ha verificato lo stato `PAID` direttamente con SumUp. Alla scadenza il checkout viene disattivato e lo slot liberato; se il cliente abbandona la pagina senza pagare non rimane alcun appuntamento.
 
 ## Configurazione hosting
 La guida Aruba per Easy Linux documenta versione PHP e parametri `php.ini`, non variabili d'ambiente personalizzate. Per questo progetto usa il file privato:
@@ -23,17 +27,69 @@ La guida Aruba per Easy Linux documenta versione PHP e parametri `php.ini`, non 
 
 `DB_HOST`, `DB_NAME`, `DB_USER` e `DB_PORT` sono già impostati nel template. `ADMIN_PASSWORD` protegge le pagine di gestione prenotazioni, agenda e fatture.
 
+## Configurazione SumUp
+1. Nel profilo sviluppatore SumUp crea una API key per i pagamenti online e recupera il codice esercente.
+2. In `private/config.local.php` valorizza `SUMUP_API_KEY` e `SUMUP_MERCHANT_CODE`; lascia `SUMUP_CURRENCY` impostato su `EUR`.
+3. Non inserire mai la API key in HTML o JavaScript. Il browser riceve soltanto l'identificativo temporaneo del checkout.
+4. Verifica che nell'hosting Aruba sia attiva l'estensione PHP cURL e che il sito sia pubblicato in HTTPS.
+5. Esegui inizialmente un pagamento controllato con l'ambiente e le credenziali di test SumUp, poi passa alle credenziali di produzione.
+
+Il widget ufficiale invia i dati della carta direttamente a SumUp. Dopo il callback del widget, `sumup-payment.php` interroga l'API SumUp e confronta identificativo, riferimento, importo e valuta con l'intento temporaneo prima di creare l'appuntamento. Le chiamate ripetute di verifica sono idempotenti e non inviano email duplicate. Anche le richieste successive degli slot elaborano gli intenti scaduti: un checkout già pagato viene finalizzato, mentre un checkout non pagato viene disattivato e liberato.
+
 ## Email di prenotazione
 Dopo aver salvato la richiesta nel database, il backend usa la funzione PHP `mail()` per inviare una notifica a `BOOKING_NOTIFICATION_EMAIL` e una ricevuta al cliente. Per impostazione predefinita mittente e notifica studio sono `info@thaitikmassage.it`; puoi sovrascriverli in `private/config.local.php` con `MAIL_FROM_EMAIL` e `BOOKING_NOTIFICATION_EMAIL`. La ricevuta specifica che l'appuntamento è ancora in attesa di conferma. Il valore di ritorno di `mail()` indica che Aruba ha accettato il messaggio per l'invio, non garantisce la consegna in inbox.
 
 Prima del test prenotazione, verifica l'invio da **Hosting Linux → Strumenti e impostazioni → Gestione PHP → Test PHP mail**. Se Aruba non accetta o consegna i messaggi, le prenotazioni restano comunque registrate e il form segnala il problema; per SMTP servirà configurare un trasporto autenticato.
 
 ## Configurare l'agenda
-Apri `area-admin.html`, accedi con `ADMIN_PASSWORD` e scegli **Prenotazioni e agenda**. Per ogni studio aggiungi una o più fasce per giorno: ora iniziale, ora finale e passo degli slot (15, 30 o 60 minuti). Per chiudere una fascia, rimuovila. I clienti vedranno solo gli slot restituiti dall'agenda; una prenotazione non può superare la fine della fascia né sovrapporsi a una richiesta in attesa o confermata.
+Apri `area-admin.html`, accedi con `ADMIN_PASSWORD` e scegli **Prenotazioni e agenda**. Per ogni studio aggiungi una o più fasce per giorno indicando ora iniziale e ora finale. L'ora finale indica la chiusura: il sito mostra partenze ogni 60 minuti a partire dall'inizio della fascia e aggiunge un ultimo ingresso 30 minuti prima della chiusura, utilizzabile almeno dal trattamento più breve. Per chiudere una fascia, rimuovila.
 
-Il backend lascia almeno **5 minuti tra i trattamenti**, sia prima sia dopo gli appuntamenti in attesa o confermati. Gli orari liberi che incontrano un appuntamento ripartono dalla sua fine più 5 minuti, poi mantengono il passo configurato. Con passo 60 minuti: senza prenotazioni 10:00, 11:00, 12:00; dopo una prenotazione 10:00–11:00, 11:05, 12:05; dopo una seconda prenotazione 11:05–12:05, 12:10, 13:10. Gli appuntamenti esistenti non vengono spostati e il trattamento deve comunque terminare entro la fascia. Annullando una prenotazione, gli orari liberi vengono ricalcolati.
+Il backend lascia almeno **5 minuti tra i trattamenti**, sia prima sia dopo gli appuntamenti in attesa o confermati. Tutte le partenze orarie restano visibili: quelle che non possono contenere l'intera durata del trattamento, che si sovrappongono a un appuntamento o a un blocco Google, oppure che non lasciano la pausa necessaria, vengono mostrate come non disponibili. Se il cliente le seleziona, il sito spiega il motivo. La stessa regola viene ricontrollata dal server durante il salvataggio.
 
 La funzione condivisa in `booking-slots.php` viene usata sia per mostrare gli orari sia per validarli durante il salvataggio, sotto il lock dello studio. Se un'altra richiesta cambia le disponibilità, il POST restituisce 409 e il form aggiorna gli slot senza perdere i dati inseriti. Carica anche questo file sull'hosting; non serve una migrazione SQL. Per eseguire i test della logica: `php tests/booking-slots-test.php`.
+
+## Sincronizzazione con Google Calendar
+La sincronizzazione è bidirezionale: gli appuntamenti del sito diventano eventi del calendario e gli impegni creati a mano sul calendario chiudono gli slot sul sito. Poiché la professionista è una sola, un impegno Google blocca **tutte le sedi**.
+
+### Preparazione su Google Cloud
+1. Crea un progetto su [console.cloud.google.com](https://console.cloud.google.com) e abilita **Google Calendar API**.
+2. Crea un **account di servizio** e genera una chiave in formato JSON.
+3. Salva il file come `private/google-service-account.json` sull'hosting. La cartella privata nega l'accesso HTTP e il file è escluso dal versionamento.
+4. In Google Calendar crea (o scegli) il calendario dedicato, apri **Impostazioni e condivisione**, condividilo con l'indirizzo `client_email` dell'account di servizio dando il permesso **Apportare modifiche agli eventi** e copia l'**ID calendario**.
+
+### Configurazione del sito
+In `private/config.local.php` valorizza:
+
+- `GOOGLE_CALENDAR_ID`: l'ID del calendario condiviso.
+- `GOOGLE_SERVICE_ACCOUNT_FILE`: percorso del JSON, di norma `__DIR__ . '/google-service-account.json'`.
+- `GOOGLE_CALENDAR_TIMEZONE`: `Europe/Rome`.
+- `GOOGLE_SYNC_TOKEN`: una stringa casuale lunga, necessaria solo se richiami il cron via URL.
+
+Carica sull'hosting `google-calendar-client.php`, `google-calendar-sync.php` e `cron-calendar-sync.php`.
+
+### Cron
+Su Aruba serve **un solo cron ogni 10 minuti**, che è la frequenza minima consentita. Se Aruba ti permette di eseguire PHP da riga di comando:
+
+```
+*/10 * * * * /usr/bin/php /percorso/assoluto/cron-calendar-sync.php >/dev/null 2>&1
+```
+
+In alternativa, con richiesta HTTP (richiede `GOOGLE_SYNC_TOKEN`):
+
+```
+*/10 * * * * wget -q -O /dev/null "https://www.thaitikmassage.it/cron-calendar-sync.php?token=IL_TUO_TOKEN"
+```
+
+Puoi lanciare manualmente lo stesso URL dal browser per verificare l'esito: la risposta JSON riporta eventi letti, impegni importati ed eventi creati.
+
+### Regole di funzionamento
+- Gli appuntamenti `in_attesa` e `confermato` dalla data odierna in poi vengono creati su Google con una proprietà privata `thaitik_appointment_id`, così la sincronizzazione non li reimporta come impegni.
+- Gli appuntamenti `annullato` vengono rimossi dal calendario.
+- Gli eventi Google che non provengono dal sito sono salvati in `agenda_blocchi` giorno per giorno e rendono gli slot non prenotabili. Gli eventi marcati come **Disponibile** (`transparency: transparent`) non bloccano nulla.
+- Per liberare uno slot occupato a mano basta eliminare o spostare l'evento su Google: al ciclo successivo il sito lo rimette a disposizione.
+- Le disdette vanno fatte dall'area amministrativa: se cancelli su Google l'evento di un appuntamento attivo, il cron lo ricrea per evitare doppie prenotazioni.
+- Google invalida i token di sincronizzazione dopo lunghi periodi di inattività; in quel caso il cron esegue automaticamente una rilettura completa dei prossimi 12 mesi.
+- Finché `GOOGLE_CALENDAR_ID` non è configurato, il sito funziona esattamente come prima.
 
 ## Inserimento manuale fatture
 Dall'area admin scegli **Fattura manuale** per registrare fornitore, cliente, pagamento e prestazione. Il profilo del professionista viene aggiornato con i dati fiscali inseriti. Le bozze supportano regime forfettario RF19 (IVA 0%, natura N2.2) e ordinario RF01 (IVA 22%), rivalsa INPS facoltativa al 4% e bollo virtuale di 2 euro per il forfettario quando il totale supera 77,47 euro; il bollo può essere addebitato o restare a carico del professionista. Per i privati si registra il codice destinatario convenzionale `0000000`; per aziende è necessario codice destinatario o PEC. La data del documento in bozza coincide con quella di pagamento e la pagina mostra il termine indicativo di 12 giorni.
@@ -41,7 +97,7 @@ Dall'area admin scegli **Fattura manuale** per registrare fornitore, cliente, pa
 Il sistema aggiunge la dicitura forfettaria alle note, salva TD01 e gli elementi fiscali distinti, ma il numero `BOZZA-...` non è una numerazione fiscale definitiva: non genera il file FatturaPA e non invia nulla allo SDI. Aliquote, diciture e modalità di applicazione vanno verificate con il commercialista prima di emettere le fatture; per l'invio resta necessaria l'integrazione FatturaPA e del canale Aruba/SDI.
 
 ## API prenotazioni
-Il catalogo attivo è esposto da `php-booking-backend.php?mode=catalog`. Per verificare gli orari, `mode=slots` richiede `studio_id`, `service_id` e `date`. Il POST richiede gli stessi ID più `date`, `time`, `name` ed `email`; `notes` è facoltativo.
+Il catalogo attivo è esposto da `php-booking-backend.php?mode=catalog`. Per verificare gli orari, `mode=slots` richiede `studio_id` e `date`; `service_id` è facoltativo e, quando manca, la disponibilità iniziale viene calcolata come per un trattamento da 30 minuti. Il POST richiede invece entrambi gli ID più `date`, `time`, `name` ed `email`; `notes` è facoltativo. Con `payment_method: "online"` la risposta include `payment_intent`, `checkout_id` ed `expires_at`, ma non crea ancora un appuntamento. Dopo il pagamento, il browser invia `payment_intent` e `checkout_id` a `sumup-payment.php`, che verifica lo stato con SumUp e restituisce `booking_id` soltanto dopo la conferma `PAID`.
 
 Esempio JSON (gli ID devono esistere nel database):
 

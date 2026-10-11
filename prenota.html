@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Prenota un massaggio thailandese e scegli lo studio, il trattamento e la data più adatta a te." />
     <title>Prenota | Thai Tik Massage</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="cookie-consent.css" />
+    <script src="cookie-consent.js" defer></script>
     <link rel="stylesheet" href="details.css" />
     <script src="language-selector.js" defer></script>
     <style>
@@ -52,6 +51,12 @@
       .payment-option strong { font-size: 15px; }
       .payment-option small { color: var(--muted); font-size: 13px; line-height: 1.4; }
       .payment-note { margin: 12px 0 0; color: var(--muted); font-size: 13px; }
+      .sumup-checkout-panel[hidden] { display: none; }
+      .sumup-checkout-panel { border-color: var(--accent); }
+      .sumup-checkout-panel .payment-note { margin-bottom: 16px; }
+      .sumup-checkout-actions { display: flex; justify-content: center; margin-top: 16px; }
+      .sumup-checkout-actions button { min-height: 44px; padding: 9px 18px; border: 1px solid var(--ink); background: #fff; color: var(--ink); font: inherit; font-weight: 700; cursor: pointer; }
+      .sumup-checkout-actions button:disabled { opacity: .6; cursor: wait; }
       .invoice-toggle { display: flex; grid-template-columns: auto 1fr; align-items: center; gap: 10px; font-size: 14px; letter-spacing: 0; text-transform: none; }
       .invoice-toggle input { width: 18px; min-height: 18px; margin: 0; }
       .billing-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 0; padding: 0; border: 0; }
@@ -201,7 +206,9 @@
         cursor: pointer;
       }
       .submit-row { display: flex; justify-content: center; }
-      .submit:disabled { background: #857b75; cursor: not-allowed; }
+      .submit.submit-online { background: #93ae61; color: var(--ink); }
+      .submit.submit-online:hover:not(:disabled), .submit.submit-online:focus-visible:not(:disabled) { background: #a4bc78; }
+      .submit:disabled { background: #857b75; color: #fff; cursor: not-allowed; }
       @media (max-width: 820px) {
         .studio-grid,
         .service-grid {
@@ -216,17 +223,13 @@
     <header class="site-header">
       <div class="wrap header-inner">
         <a class="brand" href="index.html" aria-label="Thai Tik Massage, torna alla home">
-          <img class="brand-logo" src="tik-thai-logo-transparent.png" alt="" />
-          <span class="brand-copy">
-            <span class="brand-name">THAI TIK MASSAGE</span>
-            <span class="brand-sub">&amp; WELLNESS</span>
-          </span>
+          <img class="brand-logo" src="thai-tik-logo-alternativo.png" alt="Thai Tik Massage" />
         </a>
         <div class="language-switcher gtranslate_wrapper" aria-label="Seleziona la lingua"></div>
         <div class="header-contact">Per informazioni: <a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=info%40thaitikmassage.it">info@thaitikmassage.it</a></div>
         <nav class="nav" aria-label="Navigazione principale">
           <a href="index.html#trattamenti">Trattamenti</a>
-          <a href="dove-trovarmi.html">Dove trovarmi</a>
+          <a href="mappa-sedi.html">Dove trovarmi</a>
           <a class="nav-book" href="prenota.html">Prenota</a>
         </nav>
       </div>
@@ -254,7 +257,7 @@
               </label>
               <label class="payment-option">
                 <input type="radio" name="payment_method" value="online" />
-                <span><strong>Prenota e paga online</strong><small>Pagamento SumUp non ancora attivo.</small></span>
+                <span><strong>Prenota e paga online</strong><small>Checkout sicuro con SumUp, direttamente in questa pagina.</small></span>
               </label>
             </fieldset>
             <p class="payment-note" id="paymentStatus" role="status" hidden></p>
@@ -279,7 +282,7 @@
             </div>
             <div class="field">
               <label>Orari disponibili</label>
-              <p class="field-help">Gli orari liberi si aggiornano dopo ogni prenotazione, lasciando almeno 5 minuti tra un trattamento e il successivo.</p>
+              <p class="field-help">Gli orari sono mostrati ogni 60 minuti, con un ultimo ingresso 30 minuti prima della chiusura. Quelli barrati non possono contenere il trattamento selezionato: selezionali per conoscere il motivo.</p>
               <div class="slot-grid" id="slotGrid" aria-live="polite"></div>
             </div>
           </section>
@@ -359,19 +362,73 @@
               <div><dt>Prezzo</dt><dd id="summaryPrice">-</dd></div>
               <div><dt>Pagamento</dt><dd id="summaryPayment">In studio</dd></div>
             </dl>
+            <aside class="association-notice" id="associationNotice" hidden aria-label="Quota associativa separata">
+              <p><strong>Quota associativa separata — APS Jaqueline.</strong> Per accedere ai servizi presso questa sede è richiesta l'adesione ad APS Jaqueline e il pagamento della relativa quota associativa. Tesseramento e quota sono gestiti direttamente dall'associazione e non sono inclusi nel prezzo del trattamento di Thai Tik Massage. Verifica importo, validità e modalità di adesione con l'associazione prima dell'appuntamento.</p>
+            </aside>
           </section>
 
           <div class="submit-row">
             <button class="submit" type="submit" form="bookingRequestForm">Invia richiesta</button>
           </div>
+
+          <section class="section-panel sumup-checkout-panel" id="sumupCheckoutPanel" aria-labelledby="sumup-checkout-title" hidden>
+            <h2 class="panel-title" id="sumup-checkout-title"><span class="panel-step-number">6</span><span>Completa il pagamento</span></h2>
+            <p class="payment-note" id="sumupCheckoutStatus" role="status">Caricamento del checkout sicuro…</p>
+            <p class="small-note" id="sumupCheckoutExpiry"></p>
+            <div id="sumup-card"></div>
+            <div class="sumup-checkout-actions">
+              <button type="button" id="verifySumupPayment">Verifica pagamento</button>
+            </div>
+          </section>
         </div>
       </div>
     </main>
 
-    <footer class="site-footer">
+        <footer class="site-footer">
       <div class="wrap footer-inner">
-        <p>Thai Tik Massage · Trattamenti benessere thailandesi<br>P.IVA 18730391002</p>
-        <a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=info%40thaitikmassage.it">info@thaitikmassage.it</a>
+        <div class="footer-brand">
+          <h3>Thai Tik Massage</h3>
+          <p>Trattamenti benessere thailandesi con prenotazioni online e servizi erogati presso diverse sedi partner.</p>
+        </div>
+
+        <div class="footer-links">
+          <h4>Documenti</h4>
+          <ul>
+            <li><a href="documenti-legali-premium.html#privacy">Privacy Policy</a></li>
+            <li><a href="documenti-legali-premium.html#cookie">Cookie Policy</a></li>
+            <li><a href="documenti-legali-premium.html#terms">Condizioni d’uso</a></li>
+            <li><a href="documenti-legali-premium.html#accessibility">Accessibilità</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-sedi">
+          <h4>Sedi</h4>
+          <ul>
+            <li><a href="https://maps.google.com/?q=Barbiere+Prati+Via+Gioacchino+Belli+1" target="_blank" rel="noreferrer">Barbiere Prati · Via Gioacchino Belli, 1</a></li>
+            <li><a href="https://maps.google.com/?q=APS+Jaqueline+Via+Valle+Borbera+49+Roma" target="_blank" rel="noreferrer">APS Jaqueline · Via Valle Borbera, 49</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-contact">
+          <h4>Contatti</h4>
+          <ul>
+            <li><a href="mailto:info@thaitikmassage.it">info@thaitikmassage.it</a></li>
+            <li><a href="documenti-legali-premium.html#dsar">DSAR · Richieste privacy</a></li>
+            <li><a href="documenti-legali-premium.html#registry">Registro dei trattamenti</a></li>
+            <li><a href="mappa-sedi.html">Mappa sedi e indirizzi</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="wrap footer-legal">
+        <p>© 2026 Thai Tik Massage · P.IVA 18730391002</p>
+        <div class="footer-legal-links">
+          <a href="documenti-legali-premium.html#privacy">Privacy</a>
+          <a href="documenti-legali-premium.html#cookie">Cookie</a>
+          <a href="documenti-legali-premium.html#terms">Termini</a>
+          <a href="documenti-legali-premium.html#accessibility">Accessibilità</a>
+          <a href="documenti-legali-premium.html#dsar">DSAR</a>
+        </div>
       </div>
     </footer>
 
@@ -379,10 +436,15 @@
       let studios = [];
       let services = [];
       const availableSlots = {};
+      const slotOptions = {};
       const params = new URLSearchParams(window.location.search);
       const isLocalPreviewHost = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
       const localPreviewMessage = 'Anteprima locale: sedi, servizi e orari sono dimostrativi. Le richieste non vengono salvate.';
       let isLocalPreview = false;
+      let activeCheckout = null;
+      let submissionPending = false;
+      let sumUpSdkPromise = null;
+      let checkoutExpiryTimer = null;
       const selected = {
         studioId: null,
         serviceId: null,
@@ -425,9 +487,152 @@
 
         document.getElementById('summaryPayment').textContent = onlineSelected ? 'Online · SumUp' : 'In studio';
         paymentStatus.hidden = !onlineSelected;
-        paymentStatus.textContent = onlineSelected ? 'Il checkout SumUp non è ancora configurato. Per inviare la richiesta, scegli il pagamento in studio.' : '';
-        submitButton.disabled = isLocalPreview || onlineSelected;
-        submitButton.textContent = isLocalPreview ? 'Invio non disponibile in anteprima' : onlineSelected ? 'SumUp non ancora attivo' : 'Invia richiesta';
+        paymentStatus.textContent = onlineSelected ? 'Lo slot sarà riservato per 15 minuti. L’appuntamento verrà registrato soltanto dopo il pagamento sicuro con SumUp.' : '';
+        submitButton.disabled = isLocalPreview || submissionPending || Boolean(activeCheckout);
+        submitButton.classList.toggle('submit-online', onlineSelected);
+        submitButton.textContent = isLocalPreview
+          ? 'Invio non disponibile in anteprima'
+          : onlineSelected ? 'PRENOTA E PAGA ON LINE' : 'Invia richiesta';
+      }
+
+      function loadSumUpSdk() {
+        if (window.SumUpCard) return Promise.resolve();
+        if (sumUpSdkPromise) return sumUpSdkPromise;
+
+        sumUpSdkPromise = new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://gateway.sumup.com/gateway/ecom/card/v2/sdk.js';
+          script.async = true;
+          script.onload = () => window.SumUpCard ? resolve() : reject(new Error('SDK SumUp non disponibile'));
+          script.onerror = () => reject(new Error('Impossibile caricare il checkout SumUp'));
+          document.head.appendChild(script);
+        });
+        return sumUpSdkPromise;
+      }
+
+      function lockBookingForPayment() {
+        document.querySelectorAll('.booking-flow > section:not(#sumupCheckoutPanel) button, .booking-flow > section:not(#sumupCheckoutPanel) input, .booking-flow > section:not(#sumupCheckoutPanel) select, .booking-flow > section:not(#sumupCheckoutPanel) textarea')
+          .forEach(control => { control.disabled = true; });
+        updatePaymentChoice();
+      }
+
+      function unlockBookingAfterPayment() {
+        document.querySelectorAll('.booking-flow > section:not(#sumupCheckoutPanel) button, .booking-flow > section:not(#sumupCheckoutPanel) input, .booking-flow > section:not(#sumupCheckoutPanel) select, .booking-flow > section:not(#sumupCheckoutPanel) textarea')
+          .forEach(control => { control.disabled = false; });
+        updateInvoiceFields();
+        updatePaymentChoice();
+      }
+
+      function startCheckoutCountdown(expiresAt) {
+        const expiry = new Date(expiresAt).getTime();
+        const expiryStatus = document.getElementById('sumupCheckoutExpiry');
+        clearInterval(checkoutExpiryTimer);
+
+        const updateCountdown = () => {
+          const remainingSeconds = Math.max(0, Math.ceil((expiry - Date.now()) / 1000));
+          const minutes = String(Math.floor(remainingSeconds / 60)).padStart(2, '0');
+          const seconds = String(remainingSeconds % 60).padStart(2, '0');
+          expiryStatus.textContent = `Lo slot è riservato ancora per ${minutes}:${seconds}. Se non paghi, nessun appuntamento sarà registrato.`;
+          if (remainingSeconds === 0) {
+            clearInterval(checkoutExpiryTimer);
+            checkoutExpiryTimer = null;
+            verifySumUpPayment();
+          }
+        };
+
+        updateCountdown();
+        checkoutExpiryTimer = setInterval(updateCountdown, 1000);
+      }
+
+      async function verifySumUpPayment() {
+        if (!activeCheckout) return;
+
+        const status = document.getElementById('sumupCheckoutStatus');
+        const verifyButton = document.getElementById('verifySumupPayment');
+        verifyButton.disabled = true;
+        status.textContent = 'Verifica del pagamento in corso…';
+
+        try {
+          const response = await fetch('sumup-payment.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({
+              payment_intent: activeCheckout.paymentIntent,
+              checkout_id: activeCheckout.checkoutId
+            })
+          });
+          const data = await response.json();
+          if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Verifica del pagamento non riuscita.');
+          }
+
+          if (!data.paid) {
+            status.textContent = data.message;
+            if (data.status === 'FAILED' || data.status === 'EXPIRED') {
+              clearInterval(checkoutExpiryTimer);
+              checkoutExpiryTimer = null;
+              document.getElementById('sumup-card').hidden = true;
+              verifyButton.hidden = true;
+              activeCheckout = null;
+              unlockBookingAfterPayment();
+              loadAvailableSlots();
+            }
+            return;
+          }
+
+          clearInterval(checkoutExpiryTimer);
+          checkoutExpiryTimer = null;
+          status.textContent = `${data.message} Codice prenotazione: ${data.booking_id}.`;
+          document.getElementById('sumup-card').hidden = true;
+          verifyButton.hidden = true;
+          const details = activeCheckout.data;
+          alert(`Pagamento completato.\n\nCodice: ${data.booking_id}\nStudio: ${details.studio}\nServizio: ${details.service}\nData: ${details.date} ${details.time}`);
+          document.getElementById('bookingRequestForm').reset();
+          selected.time = null;
+          loadAvailableSlots();
+          updateSummary();
+        } catch (error) {
+          status.textContent = error.message || 'Non è stato possibile verificare il pagamento. Riprova tra poco.';
+        } finally {
+          verifyButton.disabled = false;
+        }
+      }
+
+      async function showSumUpCheckout(data) {
+        activeCheckout = {
+          paymentIntent: data.payment_intent,
+          checkoutId: data.checkout_id,
+          expiresAt: data.expires_at,
+          data: data.data
+        };
+        lockBookingForPayment();
+
+        const panel = document.getElementById('sumupCheckoutPanel');
+        const status = document.getElementById('sumupCheckoutStatus');
+        panel.hidden = false;
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        startCheckoutCountdown(data.expires_at);
+
+        try {
+          await loadSumUpSdk();
+          status.textContent = 'Inserisci i dati di pagamento. L’appuntamento sarà registrato solo dopo la conferma di SumUp.';
+          window.SumUpCard.mount({
+            id: 'sumup-card',
+            checkoutId: data.checkout_id,
+            locale: 'it-IT',
+            onResponse: (type) => {
+              if (type === 'success') {
+                verifySumUpPayment();
+              } else if (type === 'error' || type === 'fail') {
+                status.textContent = 'Pagamento non completato. Controlla i dati e riprova dal checkout.';
+              } else if (type === 'auth-screen') {
+                status.textContent = 'Completa la verifica di sicurezza richiesta dalla banca.';
+              }
+            }
+          });
+        } catch (error) {
+          status.textContent = 'Il checkout non si è caricato. Nessun appuntamento è stato registrato; attendi la scadenza dello slot o contatta lo studio.';
+        }
       }
 
       function servicesForStudio(studioId) {
@@ -452,7 +657,11 @@
           'foot-express': 'express', 'foot-completo': 'completo'
         };
         const keyword = aliases[value] || value?.toLowerCase();
-        return studioServices.find(service => keyword && service.name.toLowerCase().includes(keyword))?.id ?? studioServices[0]?.id ?? null;
+        return studioServices.find(service => keyword && service.name.toLowerCase().includes(keyword))?.id ?? null;
+      }
+
+      function availabilityServiceKey() {
+        return selected.serviceId ?? 'preview-30';
       }
 
       function formatDate(dateString) {
@@ -474,6 +683,10 @@
         return studio.name;
       }
 
+      function isAssociationStudio(studio) {
+        return studio?.name === 'APS Studio Montesacro';
+      }
+
       function getStudioLocationUrl(studio) {
         return studio.name === 'Studio Prati' ? 'dove-trovarmi.html#studio-prati' : 'dove-trovarmi.html#studio-montesacro';
       }
@@ -486,14 +699,20 @@
         ];
         services = [
           { id: 9101, id_studio: 9001, name: 'Massaggio Thai tradizionale', price: 60, duration: '60 min', durationMinutes: 60 },
+          { id: 9107, id_studio: 9001, name: 'Massaggio Thai tradizionale', price: 80, duration: '90 min', durationMinutes: 90 },
           { id: 9102, id_studio: 9001, name: 'Massaggio sportivo', price: 60, duration: '60 min', durationMinutes: 60 },
           { id: 9103, id_studio: 9001, name: 'Aromaterapia', price: 60, duration: '60 min', durationMinutes: 60 },
+          { id: 9108, id_studio: 9001, name: 'Aromaterapia', price: 80, duration: '90 min', durationMinutes: 90 },
+          { id: 9109, id_studio: 9001, name: 'Aromaterapia', price: 100, duration: '120 min', durationMinutes: 120 },
           { id: 9104, id_studio: 9001, name: 'Tok Sen', price: 70, duration: '60 min', durationMinutes: 60 },
           { id: 9105, id_studio: 9001, name: 'Foot Massage Express', price: 35, duration: '30 min', durationMinutes: 30 },
           { id: 9106, id_studio: 9001, name: 'Foot Massage Completo', price: 50, duration: '60 min', durationMinutes: 60 },
           { id: 9201, id_studio: 9002, name: 'Massaggio Thai tradizionale', price: 60, duration: '60 min', durationMinutes: 60 },
+          { id: 9207, id_studio: 9002, name: 'Massaggio Thai tradizionale', price: 80, duration: '90 min', durationMinutes: 90 },
           { id: 9202, id_studio: 9002, name: 'Massaggio sportivo', price: 60, duration: '60 min', durationMinutes: 60 },
           { id: 9203, id_studio: 9002, name: 'Aromaterapia', price: 60, duration: '60 min', durationMinutes: 60 },
+          { id: 9208, id_studio: 9002, name: 'Aromaterapia', price: 80, duration: '90 min', durationMinutes: 90 },
+          { id: 9209, id_studio: 9002, name: 'Aromaterapia', price: 100, duration: '120 min', durationMinutes: 120 },
           { id: 9204, id_studio: 9002, name: 'Tok Sen', price: 70, duration: '60 min', durationMinutes: 60 },
           { id: 9205, id_studio: 9002, name: 'Foot Massage Express', price: 35, duration: '30 min', durationMinutes: 30 },
           { id: 9206, id_studio: 9002, name: 'Foot Massage Completo', price: 50, duration: '60 min', durationMinutes: 60 }
@@ -562,35 +781,50 @@
       }
 
       async function loadAvailableSlots() {
-        if (!selected.studioId || !selected.serviceId || !selected.date) return;
+        if (!selected.studioId || !selected.date) return;
 
+        const serviceKey = availabilityServiceKey();
         availableSlots[selected.studioId] = availableSlots[selected.studioId] || {};
-        availableSlots[selected.studioId][selected.serviceId] = availableSlots[selected.studioId][selected.serviceId] || {};
-        availableSlots[selected.studioId][selected.serviceId][selected.date] = null;
+        availableSlots[selected.studioId][serviceKey] = availableSlots[selected.studioId][serviceKey] || {};
+        availableSlots[selected.studioId][serviceKey][selected.date] = null;
+        slotOptions[selected.studioId] = slotOptions[selected.studioId] || {};
+        slotOptions[selected.studioId][serviceKey] = slotOptions[selected.studioId][serviceKey] || {};
+        slotOptions[selected.studioId][serviceKey][selected.date] = null;
         if (isLocalPreview) {
           const service = getServiceById(selected.serviceId);
-          availableSlots[selected.studioId][selected.serviceId][selected.date] = getLocalPreviewSlots(selected.date, service.durationMinutes);
+          const previewSlots = getLocalPreviewSlots(selected.date, service?.durationMinutes ?? 30);
+          availableSlots[selected.studioId][serviceKey][selected.date] = previewSlots;
+          slotOptions[selected.studioId][serviceKey][selected.date] = previewSlots.map(time => ({
+            time,
+            available: true,
+            message: null
+          }));
           setBookingStatus(localPreviewMessage);
           renderSlots();
           return;
         }
 
         renderSlots();
-        const url = `php-booking-backend.php?mode=slots&studio_id=${encodeURIComponent(selected.studioId)}&service_id=${encodeURIComponent(selected.serviceId)}&date=${encodeURIComponent(selected.date)}`;
+        const serviceQuery = selected.serviceId ? `&service_id=${encodeURIComponent(selected.serviceId)}` : '';
+        const url = `php-booking-backend.php?mode=slots&studio_id=${encodeURIComponent(selected.studioId)}${serviceQuery}&date=${encodeURIComponent(selected.date)}`;
 
         try {
           const response = await fetch(url, { headers: { Accept: 'application/json' } });
           if (!response.ok) throw new Error('Slot fetch failed');
           const data = await response.json();
           if (data.success && Array.isArray(data.available_slots)) {
-            availableSlots[selected.studioId][selected.serviceId][selected.date] = data.available_slots;
+            availableSlots[selected.studioId][serviceKey][selected.date] = data.available_slots;
+            slotOptions[selected.studioId][serviceKey][selected.date] = Array.isArray(data.slot_options)
+              ? data.slot_options
+              : data.available_slots.map(time => ({ time, available: true, message: null }));
             if (selected.time && !data.available_slots.includes(selected.time)) selected.time = null;
             setBookingStatus('');
           } else {
             throw new Error('Availability response invalid');
           }
         } catch (error) {
-          availableSlots[selected.studioId][selected.serviceId][selected.date] = [];
+          availableSlots[selected.studioId][serviceKey][selected.date] = [];
+          slotOptions[selected.studioId][serviceKey][selected.date] = [];
           selected.time = null;
           setBookingStatus('Non è stato possibile caricare gli orari reali. Nessuna disponibilità demo verrà mostrata.');
         }
@@ -606,6 +840,7 @@
             <span class="tag">Sede</span>
             <h3><a class="studio-location-link" href="${getStudioLocationUrl(studio)}">${escapeHtml(getStudioDisplayName(studio))}</a></h3>
             <p>Consulta i giorni e gli orari configurati per questa sede.</p>
+            ${isAssociationStudio(studio) ? '<p class="association-notice"><strong>Quota associativa separata.</strong> Accesso con adesione ad APS Jaqueline e quota gestita direttamente dall’associazione, non inclusa nel prezzo del trattamento. Verifica importo, validità e modalità con l’associazione.</p>' : ''}
             <div class="studio-meta"><span>Servizi attivi</span> ${servicesForStudio(studio.id).length}</div>
             <div class="link-button"><a href="#booking-form">Scegli questo studio</a></div>
           </article>
@@ -615,7 +850,7 @@
           card.addEventListener('click', event => {
             if (event.target.closest('.studio-location-link')) return;
             selected.studioId = Number(card.dataset.studioId);
-            selected.serviceId = servicesForStudio(selected.studioId)[0]?.id ?? null;
+            selected.serviceId = null;
             selected.time = null;
             renderStudios();
             renderServices();
@@ -689,7 +924,7 @@
 
         if (!selected.date && dateList.length) {
           if (isLocalPreview) {
-            const durationMinutes = getServiceById(selected.serviceId)?.durationMinutes ?? 60;
+            const durationMinutes = getServiceById(selected.serviceId)?.durationMinutes ?? 30;
             selected.date = dateList.find(date => getLocalPreviewSlots(date, durationMinutes).length > 0) || dateList[0];
           } else {
             selected.date = dateList[0];
@@ -701,28 +936,37 @@
 
       function renderSlots() {
         const grid = document.getElementById('slotGrid');
-        const slots = availableSlots[selected.studioId]?.[selected.serviceId]?.[selected.date];
-        if (slots === null || slots === undefined) {
+        const options = slotOptions[selected.studioId]?.[availabilityServiceKey()]?.[selected.date];
+        if (options === null || options === undefined) {
           grid.innerHTML = '<p class="small-note">Caricamento disponibilità…</p>';
           return;
         }
-        if (!slots.length) {
-          grid.innerHTML = '<p class="small-note">Nessun orario disponibile per questa data.</p>';
+        if (!options.length) {
+          grid.innerHTML = '<p class="small-note">Nessun orario previsto per questa data.</p>';
           return;
         }
 
-        grid.innerHTML = slots.map(time => `
-          <button type="button" class="slot ${selected.time === time ? 'active' : ''}" data-time="${escapeHtml(time)}">${escapeHtml(time)}</button>
+        grid.innerHTML = options.map(option => `
+          <button
+            type="button"
+            class="slot ${option.available ? '' : 'busy'} ${selected.time === option.time ? 'active' : ''}"
+            data-time="${escapeHtml(option.time)}"
+            aria-disabled="${option.available ? 'false' : 'true'}"
+            title="${escapeHtml(option.message || 'Orario disponibile')}"
+          >${escapeHtml(option.time)}</button>
         `).join('');
 
         grid.querySelectorAll('.slot').forEach(button => {
-          if (!button.disabled) {
-            button.addEventListener('click', () => {
-              selected.time = button.dataset.time;
-              renderSlots();
-              updateSummary();
-            });
-          }
+          button.addEventListener('click', () => {
+            const option = options.find(item => item.time === button.dataset.time);
+            if (!option?.available) {
+              alert(option?.message || 'Questo orario non è disponibile per il trattamento selezionato.');
+              return;
+            }
+            selected.time = button.dataset.time;
+            renderSlots();
+            updateSummary();
+          });
         });
       }
 
@@ -731,13 +975,12 @@
         const service = getServiceById(selected.serviceId);
 
         document.getElementById('summaryStudio').textContent = studio?.name || 'Non selezionato';
+        document.getElementById('associationNotice').hidden = !isAssociationStudio(studio);
         document.getElementById('summaryService').textContent = service?.name || 'Non selezionato';
         document.getElementById('summaryDate').textContent = selected.date ? formatDate(selected.date) : 'Non selezionata';
         document.getElementById('summaryTime').textContent = selected.time || 'Non selezionato';
         document.getElementById('summaryPrice').textContent = service ? `${service.price} €` : '-';
         updatePaymentChoice();
-        updatePaymentChoice();
-
       }
 
       document.getElementById('bookingRequestForm').addEventListener('submit', async function(e) {
@@ -754,8 +997,7 @@
         const recipientCode = document.getElementById('recipientCode').value.trim();
         const pec = document.getElementById('billingPec').value.trim();
 
-        if (paymentMethod === 'online') {
-          updatePaymentChoice();
+        if (activeCheckout) {
           return;
         }
 
@@ -768,7 +1010,6 @@
           return;
         }
 
-        const service = getServiceById(selected.serviceId);
         const payload = {
           studio_id: selected.studioId,
           service_id: selected.serviceId,
@@ -790,6 +1031,8 @@
           notes: document.getElementById('notes').value.trim()
         };
 
+        submissionPending = true;
+        updatePaymentChoice();
         try {
           const response = await fetch('php-booking-backend.php', {
             method: 'POST',
@@ -809,6 +1052,11 @@
             throw new Error(data.message || 'Errore nella prenotazione');
           }
 
+          if (paymentMethod === 'online') {
+            await showSumUpCheckout(data);
+            return;
+          }
+
           const notifications = data.notifications || {};
           let emailStatus = 'La richiesta è registrata; lo studio ti ricontatterà per confermare.';
           if (notifications.studio_sent && notifications.customer_sent) {
@@ -826,7 +1074,10 @@
           loadAvailableSlots();
           updateSummary();
         } catch (error) {
-          alert('Non è stato possibile inviare la richiesta. Nessuna prenotazione è stata registrata. Riprova più tardi o contattaci via email.');
+          alert(`${error.message || 'Non è stato possibile inviare la richiesta.'}\n\nNessuna prenotazione è stata registrata. Riprova più tardi o contattaci via email.`);
+        } finally {
+          submissionPending = false;
+          updatePaymentChoice();
         }
       });
 
@@ -884,6 +1135,7 @@
       document.head.appendChild(style);
 
       document.getElementById('customerType').addEventListener('change', updateInvoiceFields);
+      document.getElementById('verifySumupPayment').addEventListener('click', verifySumUpPayment);
       document.querySelectorAll('input[name="payment_method"]').forEach(input => input.addEventListener('change', updatePaymentChoice));
       updateInvoiceFields();
       updatePaymentChoice();

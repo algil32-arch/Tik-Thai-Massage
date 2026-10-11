@@ -1,1 +1,3 @@
 /private/config.local.php
+/private/google-service-account.json
+/private/*.json
