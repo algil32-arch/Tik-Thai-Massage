@@ -20,12 +20,12 @@ FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM studi WHERE nome = 'Studio Prati');
 
 INSERT INTO studi (nome, indirizzo, citta, cap, email_studio, id_professionista)
-SELECT 'APS Studio Montesacro', 'Via Valle Borbera 49', 'Roma', NULL, 'info@thaitikmassage.it', @professionista_id
+SELECT 'APS Studio Montesacro', 'Via Valle Borbera 51', 'Roma', NULL, 'info@thaitikmassage.it', @professionista_id
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM studi WHERE nome = 'APS Studio Montesacro');
 
 UPDATE studi
-SET indirizzo = 'Via Valle Borbera 49'
+SET indirizzo = 'Via Valle Borbera 51'
 WHERE nome = 'APS Studio Montesacro';
 
 SET @studio_prati_id = (SELECT id FROM studi WHERE nome = 'Studio Prati' ORDER BY id LIMIT 1);
