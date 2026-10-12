@@ -1,0 +1,175 @@
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-top: 3px solid #c8a44d;
+  background: #250c05;
+  color: #f1e4bd;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, .2);
+  transition: transform .24s ease;
+  will-change: transform;
+}
+.site-header.is-hidden { transform: translateY(-100%); }
+.site-header:focus-within { transform: translateY(0); }
+.header-inner {
+  position: relative;
+  display: grid;
+  grid-template-areas: "brand languages contact" "brand nav contact";
+  grid-template-columns: 205px minmax(0, 1fr) 245px;
+  grid-template-rows: 35px 48px;
+  align-items: center;
+  column-gap: 20px;
+  padding-block: 5px;
+}
+.brand {
+  grid-area: brand;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  line-height: 1;
+  text-decoration: none;
+}
+.brand-logo {
+  width: 195px;
+  height: 100px;
+  padding: 2px;
+  object-fit: contain;
+}
+.language-switcher {
+  grid-area: languages;
+  justify-self: center;
+  z-index: 2;
+}
+.language-switcher #gt_float_wrapper {
+  position: static !important;
+  inset: auto !important;
+  z-index: auto !important;
+}
+.language-switcher .gt_float_switcher {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.language-switcher .gt-selected { display: none !important; }
+.language-switcher .gt_options {
+  position: static !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transform: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.language-switcher .gt_options a {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 2px !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #f1e4bd !important;
+  font-size: 0 !important;
+}
+.language-switcher .gt_options a:hover,
+.language-switcher .gt_options a:focus-visible { transform: translateY(-1px); }
+.language-switcher .gt_options img {
+  width: 24px !important;
+  height: 18px !important;
+  object-fit: cover;
+}
+.header-contact {
+  grid-area: contact;
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+  color: #d9c99b;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 12px;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.header-email { color: inherit; text-decoration: none; }
+.header-email:hover, .header-email:focus-visible {
+  color: #fff1bf;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.header-whatsapp {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #d5f7db;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  line-height: 1.3;
+  text-decoration: none;
+}
+.header-whatsapp:hover, .header-whatsapp:focus-visible { color: #25d366; }
+.header-whatsapp svg {
+  flex: 0 0 25px;
+  width: 25px;
+  height: 25px;
+  padding: 4px;
+  border-radius: 50%;
+  background: #25d366;
+  fill: #fff;
+}
+.nav {
+  grid-area: nav;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 2vw, 30px);
+  min-width: 0;
+}
+.nav a {
+  color: #f1e4bd;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 13px;
+  font-weight: 400;
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.nav a:hover, .nav a:focus-visible { color: #e2c471; }
+.nav .nav-book {
+  border-bottom: 1px solid #c8a44d;
+  padding-bottom: 4px;
+  color: #e2c471;
+  letter-spacing: .03em;
+}
+.nav .nav-admin { color: #b9a88e; font-size: 10px; }
+.nav .nav-admin:hover, .nav .nav-admin:focus-visible { color: #f1e4bd; }
+@media (max-width: 760px) {
+  .header-inner {
+    grid-template-areas: "languages languages" "brand contact" "nav nav";
+    grid-template-columns: minmax(145px, 1fr) minmax(0, 1.2fr);
+    grid-template-rows: 20px 72px 26px;
+    column-gap: 8px;
+    row-gap: 3px;
+    padding-block: 4px 6px;
+  }
+  .brand-logo { width: 150px; height: 72px; }
+  .header-contact { gap: 3px; font-size: 11px; }
+  .header-whatsapp { gap: 5px; font-size: 10px; }
+  .header-whatsapp svg { flex-basis: 19px; width: 19px; height: 19px; }
+  .language-switcher .gt_options { gap: 9px; }
+  .language-switcher .gt_options a { padding: 1px !important; }
+  .language-switcher .gt_options img { width: 21px !important; height: 16px !important; }
+  .nav { justify-content: center; gap: clamp(10px, 4vw, 24px); }
+  .nav a { font-size: 10px; }
+}
+@media (max-width: 380px) {
+  .header-inner { grid-template-columns: minmax(140px, 1fr) minmax(0, 1.2fr); }
+  .header-contact { font-size: 10px; }
+  .nav { gap: 9px; }
+  .nav a { font-size: 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-header { transition: none; }
+}

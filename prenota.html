@@ -8,7 +8,9 @@
     <link rel="stylesheet" href="cookie-consent.css" />
     <script src="cookie-consent.js" defer></script>
     <link rel="stylesheet" href="details.css" />
+    <link rel="stylesheet" href="header.css" />
     <script src="language-selector.js" defer></script>
+    <script src="header-scroll.js" defer></script>
     <style>
       .booking-shell {
         width: min(100% - 48px, 1100px);
@@ -226,7 +228,13 @@
           <img class="brand-logo" src="thai-tik-logo-alternativo.png" alt="Thai Tik Massage" />
         </a>
         <div class="language-switcher gtranslate_wrapper" aria-label="Seleziona la lingua"></div>
-        <div class="header-contact">Per informazioni: <a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=info%40thaitikmassage.it">info@thaitikmassage.it</a></div>
+        <div class="header-contact">
+          <a class="header-email" href="mailto:info@thaitikmassage.it">info@thaitikmassage.it</a>
+          <a class="header-whatsapp" href="https://wa.me/message/4ZL65LROJWHFI1" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a9.8 9.8 0 0 0-8.4 14.9L2.3 22l5.2-1.3A9.8 9.8 0 1 0 12 2Zm0 17.8a8 8 0 0 1-4.1-1.1l-.3-.2-3.1.8.8-3-.2-.3A8 8 0 1 1 12 19.8Zm4.4-6c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.8.9-.1.2-.3.2-.5.1-.2-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.6-.1-.2 0-.3.1-.5l.4-.4c.1-.1.2-.3.2-.4.1-.2 0-.3 0-.4l-.7-1.7c-.2-.4-.4-.4-.5-.4h-.5c-.2 0-.4.1-.6.3-.2.2-.8.8-.8 2s.8 2.2.9 2.4c.1.2 1.6 2.5 3.9 3.5.5.2.9.4 1.2.5.5.2 1 .2 1.4.1.4-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1-.1-.1-.3-.2-.5-.3Z"/></svg>
+            <span>Chat</span>
+          </a>
+        </div>
         <nav class="nav" aria-label="Navigazione principale">
           <a href="index.html#trattamenti">Trattamenti</a>
           <a href="mappa-sedi.html">Dove trovarmi</a>
@@ -278,7 +286,8 @@
             <h2 class="panel-title" id="schedule-title"><span class="panel-step-number">4</span><span>Scegli data e orario</span></h2>
             <div class="field" style="margin-bottom: 18px;">
               <label>Data</label>
-              <div class="date-row" id="dateRow" aria-label="Seleziona data"></div>
+              <p class="field-help">Sono selezionabili i giorni lavorativi della sede nei prossimi 30 giorni. Scorri per vedere le date successive.</p>
+              <div class="date-row" id="dateRow" aria-label="Giorni lavorativi nei prossimi 30 giorni"></div>
             </div>
             <div class="field">
               <label>Orari disponibili</label>
@@ -693,9 +702,10 @@
 
       function loadLocalPreviewCatalog() {
         isLocalPreview = true;
+        const previewHours = [2, 3, 4, 5, 6, 7].map(weekday => ({ weekday }));
         studios = [
-          { id: 9001, name: 'Studio Prati' },
-          { id: 9002, name: 'APS Studio Montesacro' }
+          { id: 9001, name: 'Studio Prati', hours: previewHours },
+          { id: 9002, name: 'APS Studio Montesacro', hours: previewHours }
         ];
         services = [
           { id: 9101, id_studio: 9001, name: 'Massaggio Thai tradizionale', price: 60, duration: '60 min', durationMinutes: 60 },
@@ -743,10 +753,21 @@
 
       async function loadCatalog() {
         try {
-          const response = await fetch('php-booking-backend.php?mode=catalog', { headers: { Accept: 'application/json' } });
-          if (!response.ok) throw new Error('Catalog request failed');
-          const data = await response.json();
-          studios = (data.studios || []).map(studio => ({ ...studio, id: Number(studio.id), name: studio.nome }));
+          const [catalogResponse, hoursResponse] = await Promise.all([
+            fetch('php-booking-backend.php?mode=catalog', { headers: { Accept: 'application/json' } }),
+            fetch('php-booking-backend.php?mode=hours', { headers: { Accept: 'application/json' } })
+          ]);
+          if (!catalogResponse.ok || !hoursResponse.ok) throw new Error('Booking catalog request failed');
+          const [data, hoursData] = await Promise.all([catalogResponse.json(), hoursResponse.json()]);
+          if (!data.success || !hoursData.success || !Array.isArray(hoursData.studios)) {
+            throw new Error('Booking catalog response invalid');
+          }
+          const hoursByStudio = new Map(hoursData.studios.map(studio => [Number(studio.id), studio.hours]));
+          studios = (data.studios || []).map(studio => {
+            const hours = hoursByStudio.get(Number(studio.id));
+            if (!Array.isArray(hours)) throw new Error(`Opening days missing for studio ${studio.id}`);
+            return { ...studio, id: Number(studio.id), name: studio.nome, hours };
+          });
           services = (data.services || []).map(service => ({
             ...service,
             id: Number(service.id),
@@ -898,14 +919,32 @@
         const root = document.getElementById('dateRow');
         const dateList = [];
         const start = new Date();
+        const workingWeekdays = new Set(
+          (getStudioById(selected.studioId)?.hours || []).map(({ weekday }) => Number(weekday))
+        );
 
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i <= 30; i++) {
           const date = new Date(start);
           date.setDate(start.getDate() + i);
+          const weekday = date.getDay() || 7;
+          if (!workingWeekdays.has(weekday)) continue;
           const year = date.getFullYear();
           const month = String(date.getMonth() + 1).padStart(2, '0');
           const dayOfMonth = String(date.getDate()).padStart(2, '0');
           dateList.push(`${year}-${month}-${dayOfMonth}`);
+        }
+
+        if (!dateList.length) {
+          selected.date = null;
+          selected.time = null;
+          root.innerHTML = '<p class="small-note">Nessun giorno lavorativo configurato per questa sede nei prossimi 30 giorni.</p>';
+          document.getElementById('slotGrid').innerHTML = '<p class="small-note">Non ci sono date selezionabili per questa sede.</p>';
+          return;
+        }
+
+        if (!dateList.includes(selected.date)) {
+          selected.date = dateList[0];
+          selected.time = null;
         }
 
         root.innerHTML = dateList.map(date => `
@@ -921,15 +960,6 @@
             updateSummary();
           });
         });
-
-        if (!selected.date && dateList.length) {
-          if (isLocalPreview) {
-            const durationMinutes = getServiceById(selected.serviceId)?.durationMinutes ?? 30;
-            selected.date = dateList.find(date => getLocalPreviewSlots(date, durationMinutes).length > 0) || dateList[0];
-          } else {
-            selected.date = dateList[0];
-          }
-        }
 
         loadAvailableSlots();
       }
@@ -1089,10 +1119,14 @@
         }
         .date-row {
           display: flex;
-          flex-wrap: wrap;
+          flex-wrap: nowrap;
           gap: 10px;
+          overflow-x: auto;
+          overscroll-behavior-x: contain;
+          padding-bottom: 8px;
         }
         .date-chip {
+          flex: 0 0 auto;
           min-height: 42px;
           padding: 10px 14px;
           border: 1px solid #d9cdc3;

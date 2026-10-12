@@ -31,6 +31,25 @@ function updateTranslation() {
   translationWidget.src = 'https://cdn.gtranslate.net/widgets/latest/float.js';
   translationWidget.defer = true;
   const loadingWidget = translationWidget;
+  translationWidget.addEventListener('load', () => {
+    if (translationWidget !== loadingWidget) return;
+    const flagLabels = {
+      it: 'Italiano',
+      en: 'English',
+      th: 'ไทย',
+      es: 'Español'
+    };
+    wrapper.querySelectorAll('.gt_options a[data-gt-lang]').forEach(link => {
+      const language = link.dataset.gtLang;
+      if (!Object.prototype.hasOwnProperty.call(flagLabels, language)) return;
+      const image = link.querySelector('img');
+      if (!image) return;
+      image.src = `flags/${language}.svg`;
+      image.alt = '';
+      link.setAttribute('aria-label', flagLabels[language]);
+      link.title = flagLabels[language];
+    });
+  });
   translationWidget.addEventListener('error', () => {
     if (translationWidget !== loadingWidget) return;
     console.error('Impossibile caricare il traduttore GTranslate.');
