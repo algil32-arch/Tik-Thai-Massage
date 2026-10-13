@@ -53,6 +53,16 @@
       .payment-option strong { font-size: 15px; }
       .payment-option small { color: var(--muted); font-size: 13px; line-height: 1.4; }
       .payment-note { margin: 12px 0 0; color: var(--muted); font-size: 13px; }
+      .payment-warning {
+        margin-top: 16px;
+        padding: 16px 18px;
+        border: 1px solid #d8a347;
+        background: rgba(255, 196, 0, 0.08);
+        color: var(--ink);
+        border-radius: 8px;
+      }
+      .payment-warning strong { display: block; margin-bottom: 8px; color: var(--ink); }
+      .payment-warning p { margin: 0; line-height: 1.6; color: var(--ink); }
       .sumup-checkout-panel[hidden] { display: none; }
       .sumup-checkout-panel { border-color: var(--accent); }
       .sumup-checkout-panel .payment-note { margin-bottom: 16px; }
@@ -268,6 +278,10 @@
                 <span><strong>Prenota e paga online</strong><small>Checkout sicuro con SumUp, direttamente in questa pagina.</small></span>
               </label>
             </fieldset>
+            <aside class="payment-warning" id="apsPaymentWarning" hidden role="alert">
+              <strong>⚠️ Nota importante sul pagamento</strong>
+              <p>Si avvisa che sul presente sito web <strong>non è possibile effettuare pagamenti on line per le prestazioni presso l'APS Jaqueline</strong>. La prenotazione effettuata tramite il sito serve esclusivamente a riservare il giorno e l'orario della sessione. Il versamento della quota di partecipazione avverrà <strong>esclusivamente in loco, presso la sede dell'Associazione</strong>, prima dell'inizio del trattamento. Si ricorda che l'accesso ai trattamenti è riservato unicamente ai soci in regola con il tesseramento annuale.</p>
+            </aside>
             <p class="payment-note" id="paymentStatus" role="status" hidden></p>
           </section>
 
@@ -371,8 +385,10 @@
               <div><dt>Prezzo</dt><dd id="summaryPrice">-</dd></div>
               <div><dt>Pagamento</dt><dd id="summaryPayment">In studio</dd></div>
             </dl>
-            <aside class="association-notice" id="associationNotice" hidden aria-label="Quota associativa separata">
-              <p><strong>Quota associativa separata — APS Jaqueline.</strong> Per accedere ai servizi presso questa sede è richiesta l'adesione ad APS Jaqueline e il pagamento della relativa quota associativa. Tesseramento e quota sono gestiti direttamente dall'associazione e non sono inclusi nel prezzo del trattamento di Thai Tik Massage. Verifica importo, validità e modalità di adesione con l'associazione prima dell'appuntamento.</p>
+            <aside class="association-notice" id="associationNotice" hidden aria-label="Regolamento del servizio APS Montesacro">
+              <p><strong>Regolamento del servizio e corrispettivi — APS Jaqueline.</strong> Per le attività erogate presso APS Studio Montesacro, il pagamento del servizio e dei corrispettivi è disciplinato secondo le regole dell'associazione.</p>
+              <p>La Collaboratrice non è autorizzata, per nessuna ragione o titolo, a incassare o ricevere somme di denaro direttamente dagli associati all'interno o fuori dai locali dell'Ente.</p>
+              <p>Il pagamento online non è attivo per questa sede: il servizio presso APS Studio Montesacro viene regolato direttamente con l'associazione.</p>
             </aside>
           </section>
 
@@ -488,11 +504,31 @@
         document.getElementById('billingPostalCode').required = true;
       }
 
+      function isPratiStudio(studio) {
+        return studio?.name === 'Studio Prati';
+      }
+
       function updatePaymentChoice() {
-        const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value || 'studio';
+        const studio = getStudioById(selected.studioId);
+        const paymentRadio = document.querySelector('input[name="payment_method"]:checked')?.value || 'studio';
+        const onlineRadio = document.querySelector('input[name="payment_method"][value="online"]');
+        const studioRadio = document.querySelector('input[name="payment_method"][value="studio"]');
+        const paymentMethod = isPratiStudio(studio) ? paymentRadio : 'studio';
         const onlineSelected = paymentMethod === 'online';
         const paymentStatus = document.getElementById('paymentStatus');
+        const apsPaymentWarning = document.getElementById('apsPaymentWarning');
         const submitButton = document.querySelector('.submit[form="bookingRequestForm"]');
+
+        if (!isPratiStudio(studio) && onlineRadio?.checked) {
+          studioRadio.checked = true;
+        }
+
+        if (onlineRadio) {
+          onlineRadio.disabled = !isPratiStudio(studio);
+        }
+
+        const showApsWarning = isAssociationStudio(studio);
+        apsPaymentWarning.hidden = !showApsWarning;
 
         document.getElementById('summaryPayment').textContent = onlineSelected ? 'Online · SumUp' : 'In studio';
         paymentStatus.hidden = !onlineSelected;
@@ -1003,9 +1039,11 @@
       function updateSummary() {
         const studio = getStudioById(selected.studioId);
         const service = getServiceById(selected.serviceId);
+        const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value || 'studio';
+        const showAssociationNotice = isAssociationStudio(studio) && paymentMethod !== 'online';
 
         document.getElementById('summaryStudio').textContent = studio?.name || 'Non selezionato';
-        document.getElementById('associationNotice').hidden = !isAssociationStudio(studio);
+        document.getElementById('associationNotice').hidden = !showAssociationNotice;
         document.getElementById('summaryService').textContent = service?.name || 'Non selezionato';
         document.getElementById('summaryDate').textContent = selected.date ? formatDate(selected.date) : 'Non selezionata';
         document.getElementById('summaryTime').textContent = selected.time || 'Non selezionato';

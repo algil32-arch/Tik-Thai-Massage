@@ -222,6 +222,13 @@ if (!$studioRecord) {
     ]);
 }
 
+if ($paymentMethod === 'online' && $studioRecord['nome'] !== 'Studio Prati') {
+    apiResponse(400, [
+        'success' => false,
+        'message' => 'Non è possibile effettuare pagamenti on line per le prestazioni presso l\'APS Jaqueline. La prenotazione serve solo a riservare il giorno e l\'orario; il pagamento avviene esclusivamente in loco presso la sede dell\'Associazione.',
+    ]);
+}
+
 $serviceStmt = $pdo->prepare('SELECT id, nome, durata_minuti, prezzo FROM servizi WHERE id_studio = :studio AND id = :service AND attivo = 1 LIMIT 1');
 $serviceStmt->execute([
     ':studio' => $studioRecord['id'],
