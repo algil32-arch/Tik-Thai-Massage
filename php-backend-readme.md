@@ -13,6 +13,77 @@ Il backend usa PHP con PDO e MySQL/MariaDB. L'agenda applica le fasce settimanal
 8. Per aggiungere al database esistente le formule Aromaterapia da 90 e 120 minuti e allineare i relativi prezzi, importa una sola volta `backend-aruba-aromaterapia-listino.sql`.
 9. Per le nuove bozze fiscali manuali, importa una sola volta `backend-aruba-fatturazione-fiscale.sql` sui database esistenti; aggiunge provincia, regime/documento, rivalsa e dati bollo. Su database nuovi queste colonne sono già presenti nello schema principale.
 10. Per la sincronizzazione con Google Calendar, importa una sola volta `backend-aruba-google-calendar.sql`: aggiunge `google_event_id` e `google_synced_at` ad `appuntamenti` e crea le tabelle `agenda_blocchi` e `google_calendar_stato`.
+11. Per i voucher regalo, importa `backend-aruba-vouchers.sql` sia su database nuovi sia su quelli esistenti, prima di pubblicare il form. Crea due tabelle nuove senza modificare appuntamenti o fatture.
+12. Per prenotare con voucher, importa poi `backend-aruba-voucher-bookings.sql`, anche se i voucher sono gia' installati. Aggiunge la modalita' di pagamento `voucher` agli appuntamenti e una tabella di collegamento/idempotenza; non modifica i voucher esistenti.
+
+## Voucher regalo
+
+Il box in `prenota.html` vende solo servizi attivi di **Studio Prati**, non di APS
+Jaqueline. Si sceglie destinatario, trattamento, formula da 1/5/10 sedute e
+quantita' da 1 a 20. Il server recupera il prezzo dal database e calcola il totale:
+il prezzo delle formule da 5/10 sedute viene arrotondato per seduta come nel
+listino. Un importo inviato dal browser non determina mai l'importo del checkout.
+
+L'anteprima stampabile/scaricabile e' marcata **NON VALIDO / NON PAGATO**. Il
+pagamento usa l'SDK e il client SumUp esistenti, ma l'acquisto e' salvato in
+`gift_vouchers`, senza creare clienti o appuntamenti e senza bloccare slot.
+Il codice definitivo viene emesso solo dopo verifica server di stato PAID,
+riferimento, valuta EUR e importo. Vale 12 mesi dalla conferma, nello stesso
+trattamento e durata. Le sedute si prenotano dal normale calendario del sito:
+selezionare **Prenota con voucher regalo**, Studio Prati, lo stesso trattamento
+e durata, data/orario, dati cliente e codice. **Verifica codice voucher** mostra
+le sedute residue senza modificarle. All'invio il server ricontrolla codice,
+pagamento, corrispondenza del servizio, disponibilita' e scadenza (anche rispetto
+alla data dell'appuntamento). Non viene creato alcun checkout SumUp aggiuntivo.
+La richiesta resta in attesa della conferma dello studio, come le altre.
+Il PDF e' generato in PHP, senza librerie esterne, e si scarica usando un token
+segreto: non condividere il link se non con acquirente/destinatario.
+
+Il browser conserva solo il token nella sessione della scheda per recuperare
+un acquisto interrotto. Prima di riprovare il pagamento, usare **Verifica
+pagamento / recupera voucher**. Il checkout scade dopo 15 minuti ed e'
+ricontrollato prima di disattivarlo. Dal registro `vouchers-admin.php`, protetto
+dalla normale autenticazione admin, si possono verificare anche acquisti
+abbandonati: la verifica emette il voucher se risultano pagati. Le notifiche
+email usano la configurazione esistente e indicano il download sul dominio
+`www.thaitikmassage.it`; eventuali errori sono mostrati al cliente e registrati.
+
+Il registro mostra gli ultimi 100 acquisti, consente ricerca per codice completo,
+mostra i dati acquirente per la **fatturazione manuale** e scala una seduta per
+utilizzo. Il controllo e' transazionale, protegge dalle richieste duplicate e
+non permette l'utilizzo di voucher non pagati, esauriti o scaduti. Non viene
+scalata una seconda seduta per una richiesta online gia' registrata: browser
+e server usano un riferimento univoco, conservato nella memoria della scheda
+insieme al solo hash dei dati. Appuntamento, collegamento voucher e decremento
+sono salvati nella stessa transazione, con blocco del voucher. Un errore di
+disponibilita' o salvataggio non modifica i contatori. Il registro mostra gli
+appuntamenti collegati (ultimi 500 collegamenti); la registrazione manuale serve
+solo per sedute non prenotate online. L'annullamento da
+`booking-admin-advanced.php` restituisce una sola volta la seduta nella stessa
+transazione. Non prolunga la scadenza del voucher e non riattiva un voucher
+scaduto. Una richiesta annullata non puo' essere riconfermata; va riprenotata.
+La seduta coperta dal voucher risulta pagata e non genera una seconda fattura
+dal pulsante dell'agenda. Non viene
+generata automaticamente una fattura: verificare con il commercialista
+trattamento fiscale, documenti, condizioni di vendita/recesso e conservazione
+dei dati prima di attivare vendite reali.
+
+File da pubblicare: `prenota.html`, `area-admin.html`, `documenti-legali-premium.html`,
+`gift-voucher.js`, `gift-voucher.css`, `voucher.php`, `voucher-model.php`,
+`voucher-store.php`, `voucher-pdf.php`, `vouchers-admin.php`, `booking-voucher.php`,
+`php-booking-backend.php`, `booking-admin-advanced.php`, `booking-mailer.php`. Dipendenze gia'
+presenti: `app-config.php`, `admin-auth.php`, `sumup-client.php` e logo.
+Serve PHP con PDO MySQL, cURL e iconv, un database migrato e SumUp in EUR.
+
+Verifiche locali:
+`php tests/voucher-test.php`, `php tests/booking-voucher-test.php` e
+`node --test tests/gift-voucher.test.cjs tests/packages.test.cjs`.
+Prima delle vendite, collaudare su Aruba con credenziali SumUp di test: pagamento
+riuscito/fallito/scaduto, recupero dopo ricarica o abbandono, doppia verifica,
+due utilizzi concorrenti dell'ultima seduta, scadenza, email e fatturazione.
+Collaudare anche una prenotazione con codice, doppio invio, slot occupato,
+trattamento/durata errati e annullamento ripetuto: una sola seduta scalata o
+restituita. I test con PDO simulato non sostituiscono questo collaudo MySQL.
 
 ## Dati della prenotazione
 Nome, cognome, email e dati fiscali sono richiesti; il telefono è facoltativo. Per i privati è richiesto il codice fiscale, per aziende e professionisti ragione sociale, partita IVA e codice destinatario o PEC. Il metodo `studio` registra subito la richiesta e invia le notifiche. Il metodo `online` crea un intento temporaneo che riserva lo slot per 15 minuti, senza inserire righe in `clienti` o `appuntamenti`. Cliente, appuntamento e notifiche vengono creati solo dopo che il backend ha verificato lo stato `PAID` direttamente con SumUp. Alla scadenza il checkout viene disattivato e lo slot liberato; se il cliente abbandona la pagina senza pagare non rimane alcun appuntamento.
@@ -44,7 +115,7 @@ Prima del test prenotazione, verifica l'invio da **Hosting Linux → Strumenti e
 ## Configurare l'agenda
 Apri `area-admin.html`, accedi con `ADMIN_PASSWORD` e scegli **Prenotazioni e agenda**. Per ogni studio aggiungi una o più fasce per giorno indicando ora iniziale e ora finale. L'ora finale indica la chiusura: il sito mostra partenze ogni 60 minuti a partire dall'inizio della fascia e aggiunge un ultimo ingresso 30 minuti prima della chiusura, utilizzabile almeno dal trattamento più breve. Per chiudere una fascia, rimuovila.
 
-Il backend lascia almeno **5 minuti tra i trattamenti**, sia prima sia dopo gli appuntamenti in attesa o confermati. Tutte le partenze orarie restano visibili: quelle che non possono contenere l'intera durata del trattamento, che si sovrappongono a un appuntamento o a un blocco Google, oppure che non lasciano la pausa necessaria, vengono mostrate come non disponibili. Se il cliente le seleziona, il sito spiega il motivo. La stessa regola viene ricontrollata dal server durante il salvataggio.
+Il backend lascia almeno **15 minuti tra i trattamenti**, sia prima sia dopo gli appuntamenti in attesa o confermati. Tutte le partenze orarie restano visibili: quelle che non possono contenere l'intera durata del trattamento, che si sovrappongono a un appuntamento o a un blocco Google, oppure che non lasciano la pausa necessaria, vengono mostrate come non disponibili. Se il cliente le seleziona, il sito spiega il motivo. La stessa regola viene ricontrollata dal server durante il salvataggio. Gli appuntamenti esistenti non vengono spostati; la durata della seduta e gli orari di apertura restano invariati.
 
 La funzione condivisa in `booking-slots.php` viene usata sia per mostrare gli orari sia per validarli durante il salvataggio, sotto il lock dello studio. Se un'altra richiesta cambia le disponibilità, il POST restituisce 409 e il form aggiorna gli slot senza perdere i dati inseriti. Carica anche questo file sull'hosting; non serve una migrazione SQL. Per eseguire i test della logica: `php tests/booking-slots-test.php`.
 

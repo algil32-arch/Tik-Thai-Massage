@@ -75,7 +75,7 @@ CREATE TABLE appuntamenti (
   ora_inizio TIME NOT NULL,
   ora_fine TIME NOT NULL,
   stato ENUM('in_attesa','confermato','completato','annullato') DEFAULT 'in_attesa',
-  metodo_pagamento ENUM('studio','online') NOT NULL DEFAULT 'studio',
+  metodo_pagamento ENUM('studio','online','voucher') NOT NULL DEFAULT 'studio',
   stato_pagamento ENUM('da_saldare','in_attesa','pagato','fallito','rimborsato') NOT NULL DEFAULT 'da_saldare',
   sumup_checkout_id VARCHAR(100) NULL,
   sumup_checkout_reference VARCHAR(100) NULL,

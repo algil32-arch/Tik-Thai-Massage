@@ -1,0 +1,28 @@
+.gift-voucher { margin-top: 28px; }
+.gift-voucher[hidden], .gift-voucher [hidden] { display: none; }
+.gift-voucher-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.gift-voucher-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-block: 18px; }
+.gift-voucher-actions button, .gift-voucher-actions a {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 10px 16px;
+  border: 1px solid #8b4438; background: #fff; color: #8b4438; font: inherit;
+  font-weight: 700; cursor: pointer; text-decoration: none;
+}
+.gift-voucher-actions button:disabled { opacity: .6; cursor: not-allowed; }
+.gift-voucher-total { padding: 16px; background: #eee8df; font-size: 18px; }
+.gift-voucher-total output { font-weight: 700; color: #8b4438; }
+.gift-voucher-status { white-space: pre-line; overflow-wrap: anywhere; }
+.gift-voucher-preview { padding: 24px; border: 1px solid #c8a44d; background: #fbf9f5; }
+.gift-voucher-preview img { width: 150px; height: 130px; margin: auto; object-fit: contain; }
+.gift-voucher-preview h3 { color: #8b4438; text-align: center; }
+.gift-voucher-preview p { margin: 8px 0; overflow-wrap: anywhere; }
+@media (max-width: 600px) { .gift-voucher-grid { grid-template-columns: 1fr; } }
+@media print {
+  body.gift-voucher-print > * { display: none !important; }
+  body.gift-voucher-print > main { display: block !important; }
+  body.gift-voucher-print main > * { display: none !important; }
+  body.gift-voucher-print main > .booking-shell { display: block !important; }
+  body.gift-voucher-print .booking-shell > * { display: none !important; }
+  body.gift-voucher-print .booking-shell > .gift-voucher { display: block !important; border: 0; padding: 0; }
+  body.gift-voucher-print .gift-voucher > * { display: none !important; }
+  body.gift-voucher-print .gift-voucher > .gift-voucher-preview { display: block !important; }
+}

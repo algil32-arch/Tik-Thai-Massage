@@ -7,7 +7,7 @@ $date = '2027-06-15';
 $now = new DateTimeImmutable('2027-06-14 12:00');
 $schedules = [['ora_inizio' => '10:00', 'ora_fine' => '15:00', 'intervallo_minuti' => 60]];
 $first = ['ora_inizio' => '10:00', 'ora_fine' => '11:00'];
-$second = ['ora_inizio' => '11:05', 'ora_fine' => '12:05'];
+$second = ['ora_inizio' => '11:15', 'ora_fine' => '12:15'];
 $checks = 0;
 
 function checkSlots(string $label, array $expected, array $actual): void
@@ -35,10 +35,20 @@ checkSlots('Existing back-to-back bookings stay unchanged', ['13:00', '14:00'],
     bookingAvailableSlots($date, 60, $schedules, [$first, ['ora_inizio' => '11:00', 'ora_fine' => '12:00']], $now));
 checkSlots('Short treatment releases the next hourly slot and closing slot', ['11:00', '12:00', '13:00', '14:00', '14:30'],
     bookingAvailableSlots($date, 30, $schedules, [['ora_inizio' => '10:00', 'ora_fine' => '10:30']], $now));
-checkSlots('Five minute boundary allowed', ['10:00', '13:00', '14:00'],
+checkSlots('Five minute boundary rejected', ['13:00', '14:00'],
     bookingAvailableSlots($date, 60, $schedules, [['ora_inizio' => '11:05', 'ora_fine' => '12:05']], $now));
-checkSlots('Four minute boundary rejected', ['13:00', '14:00'],
-    bookingAvailableSlots($date, 60, $schedules, [['ora_inizio' => '11:04', 'ora_fine' => '12:04']], $now));
+checkSlots('Fifteen minute boundary before booking allowed', ['10:00', '13:00', '14:00'],
+    bookingAvailableSlots($date, 60, $schedules, [['ora_inizio' => '11:15', 'ora_fine' => '12:15']], $now));
+checkSlots('Fourteen minute boundary before booking rejected', ['13:00', '14:00'],
+    bookingAvailableSlots($date, 60, $schedules, [['ora_inizio' => '11:14', 'ora_fine' => '12:14']], $now));
+checkSlots('Fifteen minute boundary after booking allowed', ['11:00', '12:00', '13:00', '14:00'],
+    bookingAvailableSlots($date, 60, $schedules, [['ora_inizio' => '09:45', 'ora_fine' => '10:45']], $now));
+checkSlots('Fourteen minute boundary after booking rejected', ['12:00', '13:00', '14:00'],
+    bookingAvailableSlots($date, 60, $schedules, [['ora_inizio' => '09:46', 'ora_fine' => '10:46']], $now));
+
+$blocked = bookingSlotOptions($date, 60, $schedules, [['ora_inizio' => '11:05', 'ora_fine' => '12:05']], $now);
+checkSlots('Blocked slot explains the fifteen minute break', [false, true],
+    [$blocked[0]['available'], strpos($blocked[0]['message'], '15 minuti') !== false]);
 checkSlots('Past slots omitted', ['12:00', '13:00', '14:00'],
     bookingAvailableSlots($date, 60, $schedules, [$first], new DateTimeImmutable($date . ' 11:05')));
 checkSlots('Separate windows retain their starting grid', ['14:00', '15:00'],
@@ -82,8 +92,8 @@ foreach ([15, 30, 60, 90] as $duration) {
             foreach ($appointments as $appointment) {
                 $before = new DateTimeImmutable($date . ' ' . $appointment['ora_inizio']);
                 $after = new DateTimeImmutable($date . ' ' . $appointment['ora_fine']);
-                if ($start < $after->modify('+5 minutes') && $end > $before->modify('-5 minutes')) {
-                    throw new RuntimeException('Slot violates the five minute break.');
+                if ($start < $after->modify('+15 minutes') && $end > $before->modify('-15 minutes')) {
+                    throw new RuntimeException('Slot violates the fifteen minute break.');
                 }
             }
         }

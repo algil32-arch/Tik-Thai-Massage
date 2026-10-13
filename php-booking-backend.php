@@ -11,6 +11,7 @@ require_once __DIR__ . '/booking-mailer.php';
 require_once __DIR__ . '/booking-slots.php';
 require_once __DIR__ . '/sumup-client.php';
 require_once __DIR__ . '/sumup-intents.php';
+require_once __DIR__ . '/booking-voucher.php';
 
 function apiResponse(int $status, array $payload): void
 {
@@ -193,7 +194,7 @@ $recipientCode = strtoupper(trim((string)($input['codice_destinatario'] ?? '')))
 $pec = trim((string)($input['pec'] ?? ''));
 $notes = trim((string)($input['notes'] ?? ''));
 
-if (!in_array($paymentMethod, ['studio', 'online'], true)) {
+if (!in_array($paymentMethod, ['studio', 'online', 'voucher'], true)) {
     apiResponse(400, ['success' => false, 'message' => 'Modalità di pagamento non valida.']);
 }
 if (!in_array($customerType, ['privato', 'azienda'], true) || $billingAddress === '' || $billingCity === '' || $billingPostalCode === '') {
@@ -227,6 +228,9 @@ if ($paymentMethod === 'online' && $studioRecord['nome'] !== 'Studio Prati') {
         'success' => false,
         'message' => 'Non è possibile effettuare pagamenti on line per le prestazioni presso l\'APS Jaqueline. La prenotazione serve solo a riservare il giorno e l\'orario; il pagamento avviene esclusivamente in loco presso la sede dell\'Associazione.',
     ]);
+}
+if ($paymentMethod === 'voucher' && $studioRecord['nome'] !== 'Studio Prati') {
+    apiResponse(400, ['success' => false, 'message' => 'I voucher regalo sono utilizzabili solo presso Studio Prati.']);
 }
 
 $serviceStmt = $pdo->prepare('SELECT id, nome, durata_minuti, prezzo FROM servizi WHERE id_studio = :studio AND id = :service AND attivo = 1 LIMIT 1');
@@ -267,6 +271,25 @@ $bookingId = null;
 $checkoutId = null;
 $paymentIntentToken = null;
 $expiresAt = null;
+$bookingVoucher = null;
+$voucherRequestToken = '';
+$voucherPayloadHash = '';
+if ($paymentMethod === 'voucher') {
+    try {
+        $voucherCode = bookingVoucherCode($input['voucher_code'] ?? '');
+        $voucherRequestToken = $input['voucher_request_token'] ?? '';
+        if (!is_string($voucherRequestToken) || !preg_match('/^[a-f0-9]{64}$/', $voucherRequestToken)) {
+            throw new InvalidArgumentException('Richiesta voucher non valida. Ricarica la pagina.');
+        }
+        $voucherPayloadHash = hash('sha256', json_encode([
+            $studioId, $serviceId, $date, $time, $name, $email, $phone, $customerType,
+            $companyName, $taxCode, $vatNumber, $billingAddress, $billingCity,
+            $billingPostalCode, $recipientCode, $pec, $notes, $voucherCode,
+        ], JSON_THROW_ON_ERROR));
+    } catch (InvalidArgumentException $e) {
+        apiResponse(400, ['success' => false, 'message' => $e->getMessage()]);
+    }
+}
 
 expireSumUpPaymentIntents($pdo, (int)$studioRecord['id'], $date);
 
@@ -274,6 +297,22 @@ try {
     $pdo->beginTransaction();
     $lockStudio = $pdo->prepare('SELECT id FROM studi WHERE id = :studio AND attivo = 1 FOR UPDATE');
     $lockStudio->execute([':studio' => $studioRecord['id']]);
+
+    if ($paymentMethod === 'voucher') {
+        $bookingVoucher = bookingVoucherByCode($pdo, $voucherCode, true);
+        $previous = bookingVoucherPrevious($pdo, $voucherRequestToken, $voucherPayloadHash, (int)$bookingVoucher['id']);
+        if ($previous) {
+            $pdo->commit();
+            apiResponse(200, [
+                'success' => true, 'already_registered' => true,
+                'message' => 'Richiesta già registrata: nessuna ulteriore seduta scalata.',
+                'booking_id' => (int)$previous['appointment_id'],
+                'voucher' => ['remaining_sessions' => (int)$bookingVoucher['remaining_sessions']],
+                'data' => ['studio' => $studioName, 'service' => $serviceName, 'date' => $date, 'time' => $time, 'price' => 0],
+            ]);
+        }
+        bookingVoucherValidate($bookingVoucher, $studioId, $serviceId, (int)$serviceRecord['durata_minuti'], $startDateTime, new DateTimeImmutable('now'));
+    }
 
     $appointmentsStmt = $pdo->prepare(
         "SELECT ora_inizio, ora_fine FROM appuntamenti
@@ -398,7 +437,7 @@ try {
                  stato, metodo_pagamento, stato_pagamento, note, created_at)
              VALUES
                 (:studio, :professionista, :cliente, :servizio, :date, :time, :time_end,
-                 'in_attesa', 'studio', 'da_saldare', :note, NOW())"
+                 'in_attesa', :payment_method, :payment_status, :note, NOW())"
         );
         $bookingStmt->execute([
             ':studio' => $studioRecord['id'],
@@ -408,11 +447,20 @@ try {
             ':date' => $date,
             ':time' => $startDateTime->format('H:i:s'),
             ':time_end' => $endDateTime->format('H:i:s'),
+            ':payment_method' => $paymentMethod,
+            ':payment_status' => $paymentMethod === 'voucher' ? 'pagato' : 'da_saldare',
             ':note' => $notes,
         ]);
         $bookingId = (int)$pdo->lastInsertId();
+        if ($bookingVoucher !== null) {
+            bookingVoucherDebit($pdo, (int)$bookingVoucher['id'], $bookingId, $voucherRequestToken, $voucherPayloadHash);
+            $bookingVoucher['remaining_sessions']--;
+        }
     }
     $pdo->commit();
+} catch (InvalidArgumentException $e) {
+    if ($pdo->inTransaction()) $pdo->rollBack();
+    apiResponse(400, ['success' => false, 'message' => $e->getMessage()]);
 } catch (SumUpApiException $e) {
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
@@ -429,18 +477,20 @@ try {
             error_log('Unable to deactivate orphan SumUp checkout: ' . $cleanupError->getMessage());
         }
     }
+    error_log('Booking creation failed: ' . $e->getMessage());
     apiResponse(500, ['success' => false, 'message' => 'Non è stato possibile salvare la richiesta.']);
 }
 
 $notificationStatus = ['studio_sent' => false, 'customer_sent' => false];
-if ($paymentMethod === 'studio') {
+if ($paymentMethod !== 'online') {
     $notificationStatus = sendBookingNotifications($bookingId, [
         'name' => $name,
         'studio' => $studioName,
         'service' => $serviceName,
         'date' => $date,
         'time' => $time,
-        'price' => $serviceRecord['prezzo'],
+        'price' => $bookingVoucher !== null ? 0 : $serviceRecord['prezzo'],
+        'voucher_code' => $bookingVoucher['voucher_code'] ?? null,
         'notes' => $notes,
     ], $email);
 }
@@ -454,6 +504,7 @@ apiResponse(201, [
     'checkout_id' => $checkoutId ?? null,
     'payment_intent' => $paymentIntentToken,
     'expires_at' => $expiresAt?->format(DateTimeInterface::ATOM),
+    'voucher' => $bookingVoucher !== null ? ['remaining_sessions' => (int)$bookingVoucher['remaining_sessions']] : null,
     'data' => [
         'studio' => $studioName,
         'service' => $serviceName,
@@ -461,7 +512,7 @@ apiResponse(201, [
         'time' => $time,
         'name' => $name,
         'email' => $email,
-        'price' => (float)$serviceRecord['prezzo'],
+        'price' => $bookingVoucher !== null ? 0 : (float)$serviceRecord['prezzo'],
     ],
     'notifications' => $notificationStatus,
 ]);

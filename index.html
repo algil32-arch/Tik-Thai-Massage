@@ -6,6 +6,7 @@
     <meta name="description" content="Thai Tik Massage: trattamenti thailandesi tradizionali, benessere e relax. Scopri i trattamenti e richiedi un appuntamento." />
     <title>Thai Tik Massage | Massaggio thailandese e benessere</title>
     <link rel="stylesheet" href="cookie-consent.css" />
+    <link rel="stylesheet" href="packages.css" />
     <script src="cookie-consent.js" defer></script>
     <style>
       :root {
@@ -110,7 +111,13 @@
           </a>
         </div>
         <nav class="nav" aria-label="Navigazione principale">
-          <a href="#trattamenti">Trattamenti</a>
+          <details class="nav-dropdown">
+            <summary>Trattamenti</summary>
+            <div class="nav-menu">
+              <a href="#trattamenti">Tutti i trattamenti</a>
+              <a href="listino-trattamenti.pdf">Listino completo massaggi</a>
+            </div>
+          </details>
           <a href="mappa-sedi.html">Dove trovarmi</a>
           <a class="nav-book" href="prenota.html">Prenota</a>
           <a class="nav-admin" href="area-admin.html">Area admin</a>
@@ -154,6 +161,16 @@
               <div class="treatment-body">
                 <h3>Massaggio Thai tradizionale</h3>
                 <p class="price">60 min · 60 €<br />90 min · 80 €</p>
+                <div class="package-prices">
+                  <table>
+                    <caption>Pacchetti massaggio Thai tradizionale</caption>
+                    <thead><tr><th scope="col">Durata</th><th scope="col">5 sedute</th><th scope="col">10 sedute</th></tr></thead>
+                    <tbody>
+                      <tr><th scope="row">60 min</th><td>285 €<small>57 € / seduta</small></td><td>540 €<small>54 € / seduta</small></td></tr>
+                      <tr><th scope="row">90 min</th><td>380 €<small>76 € / seduta</small></td><td>720 €<small>72 € / seduta</small></td></tr>
+                    </tbody>
+                  </table>
+                </div>
                 <p>Nuad Boran: pressioni, allungamenti e mobilizzazioni, praticati con abiti comodi su un tappeto o su lettino.</p>
                 <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:16px; align-items:center;">
                   <a class="details" href="massaggio-thai-tradizionale.html">Scopri il trattamento</a>
@@ -166,6 +183,13 @@
               <div class="treatment-body">
                 <h3>Massaggio sportivo (deep tissue)</h3>
                 <p class="price">1 ora · 60 €</p>
+                <div class="package-prices">
+                  <table>
+                    <caption>Pacchetti massaggio sportivo</caption>
+                    <thead><tr><th scope="col">Durata</th><th scope="col">5 sedute</th><th scope="col">10 sedute</th></tr></thead>
+                    <tbody><tr><th scope="row">60 min</th><td>285 €<small>57 € / seduta</small></td><td>540 €<small>54 € / seduta</small></td></tr></tbody>
+                  </table>
+                </div>
                 <p>Un trattamento profondo dedicato alle tensioni muscolari e alla flessibilità.</p>
                 <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:16px; align-items:center;">
                   <a class="details" href="massaggio-sportivo.html">Scopri il trattamento</a>
@@ -178,6 +202,17 @@
               <div class="treatment-body">
                 <h3>Massaggio con oli + aromaterapia</h3>
                 <p class="price">60 min · 60 €<br />90 min · 80 €<br />120 min · 100 €</p>
+                <div class="package-prices">
+                  <table>
+                    <caption>Pacchetti oli e aromaterapia</caption>
+                    <thead><tr><th scope="col">Durata</th><th scope="col">5 sedute</th><th scope="col">10 sedute</th></tr></thead>
+                    <tbody>
+                      <tr><th scope="row">60 min</th><td>285 €<small>57 € / seduta</small></td><td>540 €<small>54 € / seduta</small></td></tr>
+                      <tr><th scope="row">90 min</th><td>380 €<small>76 € / seduta</small></td><td>720 €<small>72 € / seduta</small></td></tr>
+                      <tr><th scope="row">120 min</th><td>475 €<small>95 € / seduta</small></td><td>900 €<small>90 € / seduta</small></td></tr>
+                    </tbody>
+                  </table>
+                </div>
                 <p>Un'esperienza di benessere con oli e aromi, dedicata al relax.</p>
                 <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:16px; align-items:center;">
                   <a class="details" href="massaggio-aromaterapia.html">Scopri il trattamento</a>
@@ -190,6 +225,13 @@
               <div class="treatment-body">
                 <h3>Tok Sen Massage</h3>
                 <p class="price">1 ora · 70 €</p>
+                <div class="package-prices">
+                  <table>
+                    <caption>Pacchetti Tok Sen Massage</caption>
+                    <thead><tr><th scope="col">Durata</th><th scope="col">5 sedute</th><th scope="col">10 sedute</th></tr></thead>
+                    <tbody><tr><th scope="row">60 min</th><td>335 €<small>67 € / seduta</small></td><td>630 €<small>63 € / seduta</small></td></tr></tbody>
+                  </table>
+                </div>
                 <p>Una tecnica tradizionale che utilizza strumenti in legno per un trattamento ritmico.</p>
                 <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:16px; align-items:center;">
                   <a class="details" href="tok-sen.html">Scopri il trattamento</a>
@@ -202,6 +244,16 @@
               <div class="treatment-body">
                 <h3>Foot Massage</h3>
                 <p class="price">Express · 30 min · 35 €<br />Completo · 60 min · 50 €</p>
+                <div class="package-prices">
+                  <table>
+                    <caption>Pacchetti Foot Massage</caption>
+                    <thead><tr><th scope="col">Formula</th><th scope="col">5 sedute</th><th scope="col">10 sedute</th></tr></thead>
+                    <tbody>
+                      <tr><th scope="row">Express<small>30 min</small></th><td>170 €<small>34 € / seduta</small></td><td>320 €<small>32 € / seduta</small></td></tr>
+                      <tr><th scope="row">Completo<small>60 min</small></th><td>240 €<small>48 € / seduta</small></td><td>450 €<small>45 € / seduta</small></td></tr>
+                    </tbody>
+                  </table>
+                </div>
                 <p>Un trattamento manuale dedicato al benessere di piedi e caviglie, in due formule.</p>
                 <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:16px; align-items:center;">
                   <a class="details" href="foot-massage.html">Scopri il trattamento</a>

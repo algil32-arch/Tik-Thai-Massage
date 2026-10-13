@@ -1,6 +1,6 @@
 <?php
 
-const BOOKING_BREAK_MINUTES = 5;
+const BOOKING_BREAK_MINUTES = 15;
 const BOOKING_DISPLAY_INTERVAL_MINUTES = 60;
 const BOOKING_MIN_TREATMENT_MINUTES = 30;
 
@@ -66,7 +66,7 @@ function bookingSlotOptions(
                 $earliestStartAfter = $appointment['end']->modify('+' . BOOKING_BREAK_MINUTES . ' minutes');
                 $latestEndBefore = $appointment['start']->modify('-' . BOOKING_BREAK_MINUTES . ' minutes');
                 if ($slot < $earliestStartAfter && $slotEnd > $latestEndBefore) {
-                    $message = 'Il trattamento selezionato si sovrappone a un impegno o non lascia i 5 minuti necessari tra gli appuntamenti.';
+                    $message = 'Il trattamento selezionato si sovrappone a un impegno o non lascia i ' . BOOKING_BREAK_MINUTES . ' minuti necessari tra gli appuntamenti.';
                     break;
                 }
             }

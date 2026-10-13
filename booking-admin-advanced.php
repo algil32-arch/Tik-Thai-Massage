@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/admin-auth.php';
+require_once __DIR__ . '/booking-voucher.php';
 
 try {
   $pdo = dbConnection();
@@ -9,24 +10,45 @@ try {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!is_string($_POST['csrf_token'] ?? null) || !hash_equals($_SESSION['admin_csrf'], $_POST['csrf_token'])) {
+        http_response_code(400);
+        die('Sessione scaduta. Ricarica la pagina e riprova.');
+    }
     $action = $_POST['action'] ?? '';
 
     if ($action === 'confirm') {
         $id = (int)($_POST['id'] ?? 0);
-        $pdo->prepare("UPDATE appuntamenti SET stato = 'confermato' WHERE id = :id")->execute([':id' => $id]);
+        $stmt = $pdo->prepare("UPDATE appuntamenti SET stato = 'confermato' WHERE id = :id AND stato = 'in_attesa'");
+        $stmt->execute([':id' => $id]);
+        if ($stmt->rowCount() !== 1) {
+            http_response_code(400);
+            die('Appuntamento non in attesa: non è possibile confermare una prenotazione annullata. Crea una nuova richiesta.');
+        }
         header('Location: booking-admin-advanced.php');
         exit;
     }
 
     if ($action === 'cancel') {
         $id = (int)($_POST['id'] ?? 0);
-        $pdo->prepare("UPDATE appuntamenti SET stato = 'annullato' WHERE id = :id")->execute([':id' => $id]);
+        try {
+            bookingVoucherCancel($pdo, $id);
+        } catch (Throwable $e) {
+            error_log('Booking cancellation failed: ' . $e->getMessage());
+            http_response_code(503);
+            die('Annullamento non completato. Verifica il registro voucher e riprova; nessuna modifica salvata.');
+        }
         header('Location: booking-admin-advanced.php');
         exit;
     }
 
     if ($action === 'generate_invoice') {
         $id = (int)($_POST['id'] ?? 0);
+        $stmt = $pdo->prepare("SELECT metodo_pagamento FROM appuntamenti WHERE id = :id");
+        $stmt->execute([':id' => $id]);
+        if ($stmt->fetchColumn() === 'voucher') {
+            http_response_code(400);
+            die('Seduta già coperta da voucher: gestisci la fatturazione dell’acquisto dal registro voucher.');
+        }
         $pdo->prepare("UPDATE appuntamenti SET stato = 'fattura_generata' WHERE id = :id")->execute([':id' => $id]);
         header('Location: fattura-pa-generator.php?appointment_id=' . $id);
         exit;
@@ -214,17 +236,20 @@ $appointments = $stmt->fetchAll();
                 <td>
                   <div class="actions">
                     <form method="post" action="booking-admin-advanced.php">
+                      <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['admin_csrf'], ENT_QUOTES, 'UTF-8') ?>" />
                       <input type="hidden" name="action" value="confirm" />
                       <input type="hidden" name="id" value="<?= (int)$booking['id'] ?>" />
                       <button class="btn confirm" type="submit">Conferma</button>
                     </form>
                     <form method="post" action="booking-admin-advanced.php">
+                      <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['admin_csrf'], ENT_QUOTES, 'UTF-8') ?>" />
                       <input type="hidden" name="action" value="cancel" />
                       <input type="hidden" name="id" value="<?= (int)$booking['id'] ?>" />
                       <button class="btn cancel" type="submit">Annulla</button>
                     </form>
-                    <?php if (($booking['stato'] ?? '') === 'confermato'): ?>
+                    <?php if (($booking['stato'] ?? '') === 'confermato' && $booking['metodo_pagamento'] !== 'voucher'): ?>
                       <form method="post" action="booking-admin-advanced.php">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['admin_csrf'], ENT_QUOTES, 'UTF-8') ?>" />
                         <input type="hidden" name="action" value="generate_invoice" />
                         <input type="hidden" name="id" value="<?= (int)$booking['id'] ?>" />
                         <button class="btn invoice" type="submit">Genera fattura</button>

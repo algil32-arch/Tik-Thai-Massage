@@ -1,6 +1,8 @@
-# Thai Tik Massage — Site Ver 6.0
+# Thai Tik Massage — Site Ver 10.0
 
 Sito statico multipagina per Thai Tik Massage, con backend PHP/MySQL predisposto per l'hosting Aruba.
+
+Note del rilascio corrente: [Site Ver 10.0](RELEASE_NOTES_V10.md).
 
 ## Run locally
 
@@ -24,6 +26,30 @@ Nelle pagine pubbliche il logo ingrandito e' centrato nell'intestazione,
 con il selettore lingue a sinistra e la navigazione sotto.
 
 The booking page shows clearly labeled sample studios, services, and time slots on `localhost`. It does not submit or save bookings. To test real availability and booking submission, use PHP with PDO MySQL and the configured MySQL database; Python's static server cannot execute PHP.
+
+## Pacchetti massaggi
+
+I box Trattamenti della home e le cinque schede dei massaggi mostrano i pacchetti
+da 5 e 10 sedute con durata, totale e prezzo per seduta, senza percentuali
+o spiegazioni commerciali. Gli importi restano invariati: il prezzo per seduta
+viene arrotondato all'euro superiore, poi moltiplicato per il numero di sedute.
+I pacchetti sono informativi; prenotazioni e pagamenti online restano per singole
+sedute. Pubblicare anche `packages.css` e `listino-trattamenti.pdf`.
+In caso di variazioni aggiornare insieme home, schede e PDF.
+Verifica di prezzi, arrotondamenti e coerenza fra le pagine:
+`node --test tests/packages.test.cjs`.
+
+## Voucher regalo
+
+La pagina Prenota contiene un acquisto separato di voucher per Studio Prati,
+senza prenotazione. Anteprima, PDF definitivo dopo pagamento SumUp e registro
+admin con sedute residue e validita' di 12 mesi sono descritti in
+[php-backend-readme.md](php-backend-readme.md#voucher-regalo).
+Il destinatario prenota dal normale calendario scegliendo **Prenota con voucher
+regalo** e inserendo il codice. Una seduta viene scalata alla registrazione della
+richiesta; l'annullamento dall'admin la restituisce automaticamente.
+Prima di pubblicare importare `backend-aruba-vouchers.sql` e poi
+`backend-aruba-voucher-bookings.sql`, anche sui database nuovi.
 
 ## Footer condiviso
 

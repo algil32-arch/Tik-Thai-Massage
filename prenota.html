@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="cookie-consent.css" />
     <script src="cookie-consent.js" defer></script>
     <link rel="stylesheet" href="details.css" />
+    <link rel="stylesheet" href="gift-voucher.css" />
     <link rel="stylesheet" href="header.css" />
     <script src="language-selector.js" defer></script>
     <script src="header-scroll.js" defer></script>
@@ -246,7 +247,13 @@
           </a>
         </div>
         <nav class="nav" aria-label="Navigazione principale">
-          <a href="index.html#trattamenti">Trattamenti</a>
+          <details class="nav-dropdown">
+            <summary>Trattamenti</summary>
+            <div class="nav-menu">
+              <a href="index.html#trattamenti">Tutti i trattamenti</a>
+              <a href="listino-trattamenti.pdf">Listino completo massaggi</a>
+            </div>
+          </details>
           <a href="mappa-sedi.html">Dove trovarmi</a>
           <a class="nav-book" href="prenota.html">Prenota</a>
         </nav>
@@ -264,6 +271,38 @@
       </section>
 
       <div class="booking-shell">
+        <section class="section-panel gift-voucher" id="giftVoucherPanel" aria-labelledby="gift-voucher-title">
+          <h2 class="panel-title" id="gift-voucher-title">Voucher regalo</h2>
+          <p>Regala un trattamento o un pacchetto presso Studio Prati. Nessun appuntamento viene prenotato: il destinatario contatterà lo studio in seguito. Validità: 12 mesi dal pagamento. Non utilizzabile presso APS Jaqueline.</p>
+          <form id="giftVoucherForm" novalidate>
+            <fieldset id="giftVoucherSelection" style="border:0; padding:0; margin:0;">
+              <legend>Personalizza il regalo</legend>
+              <div class="gift-voucher-grid">
+                <div class="field"><label for="giftRecipient">Nome del destinatario</label><input id="giftRecipient" name="recipient_name" maxlength="150" required /></div>
+                <div class="field"><label for="giftService">Trattamento</label><select id="giftService" name="service_id" required disabled><option value="">Caricamento trattamenti…</option></select></div>
+                <div class="field"><label for="giftFormula">Formula</label><select id="giftFormula" name="sessions_per_item"><option value="1">Trattamento singolo</option><option value="5">Pacchetto da 5 sedute</option><option value="10">Pacchetto da 10 sedute</option></select></div>
+                <div class="field"><label for="giftQuantity">Numero di trattamenti o pacchetti</label><input id="giftQuantity" name="quantity" type="number" min="1" max="20" step="1" value="1" required /></div>
+              </div>
+              <p class="gift-voucher-total">Importo per trattamento/pacchetto: <output id="giftItemAmount">—</output><br />Sedute regalate: <output id="giftSessions">—</output><br />Importo totale: <output id="giftTotal">—</output></p>
+            </fieldset>
+            <div class="gift-voucher-actions">
+              <button type="button" id="giftPrint">Stampa anteprima</button>
+              <button type="button" id="giftDownload">Scarica anteprima PDF</button>
+            </div>
+            <details id="giftBuyerDetails">
+              <summary>Dati dell’acquirente per il pagamento</summary>
+              <div id="giftBuyerFields"></div>
+            </details>
+            <div class="gift-voucher-actions"><button type="submit" id="giftPay" disabled>Seleziona per pagamento</button></div>
+          </form>
+          <p class="gift-voucher-status" id="giftStatus" role="status">Caricamento del catalogo voucher…</p>
+          <div class="gift-voucher-actions" id="giftPaymentActions" hidden>
+            <button type="button" id="giftVerify">Verifica pagamento / recupera voucher</button>
+            <button type="button" id="giftNew" hidden>Crea un altro voucher</button>
+          </div>
+          <div id="gift-sumup-card"></div>
+          <div class="gift-voucher-preview" id="giftPreview" hidden></div>
+        </section>
         <div class="booking-flow">
           <section class="section-panel" aria-labelledby="payment-title">
             <h2 class="panel-title" id="payment-title"><span class="panel-step-number">1</span><span>Scegli come pagare</span></h2>
@@ -277,7 +316,17 @@
                 <input type="radio" name="payment_method" value="online" />
                 <span><strong>Prenota e paga online</strong><small>Checkout sicuro con SumUp, direttamente in questa pagina.</small></span>
               </label>
+              <label class="payment-option">
+                <input type="radio" name="payment_method" value="voucher" />
+                <span><strong>Prenota con voucher regalo</strong><small>Usa una seduta del tuo voucher, senza un nuovo pagamento.</small></span>
+              </label>
             </fieldset>
+            <div class="field" id="bookingVoucherFields" hidden style="margin-top:16px;">
+              <label for="bookingVoucherCode">Codice voucher</label>
+              <input id="bookingVoucherCode" name="voucher_code" form="bookingRequestForm" maxlength="40" autocomplete="off" placeholder="TTM-…" disabled aria-describedby="bookingVoucherStatus" />
+              <button type="button" id="checkBookingVoucher">Verifica codice voucher</button>
+              <p class="field-help" id="bookingVoucherStatus" role="status">Scegli Studio Prati, il trattamento e la durata del voucher, poi data e orario. Una seduta verrà scalata solo dopo la registrazione della richiesta; se lo studio annulla, sarà restituita.</p>
+            </div>
             <aside class="payment-warning" id="apsPaymentWarning" hidden role="alert">
               <strong>⚠️ Nota importante sul pagamento</strong>
               <p>Si avvisa che sul presente sito web <strong>non è possibile effettuare pagamenti on line per le prestazioni presso l'APS Jaqueline</strong>. La prenotazione effettuata tramite il sito serve esclusivamente a riservare il giorno e l'orario della sessione. Il versamento della quota di partecipazione avverrà <strong>esclusivamente in loco, presso la sede dell'Associazione</strong>, prima dell'inizio del trattamento. Si ricorda che l'accesso ai trattamenti è riservato unicamente ai soci in regola con il tesseramento annuale.</p>
@@ -305,7 +354,7 @@
             </div>
             <div class="field">
               <label>Orari disponibili</label>
-              <p class="field-help">Gli orari sono mostrati ogni 60 minuti, con un ultimo ingresso 30 minuti prima della chiusura. Quelli barrati non possono contenere il trattamento selezionato: selezionali per conoscere il motivo.</p>
+              <p class="field-help">Gli orari sono mostrati ogni 60 minuti, con un ultimo ingresso 30 minuti prima della chiusura. Tra gli appuntamenti sono previsti almeno 15 minuti di pausa. Quelli barrati non possono contenere il trattamento selezionato: selezionali per conoscere il motivo.</p>
               <div class="slot-grid" id="slotGrid" aria-live="polite"></div>
             </div>
           </section>
@@ -457,6 +506,7 @@
       </div>
     </footer>
 
+    <script src="gift-voucher.js"></script>
     <script>
       let studios = [];
       let services = [];
@@ -470,6 +520,7 @@
       let submissionPending = false;
       let sumUpSdkPromise = null;
       let checkoutExpiryTimer = null;
+      let checkedBookingVoucher = '';
       const selected = {
         studioId: null,
         serviceId: null,
@@ -513,6 +564,8 @@
         const paymentRadio = document.querySelector('input[name="payment_method"]:checked')?.value || 'studio';
         const onlineRadio = document.querySelector('input[name="payment_method"][value="online"]');
         const studioRadio = document.querySelector('input[name="payment_method"][value="studio"]');
+        const voucherRadio = document.querySelector('input[name="payment_method"][value="voucher"]');
+        const voucherSelected = paymentRadio === 'voucher';
         const paymentMethod = isPratiStudio(studio) ? paymentRadio : 'studio';
         const onlineSelected = paymentMethod === 'online';
         const paymentStatus = document.getElementById('paymentStatus');
@@ -522,22 +575,85 @@
         if (!isPratiStudio(studio) && onlineRadio?.checked) {
           studioRadio.checked = true;
         }
+        if (studio && !isPratiStudio(studio) && voucherRadio.checked) {
+          studioRadio.checked = true;
+        }
+        voucherRadio.disabled = Boolean(activeCheckout) || Boolean(studio && !isPratiStudio(studio));
+        const useVoucher = voucherSelected && (!studio || isPratiStudio(studio));
+        document.getElementById('bookingVoucherFields').hidden = !useVoucher;
+        document.getElementById('bookingVoucherCode').disabled = !useVoucher;
+        document.getElementById('bookingVoucherCode').required = useVoucher;
+        document.getElementById('checkBookingVoucher').disabled = isLocalPreview || submissionPending || Boolean(activeCheckout);
+        if (checkedBookingVoucher !== bookingVoucherSelection()) {
+          checkedBookingVoucher = '';
+          document.getElementById('bookingVoucherStatus').textContent = isLocalPreview
+            ? 'Anteprima locale: la verifica dei codici richiede il database Aruba.'
+            : 'Scegli Studio Prati, il trattamento e la durata del voucher, poi data e orario. Il codice sarà ricontrollato all’invio; una seduta viene scalata solo se la richiesta è registrata.';
+        }
 
         if (onlineRadio) {
-          onlineRadio.disabled = !isPratiStudio(studio);
+          onlineRadio.disabled = Boolean(activeCheckout) || !isPratiStudio(studio);
         }
 
         const showApsWarning = isAssociationStudio(studio);
         apsPaymentWarning.hidden = !showApsWarning;
 
-        document.getElementById('summaryPayment').textContent = onlineSelected ? 'Online · SumUp' : 'In studio';
+        document.getElementById('summaryPayment').textContent = useVoucher ? 'Voucher regalo · 1 seduta' : onlineSelected ? 'Online · SumUp' : 'In studio';
+        const service = getServiceById(selected.serviceId);
+        document.getElementById('summaryPrice').textContent = useVoucher ? '0 € · coperto dal voucher, previa verifica' : service ? `${service.price} €` : '-';
         paymentStatus.hidden = !onlineSelected;
         paymentStatus.textContent = onlineSelected ? 'Lo slot sarà riservato per 15 minuti. L’appuntamento verrà registrato soltanto dopo il pagamento sicuro con SumUp.' : '';
         submitButton.disabled = isLocalPreview || submissionPending || Boolean(activeCheckout);
         submitButton.classList.toggle('submit-online', onlineSelected);
         submitButton.textContent = isLocalPreview
           ? 'Invio non disponibile in anteprima'
-          : onlineSelected ? 'PRENOTA E PAGA ON LINE' : 'Invia richiesta';
+          : useVoucher ? 'PRENOTA CON VOUCHER' : onlineSelected ? 'PRENOTA E PAGA ON LINE' : 'Invia richiesta';
+      }
+
+      function bookingVoucherSelection() {
+        return JSON.stringify([selected.studioId, selected.serviceId, selected.date, selected.time,
+          document.getElementById('bookingVoucherCode').value.trim().toUpperCase()]);
+      }
+
+      document.getElementById('bookingVoucherCode').addEventListener('input', updatePaymentChoice);
+      document.getElementById('checkBookingVoucher').addEventListener('click', async function() {
+        const signature = bookingVoucherSelection();
+        const status = document.getElementById('bookingVoucherStatus');
+        this.disabled = true;
+        status.textContent = 'Verifica in corso…';
+        try {
+          const response = await fetch('voucher.php', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'check_booking', voucher_code: document.getElementById('bookingVoucherCode').value.trim(),
+              studio_id: selected.studioId, service_id: selected.serviceId, date: selected.date, time: selected.time })
+          });
+          const data = await response.json();
+          if (!response.ok || !data.success) throw new Error(data.message || 'Impossibile verificare il voucher.');
+          if (signature !== bookingVoucherSelection()) return;
+          checkedBookingVoucher = signature;
+          status.textContent = `${data.message} Sedute residue: ${data.remaining_sessions}.`;
+        } catch (error) {
+          if (signature === bookingVoucherSelection()) status.textContent = error.message || 'Impossibile verificare il voucher.';
+        } finally {
+          this.disabled = isLocalPreview || submissionPending || Boolean(activeCheckout);
+        }
+      });
+
+      async function bookingVoucherRequestToken(payload) {
+        if (!window.crypto?.subtle) throw new Error('Per prenotare con voucher usa una connessione HTTPS sicura.');
+        const digest = await window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(payload)));
+        const hash = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
+        const key = 'booking-voucher-request';
+        try {
+          const stored = sessionStorage.getItem(key);
+          const previous = stored ? JSON.parse(stored) : null;
+          if (previous?.hash === hash && /^[a-f0-9]{64}$/.test(previous.token)) return previous.token;
+          const token = Array.from(window.crypto.getRandomValues(new Uint8Array(32)), byte => byte.toString(16).padStart(2, '0')).join('');
+          sessionStorage.setItem(key, JSON.stringify({ hash, token }));
+          return token;
+        } catch (error) {
+          throw new Error('Impossibile conservare il riferimento della richiesta voucher. Abilita la memoria della scheda per evitare invii duplicati.');
+        }
       }
 
       function loadSumUpSdk() {
@@ -1065,7 +1181,7 @@
         const recipientCode = document.getElementById('recipientCode').value.trim();
         const pec = document.getElementById('billingPec').value.trim();
 
-        if (activeCheckout) {
+        if (activeCheckout || submissionPending) {
           return;
         }
 
@@ -1098,10 +1214,14 @@
           pec,
           notes: document.getElementById('notes').value.trim()
         };
+        if (paymentMethod === 'voucher') {
+          payload.voucher_code = document.getElementById('bookingVoucherCode').value.trim().toUpperCase();
+        }
 
         submissionPending = true;
         updatePaymentChoice();
         try {
+          if (paymentMethod === 'voucher') payload.voucher_request_token = await bookingVoucherRequestToken(payload);
           const response = await fetch('php-booking-backend.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -1127,7 +1247,9 @@
 
           const notifications = data.notifications || {};
           let emailStatus = 'La richiesta è registrata; lo studio ti ricontatterà per confermare.';
-          if (notifications.studio_sent && notifications.customer_sent) {
+          if (data.already_registered) {
+            emailStatus = data.message;
+          } else if (notifications.studio_sent && notifications.customer_sent) {
             emailStatus = 'Abbiamo inviato un’email allo studio e una ricevuta al tuo indirizzo.';
           } else if (!notifications.studio_sent && !notifications.customer_sent) {
             emailStatus = 'La richiesta è registrata, ma non è stato possibile inviare le email. Contatta lo studio per verificare.';
@@ -1136,13 +1258,20 @@
           } else {
             emailStatus = 'La richiesta è registrata e lo studio è stato avvisato, ma la ricevuta email non è partita.';
           }
-          alert(`${emailStatus}\n\nCodice: ${data.booking_id}\nStudio: ${data.data.studio}\nServizio: ${data.data.service}\nData: ${data.data.date} ${data.data.time}`);
+          const voucherStatus = data.voucher ? `\nVoucher: una seduta utilizzata. Sedute residue: ${data.voucher.remaining_sessions}. Nessun importo da saldare.` : '';
+          alert(`${emailStatus}\n\nCodice: ${data.booking_id}\nStudio: ${data.data.studio}\nServizio: ${data.data.service}\nData: ${data.data.date} ${data.data.time}${voucherStatus}`);
+          if (paymentMethod === 'voucher') sessionStorage.removeItem('booking-voucher-request');
           this.reset();
+          document.getElementById('bookingVoucherCode').value = '';
+          checkedBookingVoucher = '';
           selected.time = null;
           loadAvailableSlots();
           updateSummary();
         } catch (error) {
-          alert(`${error.message || 'Non è stato possibile inviare la richiesta.'}\n\nNessuna prenotazione è stata registrata. Riprova più tardi o contattaci via email.`);
+          const retryMessage = paymentMethod === 'voucher'
+            ? 'Se non hai ricevuto una conferma, verifica con lo studio prima di inviare una richiesta diversa. Riprovando gli stessi dati con voucher non verrà scalata un’altra seduta.'
+            : 'Se non hai ricevuto una conferma, verifica con lo studio prima di riprovare.';
+          alert(`${error.message || 'Non è stato possibile inviare la richiesta.'}\n\n${retryMessage}`);
         } finally {
           submissionPending = false;
           updatePaymentChoice();
@@ -1211,7 +1340,7 @@
       document.querySelectorAll('input[name="payment_method"]').forEach(input => input.addEventListener('change', updatePaymentChoice));
       updateInvoiceFields();
       updatePaymentChoice();
-      loadCatalog();
+      loadCatalog().then(() => initGiftVoucher({ studios, services, preview: isLocalPreview, loadSumUpSdk }));
     </script>
   </body>
 </html>

@@ -15,6 +15,9 @@ function sendBookingNotifications(int $bookingId, array $booking, string $custom
     $price = number_format((float)$booking['price'], 2, ',', '.') . ' EUR';
     $notes = trim((string)$booking['notes']);
     $noteLine = $notes !== '' ? "\nNote: {$notes}\n" : '';
+    if (!empty($booking['voucher_code'])) {
+        $noteLine .= "\nPagamento: voucher {$booking['voucher_code']}. Una seduta scalata; nessun importo da saldare.\n";
+    }
 
     $headers = [
         'From: Thai Tik Massage <' . $fromEmail . '>',
