@@ -1,0 +1,1312 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Prenota un massaggio thailandese e scegli lo studio, il trattamento e la data più adatta a te." />
+    <title>Prenota | Thai Tik Massage</title>
+    <link rel="stylesheet" href="cookie-consent.css" />
+    <script src="cookie-consent.js" defer></script>
+    <link rel="stylesheet" href="details.css" />
+    <link rel="stylesheet" href="header.css" />
+    <script src="language-selector.js" defer></script>
+    <script src="header-scroll.js" defer></script>
+    <style>
+      .booking-shell {
+        width: min(100% - 48px, 1100px);
+        margin-inline: auto;
+        padding-block: 72px 90px;
+      }
+      .booking-flow { display: grid; gap: 20px; margin-top: 28px; }
+      .section-panel {
+        background: #fff;
+        border: 1px solid #e0d5ca;
+        padding: 26px 24px;
+        box-shadow: 0 12px 26px rgba(42, 32, 29, 0.04);
+      }
+      .section-panel + .section-panel { margin-top: 0; }
+      .panel-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 18px;
+        font-size: 22px;
+        font-weight: 600;
+      }
+      .panel-step-number {
+        display: inline-grid;
+        place-items: center;
+        flex: 0 0 32px;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--ink);
+        color: #fff;
+        font-size: 13px;
+      }
+      .payment-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+      .payment-option { display: grid; grid-template-columns: auto 1fr; align-items: start; gap: 12px; padding: 18px; border: 1px solid #e0d5ca; background: var(--paper); cursor: pointer; font-size: 14px; letter-spacing: 0; text-transform: none; }
+      .payment-option:has(input:checked) { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+      .payment-option:has(input:disabled) { opacity: .65; cursor: not-allowed; }
+      .payment-option input { width: 18px; min-height: 18px; margin: 3px 0 0; }
+      .payment-option span { display: grid; gap: 5px; }
+      .payment-option strong { font-size: 15px; }
+      .payment-option small { color: var(--muted); font-size: 13px; line-height: 1.4; }
+      .payment-note { margin: 12px 0 0; color: var(--muted); font-size: 13px; }
+      .payment-warning {
+        margin-top: 16px;
+        padding: 16px 18px;
+        border: 1px solid #d8a347;
+        background: rgba(255, 196, 0, 0.08);
+        color: var(--ink);
+        border-radius: 8px;
+      }
+      .payment-warning strong { display: block; margin-bottom: 8px; color: var(--ink); }
+      .payment-warning p { margin: 0; line-height: 1.6; color: var(--ink); }
+      .sumup-checkout-panel[hidden] { display: none; }
+      .sumup-checkout-panel { border-color: var(--accent); }
+      .sumup-checkout-panel .payment-note { margin-bottom: 16px; }
+      .sumup-checkout-actions { display: flex; justify-content: center; margin-top: 16px; }
+      .sumup-checkout-actions button { min-height: 44px; padding: 9px 18px; border: 1px solid var(--ink); background: #fff; color: var(--ink); font: inherit; font-weight: 700; cursor: pointer; }
+      .sumup-checkout-actions button:disabled { opacity: .6; cursor: wait; }
+      .invoice-toggle { display: flex; grid-template-columns: auto 1fr; align-items: center; gap: 10px; font-size: 14px; letter-spacing: 0; text-transform: none; }
+      .invoice-toggle input { width: 18px; min-height: 18px; margin: 0; }
+      .billing-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 0; padding: 0; border: 0; }
+      .billing-fields[hidden], .company-name-field[hidden], .billing-conditional[hidden] { display: none; }
+      .field-help { color: var(--muted); font-size: 13px; }
+      .studio-grid,
+      .service-grid {
+        display: grid;
+        gap: 18px;
+      }
+      .studio-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .service-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .studio-card,
+      .service-card {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        min-height: 100%;
+        padding: 20px 18px;
+        background: var(--paper);
+        border: 1px solid #e0d5ca;
+        transition: transform .18s ease, border-color .18s ease;
+      }
+      .studio-card:hover,
+      .service-card:hover {
+        transform: translateY(-2px);
+        border-color: var(--accent);
+      }
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        width: fit-content;
+        padding: 6px 10px;
+        background: #f5e8d9;
+        color: var(--accent);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .studio-card h3,
+      .service-card h3 {
+        margin: 0;
+        font-weight: 600;
+      }
+      .studio-card h3 { font-size: 22px; }
+      .service-card h3 { color: var(--ink); font-size: 22px; font-weight: 600; }
+      .studio-location-link { color: inherit; text-decoration: none; }
+      .studio-location-link:hover, .studio-location-link:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
+      .studio-card p,
+      .service-card p {
+        margin: 0;
+        color: var(--muted);
+      }
+      .service-meta,
+      .studio-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        color: var(--ink);
+        font-size: 14px;
+        font-weight: 700;
+      }
+      .service-meta span,
+      .studio-meta span {
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .link-button {
+        margin-top: auto;
+      }
+      .link-button a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 9px 18px;
+        border: 1px solid var(--ink);
+        background: var(--ink);
+        color: #fff;
+        text-decoration: none;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .link-button a:hover,
+      .link-button a:focus-visible {
+        background: var(--accent);
+        border-color: var(--accent);
+      }
+      .booking-summary { padding: 18px 20px; border: 2px solid var(--accent); background: #f5e8d9; }
+      .booking-summary h2 { margin: 0 0 14px; font-size: 18px; }
+      .booking-summary-grid { display: grid; grid-template-columns: 1.2fr 1.6fr 1fr .8fr .7fr 1fr; gap: 12px; margin: 0; }
+      .booking-summary-grid div { min-width: 0; padding-left: 12px; border-left: 1px solid #d7b9a5; }
+      .booking-summary-grid div:first-child { padding-left: 0; border-left: 0; }
+      .booking-summary-grid dt { color: var(--muted); font-size: 11px; font-weight: 700; text-transform: uppercase; }
+      .booking-summary-grid dd { margin: 4px 0 0; font-size: 14px; font-weight: 700; overflow-wrap: anywhere; }
+      form {
+        display: grid;
+        gap: 16px;
+      }
+      .field {
+        display: grid;
+        gap: 8px;
+      }
+      label {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--ink);
+      }
+      input,
+      select,
+      textarea {
+        width: 100%;
+        min-height: 48px;
+        padding: 12px 14px;
+        border: 1px solid #d8cfc6;
+        background: #fff;
+        color: var(--ink);
+        font: inherit;
+      }
+      textarea {
+        min-height: 110px;
+        resize: vertical;
+      }
+      .submit {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 50px;
+        padding: 11px 23px;
+        border: 0;
+        background: var(--accent);
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+      .submit-row { display: flex; justify-content: center; }
+      .submit.submit-online { background: #93ae61; color: var(--ink); }
+      .submit.submit-online:hover:not(:disabled), .submit.submit-online:focus-visible:not(:disabled) { background: #a4bc78; }
+      .submit:disabled { background: #857b75; color: #fff; cursor: not-allowed; }
+      @media (max-width: 820px) {
+        .studio-grid,
+        .service-grid {
+          grid-template-columns: 1fr;
+        }
+        .payment-options, .billing-fields, .booking-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .booking-summary-grid div:nth-child(odd) { padding-left: 0; border-left: 0; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap header-inner">
+        <a class="brand" href="index.html" aria-label="Thai Tik Massage, torna alla home">
+          <img class="brand-logo" src="thai-tik-logo-alternativo.png" alt="Thai Tik Massage" />
+        </a>
+        <div class="language-switcher gtranslate_wrapper" aria-label="Seleziona la lingua"></div>
+        <div class="header-contact">
+          <a class="header-email" href="mailto:info@thaitikmassage.it">info@thaitikmassage.it</a>
+          <a class="header-whatsapp" href="https://wa.me/message/4ZL65LROJWHFI1" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a9.8 9.8 0 0 0-8.4 14.9L2.3 22l5.2-1.3A9.8 9.8 0 1 0 12 2Zm0 17.8a8 8 0 0 1-4.1-1.1l-.3-.2-3.1.8.8-3-.2-.3A8 8 0 1 1 12 19.8Zm4.4-6c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.8.9-.1.2-.3.2-.5.1-.2-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.6-.1-.2 0-.3.1-.5l.4-.4c.1-.1.2-.3.2-.4.1-.2 0-.3 0-.4l-.7-1.7c-.2-.4-.4-.4-.5-.4h-.5c-.2 0-.4.1-.6.3-.2.2-.8.8-.8 2s.8 2.2.9 2.4c.1.2 1.6 2.5 3.9 3.5.5.2.9.4 1.2.5.5.2 1 .2 1.4.1.4-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1-.1-.1-.3-.2-.5-.3Z"/></svg>
+            <span>Chat</span>
+          </a>
+        </div>
+        <nav class="nav" aria-label="Navigazione principale">
+          <details class="nav-dropdown">
+            <summary>Trattamenti</summary>
+            <div class="nav-menu">
+              <a href="index.html#trattamenti">Tutti i trattamenti</a>
+              <a href="listino-trattamenti.pdf">Listino completo massaggi</a>
+            </div>
+          </details>
+          <a href="mappa-sedi.html">Dove trovarmi</a>
+          <a class="nav-book" href="prenota.html">Prenota</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="detail-hero" style="--hero-image: url('tik-thai-massage.jpg')" aria-labelledby="page-title">
+        <div class="wrap hero-content">
+          <a class="back" href="prenota.html">← Tutte le modalità di prenotazione</a>
+          <p class="eyebrow">Prenotazione massaggi</p>
+          <h1 id="page-title">Prenota il tuo trattamento.</h1>
+          <p>Seleziona lo studio, il servizio e il tuo slot disponibile.</p>
+        </div>
+      </section>
+
+      <div class="booking-shell">
+        <div class="booking-flow">
+          <section class="section-panel" aria-labelledby="payment-title">
+            <h2 class="panel-title" id="payment-title"><span class="panel-step-number">1</span><span>Scegli come pagare</span></h2>
+            <fieldset class="payment-options" style="border:0; margin:0; padding:0;">
+              <legend class="field-help" style="grid-column:1 / -1; margin-bottom:12px;">Seleziona la modalità di pagamento</legend>
+              <label class="payment-option">
+                <input type="radio" name="payment_method" value="studio" checked />
+                <span><strong>Prenota e paga in studio</strong><small>Saldi il trattamento al termine della seduta.</small></span>
+              </label>
+              <label class="payment-option">
+                <input type="radio" name="payment_method" value="online" />
+                <span><strong>Prenota e paga online</strong><small>Checkout sicuro con SumUp, direttamente in questa pagina.</small></span>
+              </label>
+              <label class="payment-option">
+                <input type="radio" name="payment_method" value="voucher" />
+                <span><strong>Prenota con voucher regalo</strong><small>Usa una seduta del tuo voucher, senza un nuovo pagamento.</small></span>
+              </label>
+            </fieldset>
+            <div class="field" id="bookingVoucherFields" hidden style="margin-top:16px;">
+              <label for="bookingVoucherCode">Codice voucher</label>
+              <input id="bookingVoucherCode" name="voucher_code" form="bookingRequestForm" maxlength="40" autocomplete="off" placeholder="TTM-…" disabled aria-describedby="bookingVoucherStatus" />
+              <button type="button" id="checkBookingVoucher">Verifica codice voucher</button>
+              <p class="field-help" id="bookingVoucherStatus" role="status">Scegli Studio Prati, il trattamento e la durata del voucher, poi data e orario. Una seduta verrà scalata solo dopo la registrazione della richiesta; se lo studio annulla, sarà restituita.</p>
+            </div>
+            <aside class="payment-warning" id="apsPaymentWarning" hidden role="alert">
+              <strong>⚠️ Nota importante sul pagamento</strong>
+              <p>Si avvisa che sul presente sito web <strong>non è possibile effettuare pagamenti on line per le prestazioni presso l'APS Jaqueline</strong>. La prenotazione effettuata tramite il sito serve esclusivamente a riservare il giorno e l'orario della sessione. Il versamento della quota di partecipazione avverrà <strong>esclusivamente in loco, presso la sede dell'Associazione</strong>, prima dell'inizio del trattamento. Si ricorda che l'accesso ai trattamenti è riservato unicamente ai soci in regola con il tesseramento annuale.</p>
+            </aside>
+            <p class="payment-note" id="paymentStatus" role="status" hidden></p>
+          </section>
+
+          <section class="section-panel" aria-labelledby="studio-title">
+            <h2 class="panel-title" id="studio-title"><span class="panel-step-number">2</span><span>Scegli lo studio</span></h2>
+            <div class="studio-grid" id="studioGrid"></div>
+            <p class="small-note" id="bookingStatus" role="status" hidden></p>
+          </section>
+
+          <section class="section-panel" aria-labelledby="treatment-title">
+            <h2 class="panel-title" id="treatment-title"><span class="panel-step-number">3</span><span>Seleziona il trattamento</span></h2>
+            <div class="service-grid" id="serviceGrid"></div>
+          </section>
+
+          <section class="section-panel" id="booking-form" aria-labelledby="schedule-title">
+            <h2 class="panel-title" id="schedule-title"><span class="panel-step-number">4</span><span>Scegli data e orario</span></h2>
+            <div class="field" style="margin-bottom: 18px;">
+              <label>Data</label>
+              <p class="field-help">Sono selezionabili i giorni lavorativi della sede nei prossimi 30 giorni. Scorri per vedere le date successive.</p>
+              <div class="date-row" id="dateRow" aria-label="Giorni lavorativi nei prossimi 30 giorni"></div>
+            </div>
+            <div class="field">
+              <label>Orari disponibili</label>
+              <p class="field-help">Gli orari sono proposti ogni 15 minuti in base alla disponibilità della sede e alla durata del trattamento. Tra gli appuntamenti sono previsti almeno 15 minuti di pausa. Quelli barrati non possono contenere il trattamento selezionato: selezionali per conoscere il motivo.</p>
+              <div class="slot-grid" id="slotGrid" aria-live="polite"></div>
+            </div>
+          </section>
+
+          <section class="section-panel" aria-labelledby="request-title">
+            <h2 class="panel-title" id="request-title"><span class="panel-step-number">5</span><span>I tuoi dati</span></h2>
+            <form id="bookingRequestForm">
+              <div class="field">
+                <label for="name">Nome e cognome</label>
+                <input id="name" name="name" type="text" autocomplete="name" placeholder="Nome e cognome" required />
+              </div>
+              <div class="field">
+                <label for="email">Email</label>
+                <input id="email" name="email" type="email" placeholder="tuo@email.com" required />
+              </div>
+              <div class="field">
+                <label for="phone">Telefono <span class="field-help">(facoltativo, per WhatsApp o SMS)</span></label>
+                <input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="Numero di telefono" />
+              </div>
+              <p class="field-help">Inserisci i dati fiscali anche se scegli il pagamento in studio.</p>
+              <fieldset class="billing-fields" id="billingFields" style="border:0; margin:0; padding:0;">
+                <div class="field">
+                  <label for="customerType">Tipo cliente</label>
+                  <select id="customerType" name="customer_type">
+                    <option value="privato">Privato</option>
+                    <option value="azienda">Azienda / professionista</option>
+                  </select>
+                </div>
+                <div class="field company-name-field" id="companyNameField" hidden>
+                  <label for="companyName">Ragione sociale</label>
+                  <input id="companyName" name="ragione_sociale" autocomplete="organization" />
+                </div>
+                <div class="field billing-conditional" id="taxCodeField">
+                  <label for="taxCode">Codice fiscale</label>
+                  <input id="taxCode" name="codice_fiscale" autocomplete="off" maxlength="16" />
+                </div>
+                <div class="field billing-conditional" id="vatField" hidden>
+                  <label for="vatNumber">Partita IVA</label>
+                  <input id="vatNumber" name="partita_iva" autocomplete="off" maxlength="11" />
+                </div>
+                <div class="field">
+                  <label for="billingAddress">Indirizzo di fatturazione</label>
+                  <input id="billingAddress" name="indirizzo" autocomplete="street-address" />
+                </div>
+                <div class="field">
+                  <label for="billingCity">Comune</label>
+                  <input id="billingCity" name="citta" autocomplete="address-level2" />
+                </div>
+                <div class="field">
+                  <label for="billingPostalCode">CAP</label>
+                  <input id="billingPostalCode" name="cap" autocomplete="postal-code" maxlength="10" />
+                </div>
+                <div class="field billing-conditional" id="recipientField" hidden>
+                  <label for="recipientCode">Codice destinatario</label>
+                  <input id="recipientCode" name="codice_destinatario" maxlength="7" />
+                </div>
+                <div class="field billing-conditional" id="pecField" hidden>
+                  <label for="billingPec">PEC</label>
+                  <input id="billingPec" name="pec" type="email" autocomplete="email" />
+                </div>
+                <p class="field-help billing-conditional" id="billingHelp" hidden>Per aziende e professionisti, indica almeno il codice destinatario o la PEC.</p>
+              </fieldset>
+              <div class="field">
+                <label for="notes">Note</label>
+                <textarea id="notes" name="notes" placeholder="Eventuali richieste, preferenze o informazioni utili..."></textarea>
+              </div>
+            </form>
+          </section>
+
+          <section class="booking-summary" aria-labelledby="summary-title">
+            <h2 id="summary-title">Riepilogo prenotazione</h2>
+            <dl class="booking-summary-grid">
+              <div><dt>Studio</dt><dd id="summaryStudio">Non selezionato</dd></div>
+              <div><dt>Trattamento</dt><dd id="summaryService">Non selezionato</dd></div>
+              <div><dt>Data</dt><dd id="summaryDate">Non selezionata</dd></div>
+              <div><dt>Orario</dt><dd id="summaryTime">Non selezionato</dd></div>
+              <div><dt>Prezzo</dt><dd id="summaryPrice">-</dd></div>
+              <div><dt>Pagamento</dt><dd id="summaryPayment">In studio</dd></div>
+            </dl>
+            <aside class="association-notice" id="associationNotice" hidden aria-label="Regolamento del servizio APS Montesacro">
+              <p><strong>Regolamento del servizio e corrispettivi — APS Jaqueline.</strong> Per le attività erogate presso APS Studio Montesacro, il pagamento del servizio e dei corrispettivi è disciplinato secondo le regole dell'associazione.</p>
+              <p>La Collaboratrice non è autorizzata, per nessuna ragione o titolo, a incassare o ricevere somme di denaro direttamente dagli associati all'interno o fuori dai locali dell'Ente.</p>
+              <p>Il pagamento online non è attivo per questa sede: il servizio presso APS Studio Montesacro viene regolato direttamente con l'associazione.</p>
+            </aside>
+          </section>
+
+          <div class="submit-row">
+            <button class="submit" type="submit" form="bookingRequestForm">Invia richiesta</button>
+          </div>
+
+          <section class="section-panel sumup-checkout-panel" id="sumupCheckoutPanel" aria-labelledby="sumup-checkout-title" hidden>
+            <h2 class="panel-title" id="sumup-checkout-title"><span class="panel-step-number">6</span><span>Completa il pagamento</span></h2>
+            <p class="payment-note" id="sumupCheckoutStatus" role="status">Caricamento del checkout sicuro…</p>
+            <p class="small-note" id="sumupCheckoutExpiry"></p>
+            <div id="sumup-card"></div>
+            <div class="sumup-checkout-actions">
+              <button type="button" id="verifySumupPayment">Verifica pagamento</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+        <footer class="site-footer">
+      <div class="wrap footer-inner">
+        <div class="footer-brand">
+          <h3>Thai Tik Massage</h3>
+          <p>Trattamenti benessere thailandesi con prenotazioni online e servizi erogati presso diverse sedi partner.</p>
+        </div>
+
+        <div class="footer-links">
+          <h4>Documenti</h4>
+          <ul>
+            <li><a href="documenti-legali-premium.html#privacy">Privacy Policy</a></li>
+            <li><a href="documenti-legali-premium.html#cookie">Cookie Policy</a></li>
+            <li><a href="documenti-legali-premium.html#terms">Condizioni d’uso</a></li>
+            <li><a href="documenti-legali-premium.html#accessibility">Accessibilità</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-sedi">
+          <h4>Sedi</h4>
+          <ul>
+            <li><a href="https://maps.google.com/?q=Barbiere+Prati+Via+Gioacchino+Belli+1" target="_blank" rel="noreferrer">Barbiere Prati · Via Gioacchino Belli, 1</a></li>
+            <li><a href="https://maps.google.com/?q=APS+Jaqueline+Via+Valle+Borbera+51+Roma" target="_blank" rel="noreferrer">APS Jaqueline · Via Valle Borbera, 51</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-contact">
+          <h4>Contatti</h4>
+          <ul>
+            <li><a href="mailto:info@thaitikmassage.it">info@thaitikmassage.it</a></li>
+            <li><a href="documenti-legali-premium.html#dsar">DSAR · Richieste privacy</a></li>
+            <li><a href="documenti-legali-premium.html#registry">Registro dei trattamenti</a></li>
+            <li><a href="mappa-sedi.html">Mappa sedi e indirizzi</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="wrap footer-legal">
+        <p>© 2026 Thai Tik Massage · P.IVA 18730391002</p>
+        <div class="footer-legal-links">
+          <a href="documenti-legali-premium.html#privacy">Privacy</a>
+          <a href="documenti-legali-premium.html#cookie">Cookie</a>
+          <a href="documenti-legali-premium.html#terms">Termini</a>
+          <a href="documenti-legali-premium.html#accessibility">Accessibilità</a>
+          <a href="documenti-legali-premium.html#dsar">DSAR</a>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      let studios = [];
+      let services = [];
+      const availableSlots = {};
+      const slotOptions = {};
+      const params = new URLSearchParams(window.location.search);
+      const isLocalPreviewHost = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+      const localPreviewMessage = 'Anteprima locale: sedi, servizi e orari sono dimostrativi. Le richieste non vengono salvate.';
+      let isLocalPreview = false;
+      let activeCheckout = null;
+      let submissionPending = false;
+      let sumUpSdkPromise = null;
+      let checkoutExpiryTimer = null;
+      let checkedBookingVoucher = '';
+      const selected = {
+        studioId: null,
+        serviceId: null,
+        date: null,
+        time: null
+      };
+
+      const escapeHtml = value => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
+
+      function setBookingStatus(message) {
+        const status = document.getElementById('bookingStatus');
+        status.textContent = message;
+        status.hidden = !message;
+      }
+
+      function updateInvoiceFields() {
+        const isCompany = document.getElementById('customerType').value === 'azienda';
+        document.getElementById('billingFields').hidden = false;
+        document.getElementById('companyNameField').hidden = !isCompany;
+        document.getElementById('vatField').hidden = !isCompany;
+        document.getElementById('recipientField').hidden = !isCompany;
+        document.getElementById('pecField').hidden = !isCompany;
+        document.getElementById('billingHelp').hidden = !isCompany;
+        document.getElementById('taxCodeField').hidden = isCompany;
+
+        document.getElementById('customerType').required = true;
+        document.getElementById('companyName').required = isCompany;
+        document.getElementById('taxCode').required = !isCompany;
+        document.getElementById('vatNumber').required = isCompany;
+        document.getElementById('billingAddress').required = true;
+        document.getElementById('billingCity').required = true;
+        document.getElementById('billingPostalCode').required = true;
+      }
+
+      function isPratiStudio(studio) {
+        return studio?.name === 'Studio Prati';
+      }
+
+      function updatePaymentChoice() {
+        const studio = getStudioById(selected.studioId);
+        const paymentRadio = document.querySelector('input[name="payment_method"]:checked')?.value || 'studio';
+        const onlineRadio = document.querySelector('input[name="payment_method"][value="online"]');
+        const studioRadio = document.querySelector('input[name="payment_method"][value="studio"]');
+        const voucherRadio = document.querySelector('input[name="payment_method"][value="voucher"]');
+        const voucherSelected = paymentRadio === 'voucher';
+        const paymentMethod = isPratiStudio(studio) ? paymentRadio : 'studio';
+        const onlineSelected = paymentMethod === 'online';
+        const paymentStatus = document.getElementById('paymentStatus');
+        const apsPaymentWarning = document.getElementById('apsPaymentWarning');
+        const submitButton = document.querySelector('.submit[form="bookingRequestForm"]');
+
+        if (!isPratiStudio(studio) && onlineRadio?.checked) {
+          studioRadio.checked = true;
+        }
+        if (studio && !isPratiStudio(studio) && voucherRadio.checked) {
+          studioRadio.checked = true;
+        }
+        voucherRadio.disabled = Boolean(activeCheckout) || Boolean(studio && !isPratiStudio(studio));
+        const useVoucher = voucherSelected && (!studio || isPratiStudio(studio));
+        document.getElementById('bookingVoucherFields').hidden = !useVoucher;
+        document.getElementById('bookingVoucherCode').disabled = !useVoucher;
+        document.getElementById('bookingVoucherCode').required = useVoucher;
+        document.getElementById('checkBookingVoucher').disabled = isLocalPreview || submissionPending || Boolean(activeCheckout);
+        if (checkedBookingVoucher !== bookingVoucherSelection()) {
+          checkedBookingVoucher = '';
+          document.getElementById('bookingVoucherStatus').textContent = isLocalPreview
+            ? 'Anteprima locale: la verifica dei codici richiede il database Aruba.'
+            : 'Scegli Studio Prati, il trattamento e la durata del voucher, poi data e orario. Il codice sarà ricontrollato all’invio; una seduta viene scalata solo se la richiesta è registrata.';
+        }
+
+        if (onlineRadio) {
+          onlineRadio.disabled = Boolean(activeCheckout) || !isPratiStudio(studio);
+        }
+
+        const showApsWarning = isAssociationStudio(studio);
+        apsPaymentWarning.hidden = !showApsWarning;
+
+        document.getElementById('summaryPayment').textContent = useVoucher ? 'Voucher regalo · 1 seduta' : onlineSelected ? 'Online · SumUp' : 'In studio';
+        const service = getServiceById(selected.serviceId);
+        document.getElementById('summaryPrice').textContent = useVoucher ? '0 € · coperto dal voucher, previa verifica' : service ? `${service.price} €` : '-';
+        paymentStatus.hidden = !onlineSelected;
+        paymentStatus.textContent = onlineSelected ? 'Lo slot sarà riservato per 15 minuti. L’appuntamento verrà registrato soltanto dopo il pagamento sicuro con SumUp.' : '';
+        submitButton.disabled = isLocalPreview || submissionPending || Boolean(activeCheckout);
+        submitButton.classList.toggle('submit-online', onlineSelected);
+        submitButton.textContent = isLocalPreview
+          ? 'Invio non disponibile in anteprima'
+          : useVoucher ? 'PRENOTA CON VOUCHER' : onlineSelected ? 'PRENOTA E PAGA ON LINE' : 'Invia richiesta';
+      }
+
+      function bookingVoucherSelection() {
+        return JSON.stringify([selected.studioId, selected.serviceId, selected.date, selected.time,
+          document.getElementById('bookingVoucherCode').value.trim().toUpperCase()]);
+      }
+
+      document.getElementById('bookingVoucherCode').addEventListener('input', updatePaymentChoice);
+      document.getElementById('checkBookingVoucher').addEventListener('click', async function() {
+        const signature = bookingVoucherSelection();
+        const status = document.getElementById('bookingVoucherStatus');
+        this.disabled = true;
+        status.textContent = 'Verifica in corso…';
+        try {
+          const response = await fetch('voucher.php', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'check_booking', voucher_code: document.getElementById('bookingVoucherCode').value.trim(),
+              studio_id: selected.studioId, service_id: selected.serviceId, date: selected.date, time: selected.time })
+          });
+          const data = await response.json();
+          if (!response.ok || !data.success) throw new Error(data.message || 'Impossibile verificare il voucher.');
+          if (signature !== bookingVoucherSelection()) return;
+          checkedBookingVoucher = signature;
+          status.textContent = `${data.message} Sedute residue: ${data.remaining_sessions}.`;
+        } catch (error) {
+          if (signature === bookingVoucherSelection()) status.textContent = error.message || 'Impossibile verificare il voucher.';
+        } finally {
+          this.disabled = isLocalPreview || submissionPending || Boolean(activeCheckout);
+        }
+      });
+
+      async function bookingVoucherRequestToken(payload) {
+        if (!window.crypto?.subtle) throw new Error('Per prenotare con voucher usa una connessione HTTPS sicura.');
+        const digest = await window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(payload)));
+        const hash = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
+        const key = 'booking-voucher-request';
+        try {
+          const stored = sessionStorage.getItem(key);
+          const previous = stored ? JSON.parse(stored) : null;
+          if (previous?.hash === hash && /^[a-f0-9]{64}$/.test(previous.token)) return previous.token;
+          const token = Array.from(window.crypto.getRandomValues(new Uint8Array(32)), byte => byte.toString(16).padStart(2, '0')).join('');
+          sessionStorage.setItem(key, JSON.stringify({ hash, token }));
+          return token;
+        } catch (error) {
+          throw new Error('Impossibile conservare il riferimento della richiesta voucher. Abilita la memoria della scheda per evitare invii duplicati.');
+        }
+      }
+
+      function loadSumUpSdk() {
+        if (window.SumUpCard) return Promise.resolve();
+        if (sumUpSdkPromise) return sumUpSdkPromise;
+
+        sumUpSdkPromise = new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://gateway.sumup.com/gateway/ecom/card/v2/sdk.js';
+          script.async = true;
+          script.onload = () => window.SumUpCard ? resolve() : reject(new Error('SDK SumUp non disponibile'));
+          script.onerror = () => reject(new Error('Impossibile caricare il checkout SumUp'));
+          document.head.appendChild(script);
+        });
+        return sumUpSdkPromise;
+      }
+
+      function lockBookingForPayment() {
+        document.querySelectorAll('.booking-flow > section:not(#sumupCheckoutPanel) button, .booking-flow > section:not(#sumupCheckoutPanel) input, .booking-flow > section:not(#sumupCheckoutPanel) select, .booking-flow > section:not(#sumupCheckoutPanel) textarea')
+          .forEach(control => { control.disabled = true; });
+        updatePaymentChoice();
+      }
+
+      function unlockBookingAfterPayment() {
+        document.querySelectorAll('.booking-flow > section:not(#sumupCheckoutPanel) button, .booking-flow > section:not(#sumupCheckoutPanel) input, .booking-flow > section:not(#sumupCheckoutPanel) select, .booking-flow > section:not(#sumupCheckoutPanel) textarea')
+          .forEach(control => { control.disabled = false; });
+        updateInvoiceFields();
+        updatePaymentChoice();
+      }
+
+      function startCheckoutCountdown(expiresAt) {
+        const expiry = new Date(expiresAt).getTime();
+        const expiryStatus = document.getElementById('sumupCheckoutExpiry');
+        clearInterval(checkoutExpiryTimer);
+
+        const updateCountdown = () => {
+          const remainingSeconds = Math.max(0, Math.ceil((expiry - Date.now()) / 1000));
+          const minutes = String(Math.floor(remainingSeconds / 60)).padStart(2, '0');
+          const seconds = String(remainingSeconds % 60).padStart(2, '0');
+          expiryStatus.textContent = `Lo slot è riservato ancora per ${minutes}:${seconds}. Se non paghi, nessun appuntamento sarà registrato.`;
+          if (remainingSeconds === 0) {
+            clearInterval(checkoutExpiryTimer);
+            checkoutExpiryTimer = null;
+            verifySumUpPayment();
+          }
+        };
+
+        updateCountdown();
+        checkoutExpiryTimer = setInterval(updateCountdown, 1000);
+      }
+
+      async function verifySumUpPayment() {
+        if (!activeCheckout) return;
+
+        const status = document.getElementById('sumupCheckoutStatus');
+        const verifyButton = document.getElementById('verifySumupPayment');
+        verifyButton.disabled = true;
+        status.textContent = 'Verifica del pagamento in corso…';
+
+        try {
+          const response = await fetch('sumup-payment.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({
+              payment_intent: activeCheckout.paymentIntent,
+              checkout_id: activeCheckout.checkoutId
+            })
+          });
+          const data = await response.json();
+          if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Verifica del pagamento non riuscita.');
+          }
+
+          if (!data.paid) {
+            status.textContent = data.message;
+            if (data.status === 'FAILED' || data.status === 'EXPIRED') {
+              clearInterval(checkoutExpiryTimer);
+              checkoutExpiryTimer = null;
+              document.getElementById('sumup-card').hidden = true;
+              verifyButton.hidden = true;
+              activeCheckout = null;
+              unlockBookingAfterPayment();
+              loadAvailableSlots();
+            }
+            return;
+          }
+
+          clearInterval(checkoutExpiryTimer);
+          checkoutExpiryTimer = null;
+          status.textContent = `${data.message} Codice prenotazione: ${data.booking_id}.`;
+          document.getElementById('sumup-card').hidden = true;
+          verifyButton.hidden = true;
+          const details = activeCheckout.data;
+          alert(`Pagamento completato.\n\nCodice: ${data.booking_id}\nStudio: ${details.studio}\nServizio: ${details.service}\nData: ${details.date} ${details.time}`);
+          document.getElementById('bookingRequestForm').reset();
+          selected.time = null;
+          loadAvailableSlots();
+          updateSummary();
+        } catch (error) {
+          status.textContent = error.message || 'Non è stato possibile verificare il pagamento. Riprova tra poco.';
+        } finally {
+          verifyButton.disabled = false;
+        }
+      }
+
+      async function showSumUpCheckout(data) {
+        activeCheckout = {
+          paymentIntent: data.payment_intent,
+          checkoutId: data.checkout_id,
+          expiresAt: data.expires_at,
+          data: data.data
+        };
+        lockBookingForPayment();
+
+        const panel = document.getElementById('sumupCheckoutPanel');
+        const status = document.getElementById('sumupCheckoutStatus');
+        panel.hidden = false;
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        startCheckoutCountdown(data.expires_at);
+
+        try {
+          await loadSumUpSdk();
+          status.textContent = 'Inserisci i dati di pagamento. L’appuntamento sarà registrato solo dopo la conferma di SumUp.';
+          window.SumUpCard.mount({
+            id: 'sumup-card',
+            checkoutId: data.checkout_id,
+            locale: 'it-IT',
+            onResponse: (type) => {
+              if (type === 'success') {
+                verifySumUpPayment();
+              } else if (type === 'error' || type === 'fail') {
+                status.textContent = 'Pagamento non completato. Controlla i dati e riprova dal checkout.';
+              } else if (type === 'auth-screen') {
+                status.textContent = 'Completa la verifica di sicurezza richiesta dalla banca.';
+              }
+            }
+          });
+        } catch (error) {
+          status.textContent = 'Il checkout non si è caricato. Nessun appuntamento è stato registrato; attendi la scadenza dello slot o contatta lo studio.';
+        }
+      }
+
+      function servicesForStudio(studioId) {
+        return services.filter(service => Number(service.id_studio) === Number(studioId));
+      }
+
+      function resolveInitialStudio(value) {
+        if (value && /^\d+$/.test(value) && studios.some(studio => Number(studio.id) === Number(value))) {
+          return Number(value);
+        }
+        const keyword = value === 'studio2' ? 'montesacro' : value === 'roma' ? 'prati' : value?.toLowerCase();
+        return studios.find(studio => keyword && studio.name.toLowerCase().includes(keyword))?.id ?? studios[0]?.id ?? null;
+      }
+
+      function resolveInitialService(value, studioId) {
+        const studioServices = servicesForStudio(studioId);
+        if (value && /^\d+$/.test(value) && studioServices.some(service => Number(service.id) === Number(value))) {
+          return Number(value);
+        }
+        const aliases = {
+          thai: 'thai', sport: 'sport', aroma: 'aroma', toksen: 'tok sen',
+          'foot-express': 'express', 'foot-completo': 'completo'
+        };
+        const keyword = aliases[value] || value?.toLowerCase();
+        return studioServices.find(service => keyword && service.name.toLowerCase().includes(keyword))?.id ?? null;
+      }
+
+      function availabilityServiceKey() {
+        return selected.serviceId ?? 'preview-30';
+      }
+
+      function formatDate(dateString) {
+        const date = new Date(dateString + 'T12:00:00');
+        return new Intl.DateTimeFormat('it-IT', { day: '2-digit', month: 'short', weekday: 'short' }).format(date);
+      }
+
+      function getStudioById(id) {
+        return studios.find(item => Number(item.id) === Number(id));
+      }
+
+      function getServiceById(id) {
+        return services.find(item => Number(item.id) === Number(id));
+      }
+
+      function getStudioDisplayName(studio) {
+        if (studio.name === 'Studio Prati') return 'Studio zona Prati c/o Barbiere Prati -lounge di estetica';
+        if (studio.name === 'APS Studio Montesacro') return 'Jaqueline Massaggi APS';
+        return studio.name;
+      }
+
+      function isAssociationStudio(studio) {
+        return studio?.name === 'APS Studio Montesacro';
+      }
+
+      function getStudioLocationUrl(studio) {
+        return studio.name === 'Studio Prati' ? 'dove-trovarmi.html#studio-prati' : 'dove-trovarmi.html#studio-montesacro';
+      }
+
+      function loadLocalPreviewCatalog() {
+        isLocalPreview = true;
+        const previewHours = [2, 3, 4, 5, 6, 7].map(weekday => ({ weekday }));
+        studios = [
+          { id: 9001, name: 'Studio Prati', hours: previewHours },
+          { id: 9002, name: 'APS Studio Montesacro', hours: previewHours }
+        ];
+        services = [
+          { id: 9101, id_studio: 9001, name: 'Massaggio Thai tradizionale', price: 60, duration: '60 min', durationMinutes: 60 },
+          { id: 9107, id_studio: 9001, name: 'Massaggio Thai tradizionale', price: 80, duration: '90 min', durationMinutes: 90 },
+          { id: 9102, id_studio: 9001, name: 'Massaggio sportivo', price: 60, duration: '60 min', durationMinutes: 60 },
+          { id: 9103, id_studio: 9001, name: 'Aromaterapia', price: 60, duration: '60 min', durationMinutes: 60 },
+          { id: 9108, id_studio: 9001, name: 'Aromaterapia', price: 80, duration: '90 min', durationMinutes: 90 },
+          { id: 9109, id_studio: 9001, name: 'Aromaterapia', price: 100, duration: '120 min', durationMinutes: 120 },
+          { id: 9104, id_studio: 9001, name: 'Tok Sen', price: 70, duration: '60 min', durationMinutes: 60 },
+          { id: 9105, id_studio: 9001, name: 'Foot Massage Express', price: 35, duration: '30 min', durationMinutes: 30 },
+          { id: 9106, id_studio: 9001, name: 'Foot Massage Completo', price: 50, duration: '60 min', durationMinutes: 60 },
+          { id: 9201, id_studio: 9002, name: 'Massaggio Thai tradizionale', price: 60, duration: '60 min', durationMinutes: 60 },
+          { id: 9207, id_studio: 9002, name: 'Massaggio Thai tradizionale', price: 80, duration: '90 min', durationMinutes: 90 },
+          { id: 9202, id_studio: 9002, name: 'Massaggio sportivo', price: 60, duration: '60 min', durationMinutes: 60 },
+          { id: 9203, id_studio: 9002, name: 'Aromaterapia', price: 60, duration: '60 min', durationMinutes: 60 },
+          { id: 9208, id_studio: 9002, name: 'Aromaterapia', price: 80, duration: '90 min', durationMinutes: 90 },
+          { id: 9209, id_studio: 9002, name: 'Aromaterapia', price: 100, duration: '120 min', durationMinutes: 120 },
+          { id: 9204, id_studio: 9002, name: 'Tok Sen', price: 70, duration: '60 min', durationMinutes: 60 },
+          { id: 9205, id_studio: 9002, name: 'Foot Massage Express', price: 35, duration: '30 min', durationMinutes: 30 },
+          { id: 9206, id_studio: 9002, name: 'Foot Massage Completo', price: 50, duration: '60 min', durationMinutes: 60 }
+        ];
+
+        selected.studioId = resolveInitialStudio(params.get('studio'));
+        selected.serviceId = resolveInitialService(params.get('service'), selected.studioId);
+        renderStudios();
+        renderServices();
+        renderDates();
+        updateSummary();
+        setBookingStatus(localPreviewMessage);
+        updatePaymentChoice();
+      }
+
+      function getLocalPreviewSlots(date, durationMinutes) {
+        if (new Date(`${date}T12:00:00`).getDay() === 1) return [];
+
+        const today = new Date();
+        const currentDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        const currentTime = `${String(today.getHours()).padStart(2, '0')}:${String(today.getMinutes()).padStart(2, '0')}`;
+        return ['10:00', '11:30', '14:00', '16:00', '17:30'].filter(time => {
+          const [hours, minutes] = time.split(':').map(Number);
+          const endMinutes = hours * 60 + minutes + durationMinutes;
+          return endMinutes <= 20 * 60 && (date > currentDate || time > currentTime);
+        });
+      }
+
+      async function loadCatalog() {
+        try {
+          const [catalogResponse, hoursResponse] = await Promise.all([
+            fetch('php-booking-backend.php?mode=catalog', { headers: { Accept: 'application/json' } }),
+            fetch('php-booking-backend.php?mode=hours', { headers: { Accept: 'application/json' } })
+          ]);
+          if (!catalogResponse.ok || !hoursResponse.ok) throw new Error('Booking catalog request failed');
+          const [data, hoursData] = await Promise.all([catalogResponse.json(), hoursResponse.json()]);
+          if (!data.success || !hoursData.success || !Array.isArray(hoursData.studios)) {
+            throw new Error('Booking catalog response invalid');
+          }
+          const hoursByStudio = new Map(hoursData.studios.map(studio => [Number(studio.id), studio.hours]));
+          studios = (data.studios || []).map(studio => {
+            const hours = hoursByStudio.get(Number(studio.id));
+            if (!Array.isArray(hours)) throw new Error(`Opening days missing for studio ${studio.id}`);
+            return { ...studio, id: Number(studio.id), name: studio.nome, hours };
+          });
+          services = (data.services || []).map(service => ({
+            ...service,
+            id: Number(service.id),
+            id_studio: Number(service.id_studio),
+            name: service.nome,
+            price: Number(service.prezzo),
+            duration: `${Number(service.durata_minuti)} min`,
+            durationMinutes: Number(service.durata_minuti)
+          }));
+
+          if (!studios.length) {
+            renderStudios();
+            renderServices();
+            setBookingStatus('Le sedi non sono ancora configurate. Contatta lo studio per informazioni.');
+            return;
+          }
+
+          selected.studioId = resolveInitialStudio(params.get('studio'));
+          selected.serviceId = resolveInitialService(params.get('service'), selected.studioId);
+          renderStudios();
+          renderServices();
+          renderDates();
+          updateSummary();
+        } catch (error) {
+          if (isLocalPreviewHost) {
+            loadLocalPreviewCatalog();
+            return;
+          }
+          setBookingStatus('Non è possibile caricare sedi e disponibilità. Riprova più tardi o contatta lo studio.');
+          document.getElementById('slotGrid').innerHTML = '';
+        }
+      }
+
+      async function loadAvailableSlots() {
+        if (!selected.studioId || !selected.date) return;
+
+        const serviceKey = availabilityServiceKey();
+        availableSlots[selected.studioId] = availableSlots[selected.studioId] || {};
+        availableSlots[selected.studioId][serviceKey] = availableSlots[selected.studioId][serviceKey] || {};
+        availableSlots[selected.studioId][serviceKey][selected.date] = null;
+        slotOptions[selected.studioId] = slotOptions[selected.studioId] || {};
+        slotOptions[selected.studioId][serviceKey] = slotOptions[selected.studioId][serviceKey] || {};
+        slotOptions[selected.studioId][serviceKey][selected.date] = null;
+        if (isLocalPreview) {
+          const service = getServiceById(selected.serviceId);
+          const previewSlots = getLocalPreviewSlots(selected.date, service?.durationMinutes ?? 30);
+          availableSlots[selected.studioId][serviceKey][selected.date] = previewSlots;
+          slotOptions[selected.studioId][serviceKey][selected.date] = previewSlots.map(time => ({
+            time,
+            available: true,
+            message: null
+          }));
+          setBookingStatus(localPreviewMessage);
+          renderSlots();
+          return;
+        }
+
+        renderSlots();
+        const serviceQuery = selected.serviceId ? `&service_id=${encodeURIComponent(selected.serviceId)}` : '';
+        const url = `php-booking-backend.php?mode=slots&studio_id=${encodeURIComponent(selected.studioId)}${serviceQuery}&date=${encodeURIComponent(selected.date)}`;
+
+        try {
+          const response = await fetch(url, { headers: { Accept: 'application/json' } });
+          if (!response.ok) throw new Error('Slot fetch failed');
+          const data = await response.json();
+          if (data.success && Array.isArray(data.available_slots)) {
+            availableSlots[selected.studioId][serviceKey][selected.date] = data.available_slots;
+            slotOptions[selected.studioId][serviceKey][selected.date] = Array.isArray(data.slot_options)
+              ? data.slot_options
+              : data.available_slots.map(time => ({ time, available: true, message: null }));
+            if (selected.time && !data.available_slots.includes(selected.time)) selected.time = null;
+            setBookingStatus('');
+          } else {
+            throw new Error('Availability response invalid');
+          }
+        } catch (error) {
+          availableSlots[selected.studioId][serviceKey][selected.date] = [];
+          slotOptions[selected.studioId][serviceKey][selected.date] = [];
+          selected.time = null;
+          setBookingStatus('Non è stato possibile caricare gli orari reali. Nessuna disponibilità demo verrà mostrata.');
+        }
+
+        renderSlots();
+      }
+
+      function renderStudios() {
+        const grid = document.getElementById('studioGrid');
+        const orderedStudios = [...studios].sort((left, right) => Number(right.name === 'Studio Prati') - Number(left.name === 'Studio Prati'));
+        grid.innerHTML = orderedStudios.map(studio => `
+          <article class="studio-card" data-studio-id="${Number(studio.id)}">
+            <span class="tag">Sede</span>
+            <h3><a class="studio-location-link" href="${getStudioLocationUrl(studio)}">${escapeHtml(getStudioDisplayName(studio))}</a></h3>
+            <p>Consulta i giorni e gli orari configurati per questa sede.</p>
+            ${isAssociationStudio(studio) ? '<p class="association-notice"><strong>Quota associativa separata.</strong> Accesso con adesione ad APS Jaqueline e quota gestita direttamente dall’associazione, non inclusa nel prezzo del trattamento. Verifica importo, validità e modalità con l’associazione.</p>' : ''}
+            <div class="studio-meta"><span>Servizi attivi</span> ${servicesForStudio(studio.id).length}</div>
+            <div class="link-button"><a href="#booking-form">Scegli questo studio</a></div>
+          </article>
+        `).join('');
+
+        grid.querySelectorAll('.studio-card').forEach(card => {
+          card.addEventListener('click', event => {
+            if (event.target.closest('.studio-location-link')) return;
+            selected.studioId = Number(card.dataset.studioId);
+            selected.serviceId = null;
+            selected.time = null;
+            renderStudios();
+            renderServices();
+            renderDates();
+            updateSummary();
+          });
+        });
+
+        const active = grid.querySelector(`[data-studio-id="${selected.studioId}"]`);
+        if (active) active.classList.add('selected-card');
+      }
+
+      function renderServices() {
+        const grid = document.getElementById('serviceGrid');
+        const studioServices = servicesForStudio(selected.studioId);
+        grid.innerHTML = studioServices.map(service => `
+          <article class="service-card" data-service-id="${Number(service.id)}" tabindex="0" role="button" aria-label="Scegli ${escapeHtml(service.name)}">
+            <span class="tag">Trattamento</span>
+            <h3>${escapeHtml(service.name)}</h3>
+            <p>Trattamento dedicato al tuo benessere, con servizio su misura e prezzo chiaro.</p>
+            <div class="service-meta"><strong>${service.price.toFixed(2)} €</strong><span>${service.duration}</span></div>
+            <div class="link-button"><a href="#booking-form">Seleziona</a></div>
+          </article>
+        `).join('');
+
+        if (!studioServices.length) {
+          grid.innerHTML = '<p class="small-note">Nessun servizio attivo per questa sede.</p>';
+        }
+
+        grid.querySelectorAll('.service-card').forEach(card => {
+          card.addEventListener('click', () => {
+            selected.serviceId = Number(card.dataset.serviceId);
+            selected.time = null;
+            renderServices();
+            loadAvailableSlots();
+            updateSummary();
+          });
+        });
+
+        const active = grid.querySelector(`[data-service-id="${selected.serviceId}"]`);
+        if (active) active.classList.add('selected-card');
+      }
+
+      function renderDates() {
+        const root = document.getElementById('dateRow');
+        const dateList = [];
+        const start = new Date();
+        const workingWeekdays = new Set(
+          (getStudioById(selected.studioId)?.hours || []).map(({ weekday }) => Number(weekday))
+        );
+
+        for (let i = 0; i <= 30; i++) {
+          const date = new Date(start);
+          date.setDate(start.getDate() + i);
+          const weekday = date.getDay() || 7;
+          if (!workingWeekdays.has(weekday)) continue;
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const dayOfMonth = String(date.getDate()).padStart(2, '0');
+          dateList.push(`${year}-${month}-${dayOfMonth}`);
+        }
+
+        if (!dateList.length) {
+          selected.date = null;
+          selected.time = null;
+          root.innerHTML = '<p class="small-note">Nessun giorno lavorativo configurato per questa sede nei prossimi 30 giorni.</p>';
+          document.getElementById('slotGrid').innerHTML = '<p class="small-note">Non ci sono date selezionabili per questa sede.</p>';
+          return;
+        }
+
+        if (!dateList.includes(selected.date)) {
+          selected.date = dateList[0];
+          selected.time = null;
+        }
+
+        root.innerHTML = dateList.map(date => `
+          <button type="button" class="date-chip ${selected.date === date ? 'active' : ''}" data-date="${date}">${formatDate(date)}</button>
+        `).join('');
+
+        root.querySelectorAll('.date-chip').forEach(button => {
+          button.addEventListener('click', () => {
+            selected.date = button.dataset.date;
+            selected.time = null;
+            renderDates();
+            loadAvailableSlots();
+            updateSummary();
+          });
+        });
+
+        loadAvailableSlots();
+      }
+
+      function renderSlots() {
+        const grid = document.getElementById('slotGrid');
+        const options = slotOptions[selected.studioId]?.[availabilityServiceKey()]?.[selected.date];
+        if (options === null || options === undefined) {
+          grid.innerHTML = '<p class="small-note">Caricamento disponibilità…</p>';
+          return;
+        }
+        if (!options.length) {
+          grid.innerHTML = '<p class="small-note">Nessun orario previsto per questa data.</p>';
+          return;
+        }
+
+        grid.innerHTML = options.map(option => `
+          <button
+            type="button"
+            class="slot ${option.available ? '' : 'busy'} ${selected.time === option.time ? 'active' : ''}"
+            data-time="${escapeHtml(option.time)}"
+            aria-disabled="${option.available ? 'false' : 'true'}"
+            title="${escapeHtml(option.message || 'Orario disponibile')}"
+          >${escapeHtml(option.time)}</button>
+        `).join('');
+
+        grid.querySelectorAll('.slot').forEach(button => {
+          button.addEventListener('click', () => {
+            const option = options.find(item => item.time === button.dataset.time);
+            if (!option?.available) {
+              alert(option?.message || 'Questo orario non è disponibile per il trattamento selezionato.');
+              return;
+            }
+            selected.time = button.dataset.time;
+            renderSlots();
+            updateSummary();
+          });
+        });
+      }
+
+      function updateSummary() {
+        const studio = getStudioById(selected.studioId);
+        const service = getServiceById(selected.serviceId);
+        const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value || 'studio';
+        const showAssociationNotice = isAssociationStudio(studio) && paymentMethod !== 'online';
+
+        document.getElementById('summaryStudio').textContent = studio?.name || 'Non selezionato';
+        document.getElementById('associationNotice').hidden = !showAssociationNotice;
+        document.getElementById('summaryService').textContent = service?.name || 'Non selezionato';
+        document.getElementById('summaryDate').textContent = selected.date ? formatDate(selected.date) : 'Non selezionata';
+        document.getElementById('summaryTime').textContent = selected.time || 'Non selezionato';
+        document.getElementById('summaryPrice').textContent = service ? `${service.price} €` : '-';
+        updatePaymentChoice();
+      }
+
+      document.getElementById('bookingRequestForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        if (isLocalPreview) {
+          setBookingStatus(localPreviewMessage);
+          return;
+        }
+
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value || 'studio';
+        const customerType = document.getElementById('customerType').value;
+        const recipientCode = document.getElementById('recipientCode').value.trim();
+        const pec = document.getElementById('billingPec').value.trim();
+
+        if (activeCheckout || submissionPending) {
+          return;
+        }
+
+        if (!selected.studioId || !selected.serviceId || !selected.date || !selected.time || !name || !email) {
+          alert('Completa tutti i campi e scegli studio, servizio, data e orario.');
+          return;
+        }
+        if (customerType === 'azienda' && !recipientCode && !pec) {
+          alert('Per la fattura aziendale inserisci il codice destinatario o la PEC.');
+          return;
+        }
+
+        const payload = {
+          studio_id: selected.studioId,
+          service_id: selected.serviceId,
+          date: selected.date,
+          time: selected.time,
+          name,
+          email,
+          phone: document.getElementById('phone').value.trim(),
+          payment_method: paymentMethod,
+          customer_type: customerType,
+          ragione_sociale: document.getElementById('companyName').value.trim(),
+          codice_fiscale: document.getElementById('taxCode').value.trim(),
+          partita_iva: document.getElementById('vatNumber').value.trim(),
+          indirizzo: document.getElementById('billingAddress').value.trim(),
+          citta: document.getElementById('billingCity').value.trim(),
+          cap: document.getElementById('billingPostalCode').value.trim(),
+          codice_destinatario: recipientCode,
+          pec,
+          notes: document.getElementById('notes').value.trim()
+        };
+        if (paymentMethod === 'voucher') {
+          payload.voucher_code = document.getElementById('bookingVoucherCode').value.trim().toUpperCase();
+        }
+
+        submissionPending = true;
+        updatePaymentChoice();
+        try {
+          if (paymentMethod === 'voucher') payload.voucher_request_token = await bookingVoucherRequestToken(payload);
+          const response = await fetch('php-booking-backend.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          const data = await response.json();
+          if (response.status === 409) {
+            selected.time = null;
+            await loadAvailableSlots();
+            updateSummary();
+            alert(data.message || 'Le disponibilità sono cambiate. Seleziona un nuovo orario.');
+            return;
+          }
+          if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Errore nella prenotazione');
+          }
+
+          if (paymentMethod === 'online') {
+            await showSumUpCheckout(data);
+            return;
+          }
+
+          const notifications = data.notifications || {};
+          let emailStatus = 'La richiesta è registrata; lo studio ti ricontatterà per confermare.';
+          if (data.already_registered) {
+            emailStatus = data.message;
+          } else if (notifications.studio_sent && notifications.customer_sent) {
+            emailStatus = 'Abbiamo inviato un’email allo studio e una ricevuta al tuo indirizzo.';
+          } else if (!notifications.studio_sent && !notifications.customer_sent) {
+            emailStatus = 'La richiesta è registrata, ma non è stato possibile inviare le email. Contatta lo studio per verificare.';
+          } else if (!notifications.studio_sent) {
+            emailStatus = 'La richiesta è registrata e hai ricevuto la ricevuta; la notifica allo studio non è partita. Contattalo per verificare.';
+          } else {
+            emailStatus = 'La richiesta è registrata e lo studio è stato avvisato, ma la ricevuta email non è partita.';
+          }
+          const voucherStatus = data.voucher ? `\nVoucher: una seduta utilizzata. Sedute residue: ${data.voucher.remaining_sessions}. Nessun importo da saldare.` : '';
+          alert(`${emailStatus}\n\nCodice: ${data.booking_id}\nStudio: ${data.data.studio}\nServizio: ${data.data.service}\nData: ${data.data.date} ${data.data.time}${voucherStatus}`);
+          if (paymentMethod === 'voucher') sessionStorage.removeItem('booking-voucher-request');
+          this.reset();
+          document.getElementById('bookingVoucherCode').value = '';
+          checkedBookingVoucher = '';
+          selected.time = null;
+          loadAvailableSlots();
+          updateSummary();
+        } catch (error) {
+          const retryMessage = paymentMethod === 'voucher'
+            ? 'Se non hai ricevuto una conferma, verifica con lo studio prima di inviare una richiesta diversa. Riprovando gli stessi dati con voucher non verrà scalata un’altra seduta.'
+            : 'Se non hai ricevuto una conferma, verifica con lo studio prima di riprovare.';
+          alert(`${error.message || 'Non è stato possibile inviare la richiesta.'}\n\n${retryMessage}`);
+        } finally {
+          submissionPending = false;
+          updatePaymentChoice();
+        }
+      });
+
+      const style = document.createElement('style');
+      style.textContent = `
+        .selected-card {
+          border-color: var(--accent) !important;
+          box-shadow: 0 0 0 1px rgba(139, 68, 56, 0.25);
+        }
+        .date-row {
+          display: flex;
+          flex-wrap: nowrap;
+          gap: 10px;
+          overflow-x: auto;
+          overscroll-behavior-x: contain;
+          padding-bottom: 8px;
+        }
+        .date-chip {
+          flex: 0 0 auto;
+          min-height: 42px;
+          padding: 10px 14px;
+          border: 1px solid #d9cdc3;
+          background: #fff;
+          color: var(--ink);
+          font: inherit;
+          cursor: pointer;
+        }
+        .date-chip.active {
+          background: var(--ink);
+          border-color: var(--ink);
+          color: #fff;
+        }
+        .slot-grid {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+        .slot {
+          min-height: 40px;
+          padding: 8px 14px;
+          border: 1px solid #d9cdc3;
+          background: #fff;
+          color: var(--ink);
+          font: inherit;
+          cursor: pointer;
+        }
+        .slot.active {
+          background: var(--accent);
+          border-color: var(--accent);
+          color: #fff;
+        }
+        .slot.busy {
+          background: #f2e7e3;
+          color: #8f7e74;
+          text-decoration: line-through;
+          cursor: not-allowed;
+        }
+      `;
+      document.head.appendChild(style);
+
+      document.getElementById('customerType').addEventListener('change', updateInvoiceFields);
+      document.getElementById('verifySumupPayment').addEventListener('click', verifySumUpPayment);
+      document.querySelectorAll('input[name="payment_method"]').forEach(input => input.addEventListener('change', updatePaymentChoice));
+      updateInvoiceFields();
+      updatePaymentChoice();
+      loadCatalog();
+    </script>
+  </body>
+</html>

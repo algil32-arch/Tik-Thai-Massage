@@ -117,7 +117,7 @@ test('cross-tab revocation disables services and reloads the active translator',
 });
 
 test('all public pages load consent before the language widget and have no remote font requests', () => {
-  const pages = ['index', 'prenota', 'dove-trovarmi', 'massaggio-thai-tradizionale',
+  const pages = ['index', 'prenota', 'prenota-massaggio', 'prenota-voucher', 'dove-trovarmi', 'massaggio-thai-tradizionale',
     'massaggio-sportivo', 'massaggio-aromaterapia', 'tok-sen', 'foot-massage',
     'storia-massaggio-thai', 'documenti-legali-premium', 'footer-mobile-first'];
   for (const name of pages) {

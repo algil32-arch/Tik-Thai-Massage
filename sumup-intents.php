@@ -37,15 +37,15 @@ function finalizePaidSumUpIntent(PDO $pdo, int $intentId, ?string $transactionId
     try {
         $pdo->beginTransaction();
 
-        $studioLock = $pdo->prepare(
-            'SELECT s.id
-             FROM studi s
-             INNER JOIN sumup_payment_intents i ON i.id_studio = s.id
+        $professionalLock = $pdo->prepare(
+            'SELECT p.id
+             FROM professionisti p
+             INNER JOIN sumup_payment_intents i ON i.id_professionista = p.id
              WHERE i.id = :intent
              FOR UPDATE'
         );
-        $studioLock->execute([':intent' => $intentId]);
-        if (!$studioLock->fetch()) {
+        $professionalLock->execute([':intent' => $intentId]);
+        if (!$professionalLock->fetch()) {
             throw new RuntimeException('Intento di pagamento non trovato.');
         }
 
@@ -157,17 +157,17 @@ function finalizePaidSumUpIntent(PDO $pdo, int $intentId, ?string $transactionId
     ];
 }
 
-function expireSumUpPaymentIntents(PDO $pdo, int $studioId, string $date): void
+function expireSumUpPaymentIntents(PDO $pdo, int $professionalId, string $date): void
 {
     $stmt = $pdo->prepare(
         "SELECT id, sumup_checkout_id
          FROM sumup_payment_intents
          WHERE status = 'pending' AND expires_at <= NOW()
-           AND id_studio = :studio AND data_appuntamento = :date
+           AND id_professionista = :professionista AND data_appuntamento = :date
          ORDER BY expires_at
          LIMIT 5"
     );
-    $stmt->execute([':studio' => $studioId, ':date' => $date]);
+    $stmt->execute([':professionista' => $professionalId, ':date' => $date]);
 
     foreach ($stmt->fetchAll() as $expiredIntent) {
         try {

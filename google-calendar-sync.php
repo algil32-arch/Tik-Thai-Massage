@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/booking-mailer.php';
+
 const GOOGLE_SYNC_APPOINTMENT_PROPERTY = 'thaitik_appointment_id';
 const GOOGLE_SYNC_FUTURE_DAYS = 365;
 
@@ -229,12 +231,15 @@ function googleSyncPushAppointments(PDO $pdo): array
     $settings = googleCalendarSettings();
     $created = 0;
     $removed = 0;
+    $confirmed = 0;
+    $confirmationEmailsSent = 0;
+    $confirmationEmailFailures = [];
 
     $pendingStmt = $pdo->prepare(
         "SELECT a.id, a.data_appuntamento, a.ora_inizio, a.ora_fine, a.stato, a.metodo_pagamento,
                 a.stato_pagamento, a.note,
                 st.nome AS studio_nome, sv.nome AS servizio_nome,
-                c.nome AS cliente_nome, c.cognome AS cliente_cognome,
+                sv.prezzo, c.nome AS cliente_nome, c.cognome AS cliente_cognome,
                 c.email AS cliente_email, c.telefono AS cliente_telefono
          FROM appuntamenti a
          INNER JOIN studi st ON st.id = a.id_studio
@@ -249,16 +254,55 @@ function googleSyncPushAppointments(PDO $pdo): array
     $pendingStmt->execute([':oggi' => (new DateTimeImmutable('today'))->format('Y-m-d')]);
 
     foreach ($pendingStmt->fetchAll() as $appointment) {
-        $event = googleCalendarInsertEvent($pdo, googleAppointmentEventPayload($appointment, $settings['timezone']));
+        $wasAwaitingConfirmation = $appointment['stato'] === 'in_attesa';
+        $eventAppointment = $appointment;
+        if ($wasAwaitingConfirmation) {
+            $eventAppointment['stato'] = 'confermato';
+        }
+        $event = googleCalendarInsertEvent($pdo, googleAppointmentEventPayload($eventAppointment, $settings['timezone']));
         if (empty($event['id'])) {
             continue;
         }
 
         $linkStmt = $pdo->prepare(
-            'UPDATE appuntamenti SET google_event_id = :event, google_synced_at = NOW() WHERE id = :id'
+            "UPDATE appuntamenti
+             SET google_event_id = :event, google_synced_at = NOW(),
+                 stato = CASE WHEN stato = 'in_attesa' THEN 'confermato' ELSE stato END
+             WHERE id = :id AND google_event_id IS NULL AND stato = :expected_status"
         );
-        $linkStmt->execute([':event' => (string)$event['id'], ':id' => $appointment['id']]);
+        $linkStmt->execute([
+            ':event' => (string)$event['id'],
+            ':id' => $appointment['id'],
+            ':expected_status' => $appointment['stato'],
+        ]);
+        if ($linkStmt->rowCount() !== 1) {
+            googleCalendarDeleteEvent($pdo, (string)$event['id']);
+            continue;
+        }
+
         $created++;
+        if ($wasAwaitingConfirmation) {
+            $confirmed++;
+            try {
+                $sent = sendBookingConfirmationEmail((int)$appointment['id'], [
+                    'name' => trim((string)$appointment['cliente_nome'] . ' ' . (string)$appointment['cliente_cognome']),
+                    'studio' => (string)$appointment['studio_nome'],
+                    'service' => (string)$appointment['servizio_nome'],
+                    'date' => (string)$appointment['data_appuntamento'],
+                    'time' => substr((string)$appointment['ora_inizio'], 0, 5),
+                    'price' => (float)$appointment['prezzo'],
+                ], (string)$appointment['cliente_email']);
+            } catch (Throwable $e) {
+                $sent = false;
+                error_log('Google Calendar synced booking, but confirmation email raised an error for appointment #' . $appointment['id'] . ': ' . $e->getMessage());
+            }
+            if ($sent) {
+                $confirmationEmailsSent++;
+            } else {
+                $confirmationEmailFailures[] = (int)$appointment['id'];
+                error_log('Google Calendar synced booking, but confirmation email failed for appointment #' . $appointment['id']);
+            }
+        }
     }
 
     $cancelledStmt = $pdo->query(
@@ -276,7 +320,13 @@ function googleSyncPushAppointments(PDO $pdo): array
         $removed++;
     }
 
-    return ['eventi_creati' => $created, 'eventi_rimossi' => $removed];
+    return [
+        'eventi_creati' => $created,
+        'eventi_rimossi' => $removed,
+        'appuntamenti_confermati' => $confirmed,
+        'email_conferma_inviate' => $confirmationEmailsSent,
+        'email_conferma_non_inviate' => $confirmationEmailFailures,
+    ];
 }
 
 function googleCalendarSync(PDO $pdo): array

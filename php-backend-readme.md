@@ -1,6 +1,6 @@
 # Backend e agenda PHP per Aruba
 
-Il backend usa PHP con PDO e MySQL/MariaDB. L'agenda applica le fasce settimanali configurate per ogni studio e mostra solo gli orari compatibili con durata del servizio e appuntamenti già presenti.
+Il backend usa PHP con PDO e MySQL/MariaDB. L'agenda applica le fasce settimanali configurate per ogni studio, mostra solo gli orari compatibili con la durata effettiva del servizio e considera un buffer minimo di 15 minuti. Appuntamenti e checkout in attesa della stessa professionista bloccano gli orari in tutte le sedi, non soltanto in quella selezionata.
 
 ## Installazione database
 1. Importa `backend-aruba-schema.sql` nel database.
@@ -18,7 +18,7 @@ Il backend usa PHP con PDO e MySQL/MariaDB. L'agenda applica le fasce settimanal
 
 ## Voucher regalo
 
-Il box in `prenota.html` vende solo servizi attivi di **Studio Prati**, non di APS
+La pagina `prenota-voucher.html` vende solo servizi attivi di **Studio Prati**, non di APS
 Jaqueline. Si sceglie destinatario, trattamento, formula da 1/5/10 sedute e
 quantita' da 1 a 20. Il server recupera il prezzo dal database e calcola il totale:
 il prezzo delle formule da 5/10 sedute viene arrotondato per seduta come nel
@@ -35,7 +35,8 @@ e durata, data/orario, dati cliente e codice. **Verifica codice voucher** mostra
 le sedute residue senza modificarle. All'invio il server ricontrolla codice,
 pagamento, corrispondenza del servizio, disponibilita' e scadenza (anche rispetto
 alla data dell'appuntamento). Non viene creato alcun checkout SumUp aggiuntivo.
-La richiesta resta in attesa della conferma dello studio, come le altre.
+La richiesta resta in attesa della sincronizzazione Google; quando l'evento viene
+inserito correttamente il sito la conferma e invia un'email al cliente.
 Il PDF e' generato in PHP, senza librerie esterne, e si scarica usando un token
 segreto: non condividere il link se non con acquirente/destinatario.
 
@@ -68,7 +69,8 @@ generata automaticamente una fattura: verificare con il commercialista
 trattamento fiscale, documenti, condizioni di vendita/recesso e conservazione
 dei dati prima di attivare vendite reali.
 
-File da pubblicare: `prenota.html`, `area-admin.html`, `documenti-legali-premium.html`,
+File da pubblicare: `prenota.html`, `prenota-massaggio.html`, `prenota-voucher.html`,
+`area-admin.html`, `documenti-legali-premium.html`,
 `gift-voucher.js`, `gift-voucher.css`, `voucher.php`, `voucher-model.php`,
 `voucher-store.php`, `voucher-pdf.php`, `vouchers-admin.php`, `booking-voucher.php`,
 `php-booking-backend.php`, `booking-admin-advanced.php`, `booking-mailer.php`. Dipendenze gia'
@@ -77,7 +79,7 @@ Serve PHP con PDO MySQL, cURL e iconv, un database migrato e SumUp in EUR.
 
 Verifiche locali:
 `php tests/voucher-test.php`, `php tests/booking-voucher-test.php` e
-`node --test tests/gift-voucher.test.cjs tests/packages.test.cjs`.
+`node --test tests/gift-voucher.test.cjs tests/packages.test.cjs tests/booking-pages.test.cjs`.
 Prima delle vendite, collaudare su Aruba con credenziali SumUp di test: pagamento
 riuscito/fallito/scaduto, recupero dopo ricarica o abbandono, doppia verifica,
 due utilizzi concorrenti dell'ultima seduta, scadenza, email e fatturazione.
@@ -108,19 +110,19 @@ La guida Aruba per Easy Linux documenta versione PHP e parametri `php.ini`, non 
 Il widget ufficiale invia i dati della carta direttamente a SumUp. Dopo il callback del widget, `sumup-payment.php` interroga l'API SumUp e confronta identificativo, riferimento, importo e valuta con l'intento temporaneo prima di creare l'appuntamento. Le chiamate ripetute di verifica sono idempotenti e non inviano email duplicate. Anche le richieste successive degli slot elaborano gli intenti scaduti: un checkout già pagato viene finalizzato, mentre un checkout non pagato viene disattivato e liberato.
 
 ## Email di prenotazione
-Dopo aver salvato la richiesta nel database, il backend usa la funzione PHP `mail()` per inviare una notifica a `BOOKING_NOTIFICATION_EMAIL` e una ricevuta al cliente. Per impostazione predefinita mittente e notifica studio sono `info@thaitikmassage.it`; puoi sovrascriverli in `private/config.local.php` con `MAIL_FROM_EMAIL` e `BOOKING_NOTIFICATION_EMAIL`. La ricevuta specifica che l'appuntamento è ancora in attesa di conferma. Il valore di ritorno di `mail()` indica che Aruba ha accettato il messaggio per l'invio, non garantisce la consegna in inbox.
+Dopo aver salvato la richiesta nel database, il backend usa la funzione PHP `mail()` per inviare una notifica a `BOOKING_NOTIFICATION_EMAIL` e una ricevuta al cliente. Per impostazione predefinita mittente e notifica studio sono `info@thaitikmassage.it`; puoi sovrascriverli in `private/config.local.php` con `MAIL_FROM_EMAIL` e `BOOKING_NOTIFICATION_EMAIL`. La ricevuta iniziale specifica che la richiesta è in attesa. Quando la sincronizzazione Google inserisce correttamente l'evento, il backend imposta lo stato su confermato e invia una seconda email al cliente. La risposta del cron distingue email inviate e non inviate; un errore e' registrato nei log e richiede verifica manuale. Il valore di ritorno di `mail()` indica che Aruba ha accettato il messaggio per l'invio, non garantisce la consegna in inbox.
 
 Prima del test prenotazione, verifica l'invio da **Hosting Linux → Strumenti e impostazioni → Gestione PHP → Test PHP mail**. Se Aruba non accetta o consegna i messaggi, le prenotazioni restano comunque registrate e il form segnala il problema; per SMTP servirà configurare un trasporto autenticato.
 
 ## Configurare l'agenda
-Apri `area-admin.html`, accedi con `ADMIN_PASSWORD` e scegli **Prenotazioni e agenda**. Per ogni studio aggiungi una o più fasce per giorno indicando ora iniziale e ora finale. L'ora finale indica la chiusura: il sito mostra partenze ogni 60 minuti a partire dall'inizio della fascia e aggiunge un ultimo ingresso 30 minuti prima della chiusura, utilizzabile almeno dal trattamento più breve. Per chiudere una fascia, rimuovila.
+Apri `area-admin.html`, accedi con `ADMIN_PASSWORD` e scegli **Prenotazioni e agenda**. Per ogni studio aggiungi una o più fasce per giorno indicando ora iniziale e ora finale. Il sito propone partenze ogni 15 minuti a partire dall'inizio della fascia; ogni orario è prenotabile solo se il trattamento scelto termina entro la chiusura. Per chiudere una fascia, rimuovila.
 
-Il backend lascia almeno **15 minuti tra i trattamenti**, sia prima sia dopo gli appuntamenti in attesa o confermati. Tutte le partenze orarie restano visibili: quelle che non possono contenere l'intera durata del trattamento, che si sovrappongono a un appuntamento o a un blocco Google, oppure che non lasciano la pausa necessaria, vengono mostrate come non disponibili. Se il cliente le seleziona, il sito spiega il motivo. La stessa regola viene ricontrollata dal server durante il salvataggio. Gli appuntamenti esistenti non vengono spostati; la durata della seduta e gli orari di apertura restano invariati.
+Il backend lascia almeno **15 minuti tra i trattamenti**, sia prima sia dopo gli appuntamenti in attesa o confermati. Le partenze sono proposte ogni 15 minuti; quelle che non possono contenere l'intera durata del trattamento, che si sovrappongono a un appuntamento o a un blocco Google, oppure che non lasciano la pausa necessaria, vengono mostrate come non disponibili. Se il cliente le seleziona, il sito spiega il motivo. La stessa regola viene ricontrollata dal server durante il salvataggio. Gli appuntamenti esistenti non vengono spostati; la durata della seduta e gli orari di apertura restano invariati.
 
-La funzione condivisa in `booking-slots.php` viene usata sia per mostrare gli orari sia per validarli durante il salvataggio, sotto il lock dello studio. Se un'altra richiesta cambia le disponibilità, il POST restituisce 409 e il form aggiorna gli slot senza perdere i dati inseriti. Carica anche questo file sull'hosting; non serve una migrazione SQL. Per eseguire i test della logica: `php tests/booking-slots-test.php`.
+La funzione condivisa in `booking-slots.php` viene usata sia per mostrare gli orari sia per validarli durante il salvataggio, sotto il lock della professionista. Appuntamenti e checkout in attesa in qualsiasi sede della stessa professionista partecipano al controllo, così una prenotazione in un centro non lascia libero lo stesso orario negli altri. Se un'altra richiesta cambia le disponibilità, il POST restituisce 409 e il form aggiorna gli slot senza perdere i dati inseriti. Carica anche questo file sull'hosting; non serve una migrazione SQL. Per eseguire i test della logica: `php tests/booking-slots-test.php`.
 
 ## Sincronizzazione con Google Calendar
-La sincronizzazione è bidirezionale: gli appuntamenti del sito diventano eventi del calendario e gli impegni creati a mano sul calendario chiudono gli slot sul sito. Poiché la professionista è una sola, un impegno Google blocca **tutte le sedi**.
+La sincronizzazione è bidirezionale: gli appuntamenti del sito diventano eventi del calendario e gli impegni creati a mano sul calendario chiudono gli slot sul sito. Poiché la professionista è una sola, un impegno Google blocca **tutte le sedi**. Quando Google accetta l'inserimento di una prenotazione in attesa, questa viene segnata confermata e il cliente riceve l'email di conferma; se la sincronizzazione fallisce, resta in attesa. Il cron gira ogni 10 minuti, quindi la conferma può arrivare al primo ciclo utile e non è immediata.
 
 ### Preparazione su Google Cloud
 1. Crea un progetto su [console.cloud.google.com](https://console.cloud.google.com) e abilita **Google Calendar API**.
@@ -151,10 +153,10 @@ In alternativa, con richiesta HTTP (richiede `GOOGLE_SYNC_TOKEN`):
 */10 * * * * wget -q -O /dev/null "https://www.thaitikmassage.it/cron-calendar-sync.php?token=IL_TUO_TOKEN"
 ```
 
-Puoi lanciare manualmente lo stesso URL dal browser per verificare l'esito: la risposta JSON riporta eventi letti, impegni importati ed eventi creati.
+Puoi lanciare manualmente lo stesso URL dal browser per verificare l'esito: la risposta JSON riporta eventi letti, impegni importati, eventi creati, prenotazioni confermate e email di conferma inviate/non inviate.
 
 ### Regole di funzionamento
-- Gli appuntamenti `in_attesa` e `confermato` dalla data odierna in poi vengono creati su Google con una proprietà privata `thaitik_appointment_id`, così la sincronizzazione non li reimporta come impegni.
+- Gli appuntamenti `in_attesa` e `confermato` dalla data odierna in poi vengono creati su Google con una proprietà privata `thaitik_appointment_id`, così la sincronizzazione non li reimporta come impegni. Gli `in_attesa` passano a `confermato` solo dopo la risposta positiva di Google; allora viene spedita l'email di conferma.
 - Gli appuntamenti `annullato` vengono rimossi dal calendario.
 - Gli eventi Google che non provengono dal sito sono salvati in `agenda_blocchi` giorno per giorno e rendono gli slot non prenotabili. Gli eventi marcati come **Disponibile** (`transparency: transparent`) non bloccano nulla.
 - Per liberare uno slot occupato a mano basta eliminare o spostare l'evento su Google: al ciclo successivo il sito lo rimette a disposizione.

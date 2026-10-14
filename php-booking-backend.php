@@ -77,6 +77,16 @@ if ($method === 'GET') {
             apiResponse(400, ['success' => false, 'message' => 'Studio e data validi sono obbligatori.']);
         }
 
+        $studioStmt = $pdo->prepare(
+            'SELECT id_professionista FROM studi WHERE id = :studio AND attivo = 1 LIMIT 1'
+        );
+        $studioStmt->execute([':studio' => $studioId]);
+        $studio = $studioStmt->fetch();
+        if (!$studio) {
+            apiResponse(404, ['success' => false, 'message' => 'Studio non trovato.']);
+        }
+        $professionalId = (int)$studio['id_professionista'];
+
         $durationMinutes = BOOKING_MIN_TREATMENT_MINUTES;
         if ($serviceId > 0) {
             $serviceStmt = $pdo->prepare(
@@ -90,7 +100,7 @@ if ($method === 'GET') {
             $durationMinutes = (int)$service['durata_minuti'];
         }
 
-        expireSumUpPaymentIntents($pdo, $studioId, $date);
+        expireSumUpPaymentIntents($pdo, $professionalId, $date);
 
         $weekday = (int)$dateObject->format('N');
         $scheduleStmt = $pdo->prepare(
@@ -104,16 +114,16 @@ if ($method === 'GET') {
 
         $appointmentsStmt = $pdo->prepare(
             "SELECT ora_inizio, ora_fine FROM appuntamenti
-             WHERE id_studio = :studio AND data_appuntamento = :date
+             WHERE id_professionista = :professionista AND data_appuntamento = :date
                AND stato IN ('in_attesa', 'confermato')"
         );
-        $appointmentsStmt->execute([':studio' => $studioId, ':date' => $date]);
+        $appointmentsStmt->execute([':professionista' => $professionalId, ':date' => $date]);
         $appointments = $appointmentsStmt->fetchAll();
         $intentsStmt = $pdo->prepare(
             "SELECT ora_inizio, ora_fine FROM sumup_payment_intents
-             WHERE id_studio = :studio AND data_appuntamento = :date AND status = 'pending'"
+             WHERE id_professionista = :professionista AND data_appuntamento = :date AND status = 'pending'"
         );
-        $intentsStmt->execute([':studio' => $studioId, ':date' => $date]);
+        $intentsStmt->execute([':professionista' => $professionalId, ':date' => $date]);
         $occupiedSlots = array_merge(
             $appointments,
             $intentsStmt->fetchAll(),
@@ -291,12 +301,12 @@ if ($paymentMethod === 'voucher') {
     }
 }
 
-expireSumUpPaymentIntents($pdo, (int)$studioRecord['id'], $date);
+expireSumUpPaymentIntents($pdo, (int)$studioRecord['id_professionista'], $date);
 
 try {
     $pdo->beginTransaction();
-    $lockStudio = $pdo->prepare('SELECT id FROM studi WHERE id = :studio AND attivo = 1 FOR UPDATE');
-    $lockStudio->execute([':studio' => $studioRecord['id']]);
+    $lockProfessional = $pdo->prepare('SELECT id FROM professionisti WHERE id = :professional FOR UPDATE');
+    $lockProfessional->execute([':professional' => $studioRecord['id_professionista']]);
 
     if ($paymentMethod === 'voucher') {
         $bookingVoucher = bookingVoucherByCode($pdo, $voucherCode, true);
@@ -316,22 +326,22 @@ try {
 
     $appointmentsStmt = $pdo->prepare(
         "SELECT ora_inizio, ora_fine FROM appuntamenti
-         WHERE id_studio = :studio AND data_appuntamento = :date
+         WHERE id_professionista = :professionista AND data_appuntamento = :date
            AND stato IN ('in_attesa', 'confermato')
          FOR UPDATE"
     );
     $appointmentsStmt->execute([
-        ':studio' => $studioRecord['id'],
+        ':professionista' => $studioRecord['id_professionista'],
         ':date' => $date,
     ]);
     $occupiedSlots = $appointmentsStmt->fetchAll();
     $intentsStmt = $pdo->prepare(
         "SELECT ora_inizio, ora_fine FROM sumup_payment_intents
-         WHERE id_studio = :studio AND data_appuntamento = :date AND status = 'pending'
+         WHERE id_professionista = :professionista AND data_appuntamento = :date AND status = 'pending'
          FOR UPDATE"
     );
     $intentsStmt->execute([
-        ':studio' => $studioRecord['id'],
+        ':professionista' => $studioRecord['id_professionista'],
         ':date' => $date,
     ]);
     $occupiedSlots = array_merge(

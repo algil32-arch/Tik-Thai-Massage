@@ -1,7 +1,7 @@
 <?php
 
 const BOOKING_BREAK_MINUTES = 15;
-const BOOKING_DISPLAY_INTERVAL_MINUTES = 60;
+const BOOKING_DISPLAY_INTERVAL_MINUTES = 15;
 const BOOKING_MIN_TREATMENT_MINUTES = 30;
 
 function bookingSlotOptions(
@@ -37,11 +37,6 @@ function bookingSlotOptions(
             $slot = $slot->modify('+' . BOOKING_DISPLAY_INTERVAL_MINUTES . ' minutes');
         }
 
-        $lastShortSlot = $end->modify('-' . BOOKING_MIN_TREATMENT_MINUTES . ' minutes');
-        if ($lastShortSlot >= new DateTimeImmutable($date . ' ' . $schedule['ora_inizio'])
-            && $lastShortSlot > $now) {
-            $displayTimes[$lastShortSlot->format('H:i')] = $lastShortSlot;
-        }
     }
 
     ksort($displayTimes);

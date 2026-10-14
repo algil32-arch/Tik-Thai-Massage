@@ -155,8 +155,8 @@ $appointments = $stmt->fetchAll();
 
     <section class="schedule-panel" id="agenda" aria-labelledby="agenda-title">
       <h2 id="agenda-title">Disponibilità settimanale</h2>
-      <p>Configura i giorni di presenza, le fasce orarie e ogni quanti minuti proporre uno slot per ciascuno studio.</p>
-      <p>Gli orari prenotabili restano sulla griglia oraria. Tra gli appuntamenti sono necessari almeno 15 minuti di pausa, senza spostare gli appuntamenti esistenti.</p>
+      <p>Configura i giorni di presenza e le fasce orarie di ciascuno studio. Gli appuntamenti vengono proposti ogni 15 minuti, se compatibili con durata e disponibilità.</p>
+      <p>Tra gli appuntamenti sono necessari almeno 15 minuti di pausa, senza spostare gli appuntamenti esistenti.</p>
       <?php if ($adminMessage !== ''): ?>
         <p class="notice" role="status"><?= htmlspecialchars($adminMessage, ENT_QUOTES, 'UTF-8') ?></p>
       <?php endif; ?>
@@ -191,8 +191,8 @@ $appointments = $stmt->fetchAll();
           <label for="end-time">Alle
             <input id="end-time" name="ora_fine" type="time" required />
           </label>
-          <input type="hidden" name="intervallo_minuti" value="60" />
-          <p class="small-note">Gli orari mostrati ai clienti hanno una griglia fissa di 60 minuti e un ultimo ingresso 30 minuti prima della fine della fascia.</p>
+          <input type="hidden" name="intervallo_minuti" value="<?= BOOKING_DISPLAY_INTERVAL_MINUTES ?>" />
+          <p class="small-note">Gli orari ai clienti sono proposti ogni <?= BOOKING_DISPLAY_INTERVAL_MINUTES ?> minuti; è possibile prenotare solo se il trattamento termina entro la fascia.</p>
           <button type="submit">Aggiungi fascia</button>
         </form>
         <?php if (empty($scheduleRows)): ?>
@@ -205,7 +205,7 @@ $appointments = $stmt->fetchAll();
                 <tr>
                   <td><?= htmlspecialchars($weekdays[(int)$schedule['giorno_settimana']] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
                   <td><?= htmlspecialchars(substr((string)$schedule['ora_inizio'], 0, 5) . '–' . substr((string)$schedule['ora_fine'], 0, 5), ENT_QUOTES, 'UTF-8') ?></td>
-                  <td>60 min</td>
+                  <td><?= BOOKING_DISPLAY_INTERVAL_MINUTES ?> min</td>
                   <td>
                     <form method="post" class="inline-form">
                       <input type="hidden" name="csrf_token" value="<?= htmlspecialchars((string)$_SESSION['admin_csrf'], ENT_QUOTES, 'UTF-8') ?>" />

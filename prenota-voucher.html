@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Regala un massaggio Thai Tik Massage con un voucher per Studio Prati." />
+    <title>Voucher regalo | Thai Tik Massage</title>
+    <link rel="stylesheet" href="cookie-consent.css" />
+    <script src="cookie-consent.js" defer></script>
+    <link rel="stylesheet" href="details.css" />
+    <link rel="stylesheet" href="gift-voucher.css" />
+    <link rel="stylesheet" href="header.css" />
+    <script src="language-selector.js" defer></script>
+    <script src="header-scroll.js" defer></script>
+    <style>
+      .booking-shell { width: min(100% - 48px, 900px); margin-inline: auto; padding-block: 48px 84px; }
+      .gift-voucher { margin-top: 0; padding: 26px 24px; border: 1px solid #e0d5ca; background: #fff; box-shadow: 0 12px 26px rgba(42, 32, 29, .04); }
+      .gift-voucher h2 { margin: 0 0 12px; color: var(--ink); font-size: 26px; }
+      .gift-voucher > p { color: var(--muted); line-height: 1.6; }
+      .gift-voucher-grid { margin-top: 18px; }
+      .gift-voucher .field { display: grid; gap: 8px; }
+      .gift-voucher label { color: var(--ink); font-size: 13px; font-weight: 700; }
+      .gift-voucher input, .gift-voucher select { width: 100%; min-height: 46px; padding: 10px 12px; border: 1px solid #d8cfc6; background: #fff; color: var(--ink); font: inherit; }
+      .gift-voucher details { margin-top: 18px; }
+      #giftBuyerFields { display: grid; gap: 16px; margin-top: 16px; }
+      #gift-billingFields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 0; padding: 0; border: 0; }
+      #gift-billingFields[hidden], #gift-companyNameField[hidden], #gift-vatField[hidden], #gift-taxCodeField[hidden], #gift-recipientField[hidden], #gift-pecField[hidden], #gift-billingHelp[hidden] { display: none; }
+      .voucher-back { display: inline-block; margin-bottom: 16px; color: var(--ink); }
+      @media (max-width: 600px) { #gift-billingFields { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap header-inner">
+        <a class="brand" href="index.html" aria-label="Thai Tik Massage, torna alla home">
+          <img class="brand-logo" src="thai-tik-logo-alternativo.png" alt="Thai Tik Massage" />
+        </a>
+        <div class="language-switcher gtranslate_wrapper" aria-label="Seleziona la lingua"></div>
+        <div class="header-contact">
+          <a class="header-email" href="mailto:info@thaitikmassage.it">info@thaitikmassage.it</a>
+          <a class="header-whatsapp" href="https://wa.me/message/4ZL65LROJWHFI1" target="_blank" rel="noopener noreferrer"><span>Chat WhatsApp</span></a>
+        </div>
+        <nav class="nav" aria-label="Navigazione principale">
+          <a href="index.html#trattamenti">Trattamenti</a>
+          <a href="mappa-sedi.html">Dove trovarmi</a>
+          <a class="nav-book" href="prenota.html">Prenota</a>
+        </nav>
+      </div>
+    </header>
+    <main>
+      <section class="detail-hero" style="--hero-image: url('tik-thai-massage.jpg')" aria-labelledby="page-title">
+        <div class="wrap hero-content">
+          <a class="back" href="prenota.html">← Tutte le modalità di prenotazione</a>
+          <p class="eyebrow">Un regalo di benessere</p>
+          <h1 id="page-title">Crea un voucher regalo.</h1>
+          <p>Scegli un trattamento o un pacchetto da regalare presso Studio Prati. Il voucher non prenota un appuntamento ed è valido 12 mesi dal pagamento.</p>
+        </div>
+      </section>
+      <div class="booking-shell">
+        <section class="gift-voucher" aria-labelledby="gift-voucher-title">
+          <h2 id="gift-voucher-title">Personalizza il regalo</h2>
+          <p>Il voucher è utilizzabile solo presso Studio Prati e non è valido presso APS Jaqueline. Il destinatario potrà prenotare in seguito, scegliendo una seduta della stessa tipologia e durata.</p>
+          <form id="giftVoucherForm" novalidate>
+            <fieldset id="giftVoucherSelection" style="border:0; padding:0; margin:0;">
+              <div class="gift-voucher-grid">
+                <div class="field"><label for="giftRecipient">Nome del destinatario</label><input id="giftRecipient" name="recipient_name" maxlength="150" required /></div>
+                <div class="field"><label for="giftService">Trattamento e durata</label><select id="giftService" name="service_id" required disabled><option value="">Caricamento trattamenti…</option></select></div>
+                <div class="field"><label for="giftFormula">Formula</label><select id="giftFormula" name="sessions_per_item"><option value="1">Trattamento singolo</option><option value="5">Pacchetto da 5 sedute</option><option value="10">Pacchetto da 10 sedute</option></select></div>
+                <div class="field"><label for="giftQuantity">Numero di trattamenti o pacchetti</label><input id="giftQuantity" name="quantity" type="number" min="1" max="20" step="1" value="1" required /></div>
+              </div>
+              <p class="gift-voucher-total">Importo per trattamento/pacchetto: <output id="giftItemAmount">—</output><br />Sedute regalate: <output id="giftSessions">—</output><br />Importo totale: <output id="giftTotal">—</output></p>
+            </fieldset>
+            <div class="gift-voucher-actions">
+              <button type="button" id="giftPrint">Stampa anteprima</button>
+              <button type="button" id="giftDownload">Scarica anteprima PDF</button>
+            </div>
+            <details id="giftBuyerDetails">
+              <summary>Dati dell’acquirente per il pagamento e la fatturazione</summary>
+              <div id="giftBuyerFields">
+                <div class="field"><label for="gift-name">Nome e cognome</label><input id="gift-name" name="name" autocomplete="name" required /></div>
+                <div class="field"><label for="gift-email">Email</label><input id="gift-email" name="email" type="email" autocomplete="email" required /></div>
+                <div class="field"><label for="gift-phone">Telefono (facoltativo)</label><input id="gift-phone" name="phone" type="tel" autocomplete="tel" /></div>
+                <fieldset id="gift-billingFields">
+                  <div class="field"><label for="gift-customerType">Tipo cliente</label><select id="gift-customerType" name="customer_type"><option value="privato">Privato</option><option value="azienda">Azienda / professionista</option></select></div>
+                  <div class="field" id="gift-companyNameField" hidden><label for="gift-companyName">Ragione sociale</label><input id="gift-companyName" name="ragione_sociale" autocomplete="organization" /></div>
+                  <div class="field" id="gift-taxCodeField"><label for="gift-taxCode">Codice fiscale</label><input id="gift-taxCode" name="codice_fiscale" maxlength="16" /></div>
+                  <div class="field" id="gift-vatField" hidden><label for="gift-vatNumber">Partita IVA</label><input id="gift-vatNumber" name="partita_iva" maxlength="11" /></div>
+                  <div class="field"><label for="gift-billingAddress">Indirizzo di fatturazione</label><input id="gift-billingAddress" name="indirizzo" autocomplete="street-address" /></div>
+                  <div class="field"><label for="gift-billingCity">Comune</label><input id="gift-billingCity" name="citta" autocomplete="address-level2" /></div>
+                  <div class="field"><label for="gift-billingPostalCode">CAP</label><input id="gift-billingPostalCode" name="cap" autocomplete="postal-code" maxlength="10" /></div>
+                  <div class="field" id="gift-recipientField" hidden><label for="gift-recipientCode">Codice destinatario</label><input id="gift-recipientCode" name="codice_destinatario" maxlength="7" /></div>
+                  <div class="field" id="gift-pecField" hidden><label for="gift-billingPec">PEC</label><input id="gift-billingPec" name="pec" type="email" autocomplete="email" /></div>
+                  <p class="field-help" id="gift-billingHelp" hidden>Per aziende e professionisti, indica almeno il codice destinatario o la PEC.</p>
+                </fieldset>
+              </div>
+            </details>
+            <div class="gift-voucher-actions"><button type="submit" id="giftPay" disabled>Procedi al pagamento sicuro</button></div>
+          </form>
+          <p class="gift-voucher-status" id="giftStatus" role="status">Caricamento del catalogo voucher…</p>
+          <div class="gift-voucher-actions" id="giftPaymentActions" hidden>
+            <button type="button" id="giftVerify">Verifica pagamento / recupera voucher</button>
+            <button type="button" id="giftNew" hidden>Crea un altro voucher</button>
+          </div>
+          <div id="gift-sumup-card"></div>
+          <div class="gift-voucher-preview" id="giftPreview" hidden></div>
+        </section>
+      </div>
+    </main>
+    <footer class="site-footer">
+      <div class="wrap footer-inner">
+        <div class="footer-brand"><h3>Thai Tik Massage</h3><p>Trattamenti benessere thailandesi con prenotazioni online presso diverse sedi.</p></div>
+        <div class="footer-links"><h4>Informazioni</h4><ul><li><a href="mappa-sedi.html">Mappa sedi e indirizzi</a></li><li><a href="documenti-legali-premium.html#privacy">Privacy Policy</a></li></ul></div>
+        <div class="footer-contact"><h4>Contatti</h4><ul><li><a href="mailto:info@thaitikmassage.it">info@thaitikmassage.it</a></li></ul></div>
+      </div>
+      <div class="wrap footer-legal"><p>© 2026 Thai Tik Massage · P.IVA 18730391002</p></div>
+    </footer>
+    <script src="gift-voucher.js"></script>
+    <script>
+      const localPreview = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+      const loadVoucherSumUpSdk = () => {
+        if (window.SumUpCard) return Promise.resolve();
+        return new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://gateway.sumup.com/gateway/ecom/card/v2/sdk.js';
+          script.async = true;
+          script.onload = () => window.SumUpCard ? resolve() : reject(new Error('SDK SumUp non disponibile'));
+          script.onerror = () => reject(new Error('Impossibile caricare il checkout SumUp'));
+          document.head.appendChild(script);
+        });
+      };
+      async function loadVoucherCatalog() {
+        if (localPreview) {
+          return {
+            studios: [{ id: 9001, name: 'Studio Prati' }],
+            services: [
+              { id: 9101, id_studio: 9001, name: 'Massaggio Thai tradizionale', price: 60, durationMinutes: 60 },
+              { id: 9107, id_studio: 9001, name: 'Massaggio Thai tradizionale', price: 80, durationMinutes: 90 },
+              { id: 9103, id_studio: 9001, name: 'Aromaterapia', price: 60, durationMinutes: 60 },
+              { id: 9108, id_studio: 9001, name: 'Aromaterapia', price: 80, durationMinutes: 90 },
+              { id: 9109, id_studio: 9001, name: 'Aromaterapia', price: 100, durationMinutes: 120 }
+            ]
+          };
+        }
+        const response = await fetch('php-booking-backend.php?mode=catalog', { headers: { Accept: 'application/json' } });
+        const data = await response.json();
+        if (!response.ok || !data.success || !Array.isArray(data.studios) || !Array.isArray(data.services)) {
+          throw new Error(data.message || 'Catalogo voucher non disponibile.');
+        }
+        return {
+          studios: data.studios.map(studio => ({ id: Number(studio.id), name: studio.nome })),
+          services: data.services.map(service => ({
+            id: Number(service.id), id_studio: Number(service.id_studio),
+            name: service.nome, price: Number(service.prezzo), durationMinutes: Number(service.durata_minuti)
+          }))
+        };
+      }
+      loadVoucherCatalog()
+        .then(({ studios, services }) => initGiftVoucher({ studios, services, preview: localPreview, loadSumUpSdk: loadVoucherSumUpSdk }))
+        .catch(error => {
+          const status = document.getElementById('giftStatus');
+          status.textContent = `${error.message} Riprova più tardi o contatta lo studio.`;
+          document.getElementById('giftPay').disabled = true;
+        });
+    </script>
+  </body>
+</html>

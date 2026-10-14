@@ -1,8 +1,8 @@
-# Thai Tik Massage — Site Ver 10.0
+# Thai Tik Massage — Site Ver 11.0
 
 Sito statico multipagina per Thai Tik Massage, con backend PHP/MySQL predisposto per l'hosting Aruba.
 
-Note del rilascio corrente: [Site Ver 10.0](RELEASE_NOTES_V10.md).
+Note del rilascio corrente: [Site Ver 11.0](RELEASE_NOTES_V11.md).
 
 ## Run locally
 

@@ -38,7 +38,8 @@ function sendBookingNotifications(int $bookingId, array $booking, string $custom
 
     $customerBody = "Ciao {$customerName},\n\n"
         . "abbiamo ricevuto la tua richiesta di appuntamento #{$bookingId}.\n"
-        . "La richiesta non è ancora una conferma: lo studio ti ricontatterà per confermare disponibilità e sede.\n\n"
+        . "La richiesta è in attesa: diventerà confermata dopo l'inserimento riuscito in Google Calendar. "
+        . "La sincronizzazione avviene di norma entro 10 minuti; ti invieremo un'altra email di conferma.\n\n"
         . "Studio: {$booking['studio']}\n"
         . "Trattamento: {$booking['service']}\n"
         . "Data e ora richieste: {$appointment}\n"
@@ -74,4 +75,42 @@ function sendBookingNotifications(int $bookingId, array $booking, string $custom
     }
 
     return $result;
+}
+
+function sendBookingConfirmationEmail(int $bookingId, array $booking, string $customerEmail): bool
+{
+    $config = appConfig();
+    $notificationEmail = (string)($config['BOOKING_NOTIFICATION_EMAIL'] ?? '');
+    $fromEmail = (string)($config['MAIL_FROM_EMAIL'] ?? '');
+
+    if (!filter_var($customerEmail, FILTER_VALIDATE_EMAIL)
+        || !filter_var($notificationEmail, FILTER_VALIDATE_EMAIL)
+        || !filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) {
+        return false;
+    }
+
+    $customerName = trim(preg_replace('/[\r\n]+/', ' ', (string)$booking['name']));
+    $appointment = (string)$booking['date'] . ' alle ' . (string)$booking['time'];
+    $body = "Ciao {$customerName},\n\n"
+        . "il tuo appuntamento #{$bookingId} è confermato.\n\n"
+        . "Studio: {$booking['studio']}\n"
+        . "Trattamento: {$booking['service']}\n"
+        . "Data e ora: {$appointment}\n"
+        . "Prezzo: " . number_format((float)$booking['price'], 2, ',', '.') . " EUR\n\n"
+        . "Per informazioni: {$notificationEmail}\n"
+        . "Thai Tik Massage";
+    $headers = [
+        'From: Thai Tik Massage <' . $fromEmail . '>',
+        'Reply-To: ' . $notificationEmail,
+        'MIME-Version: 1.0',
+        'Content-Type: text/plain; charset=UTF-8',
+        'Content-Transfer-Encoding: 8bit',
+    ];
+
+    return @mail(
+        $customerEmail,
+        'Appuntamento confermato #' . $bookingId,
+        $body,
+        implode("\r\n", $headers)
+    );
 }

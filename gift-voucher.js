@@ -30,14 +30,17 @@ function initGiftVoucher({ studios, services, preview, loadSumUpSdk }) {
   let paymentTimer = null;
   let recoveryOnly = false;
 
-  for (const id of ['name', 'email', 'phone', 'billingFields']) {
-    const source = document.getElementById(id);
-    const clone = (id === 'billingFields' ? source : source.closest('.field')).cloneNode(true);
-    clone.querySelectorAll('[id]').forEach(element => { element.id = `gift-${element.id}`; });
-    if (clone.id) clone.id = `gift-${clone.id}`;
-    clone.querySelectorAll('label[for]').forEach(label => { label.htmlFor = `gift-${label.htmlFor}`; });
-    clone.querySelectorAll('input').forEach(input => { input.value = ''; input.disabled = false; });
-    buyer.appendChild(clone);
+  if (buyer.childElementCount === 0) {
+    for (const id of ['name', 'email', 'phone', 'billingFields']) {
+      const source = document.getElementById(id);
+      if (!source) continue;
+      const clone = (id === 'billingFields' ? source : source.closest('.field')).cloneNode(true);
+      clone.querySelectorAll('[id]').forEach(element => { element.id = `gift-${element.id}`; });
+      if (clone.id) clone.id = `gift-${clone.id}`;
+      clone.querySelectorAll('label[for]').forEach(label => { label.htmlFor = `gift-${label.htmlFor}`; });
+      clone.querySelectorAll('input').forEach(input => { input.value = ''; input.disabled = false; });
+      buyer.appendChild(clone);
+    }
   }
   function updateBuyer() {
     const company = document.getElementById('gift-customerType').value === 'azienda';
