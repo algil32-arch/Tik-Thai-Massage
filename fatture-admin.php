@@ -8,6 +8,32 @@ try {
   die('Database non raggiungibile. Verifica la configurazione privata e i dati Aruba.');
 }
 
+function documentPublicHref(string $path): string
+{
+  $value = trim($path);
+  if ($value === '') {
+    return '';
+  }
+
+  $normalized = str_replace('\\', '/', $value);
+
+  if (preg_match('/^https?:\/\//i', $normalized) === 1) {
+    return $normalized;
+  }
+
+  $root = str_replace('\\', '/', __DIR__);
+  if (strpos($normalized, $root . '/') === 0) {
+    $normalized = substr($normalized, strlen($root) + 1);
+  } else {
+    $docsPos = strpos($normalized, 'documents/');
+    if ($docsPos !== false) {
+      $normalized = substr($normalized, $docsPos);
+    }
+  }
+
+  return ltrim($normalized, '/');
+}
+
 $invoiceStmt = $pdo->query(
     "SELECT f.id, f.numero_fattura, f.data_emissione, f.importo_totale, f.stato,
             f.tipo_documento, f.natura_iva, f.importo_rivalsa, f.bollo_virtuale, f.bollo_addebitato,
@@ -25,6 +51,29 @@ $docStmt = $pdo->query(
 );
 $documents = $docStmt->fetchAll();
 
+$onlinePaidStmt = $pdo->query(
+    "SELECT a.id AS appointment_id,
+            a.data_appuntamento,
+            a.ora_inizio,
+            a.created_at,
+            c.nome AS cliente_nome,
+            c.cognome AS cliente_cognome,
+            s.nome AS servizio_nome,
+            st.nome AS studio_nome,
+            CONCAT('TS-', YEAR(CURDATE()), '-', LPAD(a.id, 5, '0')) AS expected_invoice_number,
+            f.id AS existing_invoice_id
+     FROM appuntamenti a
+     INNER JOIN clienti c ON c.id = a.id_cliente
+     INNER JOIN servizi s ON s.id = a.id_servizio
+     INNER JOIN studi st ON st.id = a.id_studio
+     LEFT JOIN fatture f ON f.numero_fattura = CONCAT('TS-', YEAR(CURDATE()), '-', LPAD(a.id, 5, '0'))
+     WHERE a.metodo_pagamento = 'online'
+       AND a.stato_pagamento = 'pagato'
+     ORDER BY a.created_at DESC
+     LIMIT 20"
+);
+$onlinePaidRows = $onlinePaidStmt->fetchAll();
+
 $docsByInvoice = [];
 foreach ($documents as $doc) {
     $docsByInvoice[(int)$doc['id_fattura']][] = $doc;
@@ -41,6 +90,15 @@ foreach ($invoices as $invoice) {
         $pagate++;
     }
 }
+
+$exportMessage = '';
+$exportMessageType = '';
+if (isset($_GET['export'])) {
+  $exportMessage = trim((string)($_GET['msg'] ?? ''));
+  $exportMessageType = ((string)$_GET['export'] === 'ok') ? 'success' : 'error';
+}
+
+$batchPath = trim((string)($_GET['batch'] ?? ''));
 ?>
 <!doctype html>
 <html lang="it">
@@ -143,6 +201,115 @@ foreach ($invoices as $invoice) {
         margin-bottom: 18px;
       }
       .topbar-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+      .message {
+        margin: 0 0 18px;
+        padding: 12px 14px;
+        border: 1px solid var(--line);
+        background: #fff;
+      }
+      .message.success {
+        border-color: #b9d8c4;
+        background: #eff8f2;
+        color: #2f5d3f;
+      }
+      .message.error {
+        border-color: #e2b7b1;
+        background: #fff4f2;
+        color: #8b4438;
+      }
+      .export-panel {
+        border: 1px solid var(--line);
+        background: #fff;
+        padding: 16px;
+        margin-bottom: 20px;
+      }
+      .export-panel h2 {
+        margin: 0 0 12px;
+        font-size: 18px;
+      }
+      .export-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+      }
+      .export-field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .export-field label {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+      }
+      .export-field input,
+      .export-field select {
+        min-height: 40px;
+        border: 1px solid var(--line);
+        padding: 8px 10px;
+        font: inherit;
+        background: #fff;
+      }
+      .export-actions {
+        margin-top: 12px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .checkline {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+      }
+      .path-hint {
+        margin: 10px 0 0;
+        font-size: 13px;
+      }
+      .path-links {
+        margin-top: 10px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .quick-panel {
+        border: 1px solid var(--line);
+        background: #fff;
+        padding: 16px;
+        margin-bottom: 20px;
+      }
+      .quick-panel h2 {
+        margin: 0 0 10px;
+        font-size: 17px;
+      }
+      .quick-list {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+      }
+      .quick-list th,
+      .quick-list td {
+        border: 1px solid var(--line);
+        padding: 8px;
+        font-size: 13px;
+        vertical-align: top;
+      }
+      .quick-list th {
+        background: #f4eee6;
+      }
+      .mini-btn {
+        min-height: 30px;
+        padding: 6px 10px;
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--ink);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
       .btn {
         display: inline-flex;
         align-items: center;
@@ -156,6 +323,24 @@ foreach ($invoices as $invoice) {
         font-weight: 700;
         letter-spacing: .08em;
         text-transform: uppercase;
+      }
+      .btn.alt {
+        background: #76665d;
+      }
+      .table-actions {
+        margin-top: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .small {
+        font-size: 13px;
+      }
+      .check-cell {
+        width: 46px;
+        text-align: center;
       }
       @media (max-width: 760px) {
         .topbar { flex-direction: column; align-items: flex-start; }
@@ -175,6 +360,110 @@ foreach ($invoices as $invoice) {
       <?php if (isset($_GET['manuale']) && $_GET['manuale'] === 'creata'): ?>
         <p class="empty" role="status">Bozza manuale registrata correttamente.</p>
       <?php endif; ?>
+      <?php if ($exportMessage !== ''): ?>
+        <p class="message <?= $exportMessageType ?>" role="status"><?= htmlspecialchars($exportMessage) ?></p>
+      <?php endif; ?>
+
+      <section class="export-panel" aria-labelledby="export-title">
+        <h2 id="export-title">Esporta lotto XML per Aruba (drag and drop)</h2>
+        <form method="post" action="fatture-export-lotto.php">
+          <input type="hidden" name="csrf_token" value="<?= htmlspecialchars((string)$_SESSION['admin_csrf']) ?>" />
+          <input type="hidden" name="export_mode" value="period" />
+          <div class="export-grid">
+            <div class="export-field">
+              <label for="period">Tipo lotto</label>
+              <select id="period" name="period">
+                <option value="daily">Giornaliero</option>
+                <option value="weekly">Settimanale</option>
+              </select>
+            </div>
+            <div class="export-field">
+              <label for="reference_date">Data di riferimento</label>
+              <input id="reference_date" name="reference_date" type="date" value="<?= htmlspecialchars(date('Y-m-d')) ?>" required />
+            </div>
+          </div>
+          <div class="export-actions">
+            <label class="checkline" for="include_drafts">
+              <input id="include_drafts" name="include_drafts" type="checkbox" value="1" />
+              <span>Includi anche bozze</span>
+            </label>
+            <button class="btn" type="submit">Genera cartella XML</button>
+          </div>
+        </form>
+        <?php if ($batchPath !== ''): ?>
+          <p class="path-hint">Ultimo lotto creato: <strong><?= htmlspecialchars($batchPath) ?></strong></p>
+        <?php endif; ?>
+        <?php $zipPath = trim((string)($_GET['zip'] ?? '')); ?>
+        <?php if ($zipPath !== ''): ?>
+          <p class="path-hint">ZIP creato: <strong><?= htmlspecialchars($zipPath) ?></strong></p>
+          <div class="path-links">
+            <a class="btn alt" href="<?= htmlspecialchars($zipPath) ?>" download>Download ZIP</a>
+          </div>
+        <?php endif; ?>
+      </section>
+
+      <section class="quick-panel" aria-labelledby="quick-invoice-title">
+        <h2 id="quick-invoice-title">Crea fattura da pagamento online</h2>
+        <form method="post" action="fattura-da-pagamento.php" class="export-actions">
+          <input type="hidden" name="csrf_token" value="<?= htmlspecialchars((string)$_SESSION['admin_csrf']) ?>" />
+          <div class="export-field" style="max-width:220px;">
+            <label for="payment_id">ID pagamento</label>
+            <input id="payment_id" name="payment_id" type="number" min="1" step="1" placeholder="es. 12" required />
+          </div>
+          <button class="btn" type="submit">Crea fattura</button>
+        </form>
+        <?php if (empty($onlinePaidRows)): ?>
+          <p class="path-hint">Nessun pagamento online pagato trovato negli ultimi record.</p>
+        <?php else: ?>
+          <table class="quick-list">
+            <thead>
+              <tr>
+                <th>ID appuntamento</th>
+                <th>Cliente</th>
+                <th>Servizio</th>
+                <th>Studio</th>
+                <th>Quando</th>
+                <th>Stato fattura</th>
+                <th>Azione</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($onlinePaidRows as $row): ?>
+                <tr>
+                  <td>#<?= (int)$row['appointment_id'] ?></td>
+                  <td><?= htmlspecialchars(trim((string)$row['cliente_nome'] . ' ' . (string)$row['cliente_cognome'])) ?></td>
+                  <td><?= htmlspecialchars((string)$row['servizio_nome']) ?></td>
+                  <td><?= htmlspecialchars((string)$row['studio_nome']) ?></td>
+                  <td><?= htmlspecialchars((string)$row['data_appuntamento']) ?> <?= htmlspecialchars(substr((string)$row['ora_inizio'], 0, 5)) ?></td>
+                  <td>
+                    <?php if (!empty($row['existing_invoice_id'])): ?>
+                      Gia creata (ID <?= (int)$row['existing_invoice_id'] ?>)
+                    <?php else: ?>
+                      Da creare
+                    <?php endif; ?>
+                  </td>
+                  <td>
+                    <?php if (empty($row['existing_invoice_id'])): ?>
+                      <form method="post" action="fattura-da-pagamento.php">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars((string)$_SESSION['admin_csrf']) ?>" />
+                        <input type="hidden" name="payment_id" value="<?= (int)$row['appointment_id'] ?>" />
+                        <button class="mini-btn" type="submit">Crea ora</button>
+                      </form>
+                    <?php else: ?>
+                      <form method="post" action="fattura-da-pagamento.php" onsubmit="return confirm('Confermi annullamento e rigenerazione della fattura?');">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars((string)$_SESSION['admin_csrf']) ?>" />
+                        <input type="hidden" name="payment_id" value="<?= (int)$row['appointment_id'] ?>" />
+                        <input type="hidden" name="action" value="replace" />
+                        <button class="mini-btn" type="submit">Annulla e rigenera</button>
+                      </form>
+                    <?php endif; ?>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        <?php endif; ?>
+      </section>
 
       <div class="overview">
         <div class="chip">Totale fatture: <strong><?= (int)$totalInvoices ?></strong></div>
@@ -185,9 +474,13 @@ foreach ($invoices as $invoice) {
       <?php if (empty($invoices)): ?>
         <div class="empty">Nessuna fattura generata.</div>
       <?php else: ?>
+        <form method="post" action="fatture-export-lotto.php" id="selectedExportForm">
+          <input type="hidden" name="csrf_token" value="<?= htmlspecialchars((string)$_SESSION['admin_csrf']) ?>" />
+          <input type="hidden" name="export_mode" value="selected" />
         <table>
           <thead>
             <tr>
+              <th class="check-cell"><input type="checkbox" id="selectAllInvoices" aria-label="Seleziona tutte le fatture" /></th>
               <th>Numero</th>
               <th>Cliente</th>
               <th>Studio</th>
@@ -200,6 +493,7 @@ foreach ($invoices as $invoice) {
           <tbody>
             <?php foreach ($invoices as $invoice): ?>
               <tr>
+                <td class="check-cell"><input type="checkbox" name="invoice_ids[]" value="<?= (int)$invoice['id'] ?>" class="invoice-check" /></td>
                 <td><?= htmlspecialchars((string)$invoice['numero_fattura']) ?></td>
                 <td>
                   <?php if (($invoice['tipo_cliente'] ?? '') === 'azienda' && !empty($invoice['ragione_sociale'])): ?>
@@ -229,7 +523,7 @@ foreach ($invoices as $invoice) {
                   <?php else: ?>
                     <div class="documents">
                       <?php foreach ($docs as $doc): ?>
-                        <?php $path = trim((string)$doc['path_file']); ?>
+                        <?php $path = documentPublicHref((string)$doc['path_file']); ?>
                         <?php if ($path === ''): continue; endif; ?>
                         <a class="document-link" href="<?= htmlspecialchars($path) ?>" target="_blank" rel="noreferrer">
                           <?= htmlspecialchars((string)$doc['tipo_documento']) ?>
@@ -242,7 +536,24 @@ foreach ($invoices as $invoice) {
             <?php endforeach; ?>
           </tbody>
         </table>
+        <div class="table-actions">
+          <span class="small muted">Seleziona una o piu fatture e genera un unico ZIP da caricare su Aruba.</span>
+          <button class="btn alt" type="submit">Esporta selezionate in ZIP + email copia</button>
+        </div>
+        </form>
       <?php endif; ?>
     </div>
+    <script>
+      (function () {
+        var master = document.getElementById('selectAllInvoices');
+        if (!master) return;
+        var checks = Array.prototype.slice.call(document.querySelectorAll('.invoice-check'));
+        master.addEventListener('change', function () {
+          checks.forEach(function (node) {
+            node.checked = master.checked;
+          });
+        });
+      })();
+    </script>
   </body>
 </html>

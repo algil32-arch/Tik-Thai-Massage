@@ -73,7 +73,9 @@ File da pubblicare: `prenota.html`, `prenota-massaggio.html`, `prenota-voucher.h
 `area-admin.html`, `documenti-legali-premium.html`,
 `gift-voucher.js`, `gift-voucher.css`, `voucher.php`, `voucher-model.php`,
 `voucher-store.php`, `voucher-pdf.php`, `vouchers-admin.php`, `booking-voucher.php`,
-`php-booking-backend.php`, `booking-admin-advanced.php`, `booking-mailer.php`. Dipendenze gia'
+`php-booking-backend.php`, `booking-admin-advanced.php`, `booking-mailer.php`,
+`fatture-admin.php`, `fatture-export-lotto.php`.
+Dipendenze gia'
 presenti: `app-config.php`, `admin-auth.php`, `sumup-client.php` e logo.
 Serve PHP con PDO MySQL, cURL e iconv, un database migrato e SumUp in EUR.
 
@@ -168,6 +170,26 @@ Puoi lanciare manualmente lo stesso URL dal browser per verificare l'esito: la r
 Dall'area admin scegli **Fattura manuale** per registrare fornitore, cliente, pagamento e prestazione. Il profilo del professionista viene aggiornato con i dati fiscali inseriti. Le bozze supportano regime forfettario RF19 (IVA 0%, natura N2.2) e ordinario RF01 (IVA 22%), rivalsa INPS facoltativa al 4% e bollo virtuale di 2 euro per il forfettario quando il totale supera 77,47 euro; il bollo può essere addebitato o restare a carico del professionista. Per i privati si registra il codice destinatario convenzionale `0000000`; per aziende è necessario codice destinatario o PEC. La data del documento in bozza coincide con quella di pagamento e la pagina mostra il termine indicativo di 12 giorni.
 
 Il sistema aggiunge la dicitura forfettaria alle note, salva TD01 e gli elementi fiscali distinti, ma il numero `BOZZA-...` non è una numerazione fiscale definitiva: non genera il file FatturaPA e non invia nulla allo SDI. Aliquote, diciture e modalità di applicazione vanno verificate con il commercialista prima di emettere le fatture; per l'invio resta necessaria l'integrazione FatturaPA e del canale Aruba/SDI.
+
+## Export XML a lotti per upload manuale Aruba
+Se il piano Aruba non prevede API, usa la funzione di export manuale dalla pagina `fatture-admin.php`:
+
+1. Apri **Gestione fatture** e compila il riquadro **Esporta lotto XML per Aruba**.
+2. Scegli lotto **giornaliero** o **settimanale** e la data di riferimento.
+3. Conferma con **Genera cartella XML**.
+4. Il sistema crea una cartella in `documents/fatture/lotti/` con:
+  - file XML (uno per fattura)
+  - `manifest.csv` con le fatture esportate
+  - `scarti.csv` con le fatture scartate e motivo
+  - `report.json` di riepilogo
+5. In parallelo crea anche lo ZIP del lotto nella stessa area (`.../lotti/<nome_lotto>.zip`) e tenta l'invio copia via email a `info@thaitikmassage.it`.
+6. Carica i file XML (o lo ZIP, se il portale Aruba lo accetta) con drag and drop/import.
+
+In `fatture-admin.php` puoi anche selezionare manualmente le righe in tabella e usare **Esporta selezionate in ZIP + email copia** per creare un lotto personalizzato solo con le fatture spuntate.
+
+La stessa pagina include anche la sezione **Crea fattura da pagamento online**: inserisci l'ID pagamento (es. `12`) e il backend prova a risolvere prima `pagamenti.id`, poi `sumup_payment_intents.id`. Se il pagamento risulta `paid` e ha un appuntamento online confermato, crea la fattura e i documenti collegati.
+
+I file XML sono prodotti in struttura FatturaPA (`FPR12`) con i dati disponibili nel database. Se alcuni campi fiscali minimi mancano (es. CF/P.IVA cliente o fornitore), la fattura viene scartata e indicata in `scarti.csv`.
 
 ## API prenotazioni
 Il catalogo attivo è esposto da `php-booking-backend.php?mode=catalog`. Per verificare gli orari, `mode=slots` richiede `studio_id` e `date`; `service_id` è facoltativo e, quando manca, la disponibilità iniziale viene calcolata come per un trattamento da 30 minuti. Il POST richiede invece entrambi gli ID più `date`, `time`, `name` ed `email`; `notes` è facoltativo. Con `payment_method: "online"` la risposta include `payment_intent`, `checkout_id` ed `expires_at`, ma non crea ancora un appuntamento. Dopo il pagamento, il browser invia `payment_intent` e `checkout_id` a `sumup-payment.php`, che verifica lo stato con SumUp e restituisce `booking_id` soltanto dopo la conferma `PAID`.
