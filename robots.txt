@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+Disallow: /private/
+Disallow: /tests/
+Disallow: /documents/
+Disallow: /admin-auth.php
+Disallow: /booking-admin.php
+Disallow: /booking-admin-advanced.php
+Disallow: /fatture-admin.php
+Disallow: /fatture-export-lotto.php
+Disallow: /fattura-da-pagamento.php
+Disallow: /fattura-manuale.php
+Disallow: /fattura-pa-generator.php
+Disallow: /invoice-generator.php
+Disallow: /vouchers-admin.php
+
+Sitemap: https://www.thaitikmassage.it/sitemap.xml

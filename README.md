@@ -4,6 +4,10 @@ Sito statico multipagina per Thai Tik Massage, con backend PHP/MySQL predisposto
 
 Note del rilascio corrente: [Site Ver 13.0](RELEASE_NOTES_V13.md).
 
+La sitemap pubblica è in `sitemap.xml`; `robots.txt` indica ai motori di ricerca
+le aree non pubbliche e il percorso della sitemap. Dopo aver pubblicato questi
+file nella root del dominio, inviare la sitemap da Google Search Console.
+
 ## Run locally
 
 To preview the static pages, run:
