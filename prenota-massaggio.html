@@ -271,8 +271,19 @@
 
       <div class="booking-shell">
         <div class="booking-flow">
+          <section class="section-panel" aria-labelledby="studio-title">
+            <h2 class="panel-title" id="studio-title"><span class="panel-step-number">1</span><span>Scegli lo studio</span></h2>
+            <div class="studio-grid" id="studioGrid"></div>
+            <p class="small-note" id="bookingStatus" role="status" hidden></p>
+          </section>
+
+          <section class="section-panel" aria-labelledby="treatment-title">
+            <h2 class="panel-title" id="treatment-title"><span class="panel-step-number">2</span><span>Seleziona il trattamento</span></h2>
+            <div class="service-grid" id="serviceGrid"></div>
+          </section>
+
           <section class="section-panel" aria-labelledby="payment-title">
-            <h2 class="panel-title" id="payment-title"><span class="panel-step-number">1</span><span>Scegli come pagare</span></h2>
+            <h2 class="panel-title" id="payment-title"><span class="panel-step-number">3</span><span>Scegli come pagare</span></h2>
             <fieldset class="payment-options" style="border:0; margin:0; padding:0;">
               <legend class="field-help" style="grid-column:1 / -1; margin-bottom:12px;">Seleziona la modalità di pagamento</legend>
               <label class="payment-option">
@@ -299,17 +310,6 @@
               <p>Si avvisa che sul presente sito web <strong>non è possibile effettuare pagamenti on line per le prestazioni presso l'APS Jaqueline</strong>. La prenotazione effettuata tramite il sito serve esclusivamente a riservare il giorno e l'orario della sessione. Il versamento della quota di partecipazione avverrà <strong>esclusivamente in loco, presso la sede dell'Associazione</strong>, prima dell'inizio del trattamento. Si ricorda che l'accesso ai trattamenti è riservato unicamente ai soci in regola con il tesseramento annuale.</p>
             </aside>
             <p class="payment-note" id="paymentStatus" role="status" hidden></p>
-          </section>
-
-          <section class="section-panel" aria-labelledby="studio-title">
-            <h2 class="panel-title" id="studio-title"><span class="panel-step-number">2</span><span>Scegli lo studio</span></h2>
-            <div class="studio-grid" id="studioGrid"></div>
-            <p class="small-note" id="bookingStatus" role="status" hidden></p>
-          </section>
-
-          <section class="section-panel" aria-labelledby="treatment-title">
-            <h2 class="panel-title" id="treatment-title"><span class="panel-step-number">3</span><span>Seleziona il trattamento</span></h2>
-            <div class="service-grid" id="serviceGrid"></div>
           </section>
 
           <section class="section-panel" id="booking-form" aria-labelledby="schedule-title">
