@@ -9,6 +9,8 @@
  */
 
 require_once __DIR__ . '/app-config.php';
+require_once __DIR__ . '/fattura-cortesia-renderer.php';
+require_once __DIR__ . '/fattura-numerazione.php';
 
 function dbConnect(): PDO
 {
@@ -39,18 +41,14 @@ function calculateInvoiceTotals(float $price, float $vatPercent): array
     ];
 }
 
-function generatePdfStub(string $invoiceNumber, string $clientName, string $serviceName, float $total): string
+function generatePdfStub(string $invoiceNumber, string $clientName, string $serviceName, float $total, array $invoiceData = []): string
 {
     $base = __DIR__ . '/documents/fatture/pdf';
     $file = $base . '/' . $invoiceNumber . '.pdf';
-
-    $content = "FATTURA\n";
-    $content .= "Numero: {$invoiceNumber}\n";
-    $content .= "Cliente: {$clientName}\n";
-    $content .= "Servizio: {$serviceName}\n";
-    $content .= "Totale: € " . number_format($total, 2, ',', '.') . "\n";
-
-    file_put_contents($file, $content);
+    $invoiceData += ['cliente_nome' => $clientName, 'servizio_nome' => $serviceName, 'importo_totale' => $total];
+    if (file_put_contents($file, renderInvoiceCourtesyPdf($invoiceNumber, $invoiceData)) === false) {
+        throw new RuntimeException('Impossibile salvare il PDF della fattura.');
+    }
 
     return $file;
 }
@@ -79,17 +77,14 @@ function generateXmlFatturaPa(string $invoiceNumber, string $clientName, string 
     return $file;
 }
 
-function createCopyOfCourtesy(string $invoiceNumber, string $clientName): string
+function createCopyOfCourtesy(string $invoiceNumber, string $clientName, array $invoiceData = []): string
 {
     $base = __DIR__ . '/documents/fatture/copie';
     $file = $base . '/' . $invoiceNumber . '_copia_di_cortesia.pdf';
-
-    $content = "COPIA DI CORTESIA\n";
-    $content .= "Fattura numero: {$invoiceNumber}\n";
-    $content .= "Cliente: {$clientName}\n";
-    $content .= "Questo documento è da intendersi come copia di cortesia e non sostituisce la fattura originale.\n";
-
-    file_put_contents($file, $content);
+    $invoiceData += ['cliente_nome' => $clientName];
+    if (file_put_contents($file, renderInvoiceCourtesyPdf($invoiceNumber, $invoiceData, true)) === false) {
+        throw new RuntimeException('Impossibile salvare la copia di cortesia.');
+    }
 
     return $file;
 }
@@ -102,12 +97,21 @@ function generateInvoiceFromAppointment(int $appointmentId): array
     $stmt = $pdo->prepare(
         "SELECT a.id, a.id_cliente, a.id_servizio, a.id_studio, a.data_appuntamento, a.ora_inizio, a.stato,
                 c.nome AS cliente_nome, c.cognome AS cliente_cognome, c.email AS cliente_email,
+                c.ragione_sociale AS cliente_ragione_sociale, c.codice_fiscale AS cliente_cf,
+                c.partita_iva AS cliente_piva, c.indirizzo AS cliente_indirizzo,
+                c.citta AS cliente_citta, c.provincia AS cliente_provincia, c.cap AS cliente_cap,
                 s.nome AS servizio_nome, s.prezzo AS servizio_prezzo, s.iva_percentuale,
-                st.nome AS studio_nome
+                st.nome AS studio_nome,
+                p.nome AS fornitore_nome, p.cognome AS fornitore_cognome,
+                p.ragione_sociale AS fornitore_ragione_sociale, p.partita_iva AS fornitore_piva,
+                p.codice_fiscale AS fornitore_cf, p.indirizzo AS fornitore_indirizzo,
+                p.citta AS fornitore_citta, p.provincia AS fornitore_provincia,
+                p.cap AS fornitore_cap, p.regime_fiscale AS fornitore_regime_fiscale
          FROM appuntamenti a
          LEFT JOIN clienti c ON c.id = a.id_cliente
          LEFT JOIN servizi s ON s.id = a.id_servizio
          LEFT JOIN studi st ON st.id = a.id_studio
+         LEFT JOIN professionisti p ON p.id = a.id_professionista
          WHERE a.id = :id"
     );
     $stmt->execute([':id' => $appointmentId]);
@@ -127,20 +131,28 @@ function generateInvoiceFromAppointment(int $appointmentId): array
     $vatPercent = (float)($appointment['iva_percentuale'] ?? 22.0);
     $totals = calculateInvoiceTotals($price, $vatPercent);
 
-    $invoiceNumber = sprintf('TS-%s-%05d', date('Y'), $appointmentId);
+    $invoiceDate = date('Y-m-d');
+    $numberLock = acquireInvoiceNumberLock($pdo, $invoiceDate);
+    try {
+        $invoiceNumber = nextInvoiceNumber($pdo, $invoiceDate);
 
-    $insertInvoice = $pdo->prepare(
-        "INSERT INTO fatture (numero_fattura, serie, data_emissione, data_scadenza, id_cliente, id_studio, id_professionista, importo_netto, iva_totale, importo_totale, stato, created_at)
-         VALUES (:numero, 'TS', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), :cliente, :studio, 1, :netto, :iva, :totale, 'emessa', NOW())"
-    );
-    $insertInvoice->execute([
-        ':numero' => $invoiceNumber,
-        ':cliente' => $appointment['id_cliente'],
-        ':studio' => $appointment['id_studio'],
-        ':netto' => number_format($totals['imponibile'], 2, '.', ''),
-        ':iva' => number_format($totals['iva'], 2, '.', ''),
-        ':totale' => number_format($totals['totale'], 2, '.', ''),
-    ]);
+        $insertInvoice = $pdo->prepare(
+            "INSERT INTO fatture (numero_fattura, serie, data_emissione, data_scadenza, id_cliente, id_studio, id_professionista, importo_netto, iva_totale, importo_totale, stato, created_at)
+             VALUES (:numero, 'TS', :data_emissione, DATE_ADD(:data_scadenza_base, INTERVAL 30 DAY), :cliente, :studio, 1, :netto, :iva, :totale, 'emessa', NOW())"
+        );
+        $insertInvoice->execute([
+            ':numero' => $invoiceNumber,
+            ':data_emissione' => $invoiceDate,
+            ':data_scadenza_base' => $invoiceDate,
+            ':cliente' => $appointment['id_cliente'],
+            ':studio' => $appointment['id_studio'],
+            ':netto' => number_format($totals['imponibile'], 2, '.', ''),
+            ':iva' => number_format($totals['iva'], 2, '.', ''),
+            ':totale' => number_format($totals['totale'], 2, '.', ''),
+        ]);
+    } finally {
+        releaseInvoiceNumberLock($pdo, $numberLock);
+    }
 
     $invoiceId = (int)$pdo->lastInsertId();
 
@@ -159,9 +171,41 @@ function generateInvoiceFromAppointment(int $appointmentId): array
         ':totale' => number_format($totals['totale'], 2, '.', ''),
     ]);
 
-    $pdfPath = generatePdfStub($invoiceNumber, $clientName, $serviceName, $totals['totale']);
+    $invoiceData = [
+        'cliente_nome' => (string)$appointment['cliente_nome'],
+        'cliente_cognome' => (string)$appointment['cliente_cognome'],
+        'cliente_ragione_sociale' => (string)($appointment['cliente_ragione_sociale'] ?? ''),
+        'cliente_cf' => (string)($appointment['cliente_cf'] ?? ''),
+        'cliente_piva' => (string)($appointment['cliente_piva'] ?? ''),
+        'cliente_indirizzo' => (string)($appointment['cliente_indirizzo'] ?? ''),
+        'cliente_citta' => (string)($appointment['cliente_citta'] ?? ''),
+        'cliente_provincia' => (string)($appointment['cliente_provincia'] ?? ''),
+        'cliente_cap' => (string)($appointment['cliente_cap'] ?? ''),
+        'fornitore_nome' => (string)($appointment['fornitore_nome'] ?? ''),
+        'fornitore_cognome' => (string)($appointment['fornitore_cognome'] ?? ''),
+        'fornitore_ragione_sociale' => (string)($appointment['fornitore_ragione_sociale'] ?? ''),
+        'fornitore_piva' => (string)($appointment['fornitore_piva'] ?? ''),
+        'fornitore_cf' => (string)($appointment['fornitore_cf'] ?? ''),
+        'fornitore_indirizzo' => (string)($appointment['fornitore_indirizzo'] ?? ''),
+        'fornitore_citta' => (string)($appointment['fornitore_citta'] ?? ''),
+        'fornitore_provincia' => (string)($appointment['fornitore_provincia'] ?? ''),
+        'fornitore_cap' => (string)($appointment['fornitore_cap'] ?? ''),
+        'fornitore_regime_fiscale' => (string)($appointment['fornitore_regime_fiscale'] ?? ''),
+        'data_emissione' => date('Y-m-d'),
+        'data_scadenza' => date('Y-m-d', strtotime('+30 days')),
+        'iva_percentuale' => $vatPercent,
+        'natura_iva' => $vatPercent === 0.0 ? 'N2.2' : '',
+        'fornitore_regime_fiscale' => (string)($appointment['fornitore_regime_fiscale'] ?? ''),
+        'importo_netto' => $totals['imponibile'],
+        'iva_totale' => $totals['iva'],
+        'importo_totale' => $totals['totale'],
+        'servizio_nome' => $serviceName,
+        'quantita' => 1,
+        'prezzo_unitario' => $price,
+    ];
+    $pdfPath = generatePdfStub($invoiceNumber, $clientName, $serviceName, $totals['totale'], $invoiceData);
     $xmlPath = generateXmlFatturaPa($invoiceNumber, $clientName, $serviceName, $totals['imponibile'], $vatPercent, $totals['totale']);
-    $copyPath = createCopyOfCourtesy($invoiceNumber, $clientName);
+    $copyPath = createCopyOfCourtesy($invoiceNumber, $clientName, $invoiceData);
 
     $pdo->prepare("UPDATE fatture SET pdf_path = :pdf, xml_path = :xml WHERE id = :id")
         ->execute([

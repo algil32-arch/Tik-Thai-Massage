@@ -10,16 +10,20 @@ function voucherCheck(bool $condition, string $message): void
     $checks++;
 }
 foreach ([35, 50, 60, 70, 80, 100] as $price) {
-    foreach ([1, 5, 10] as $sessions) {
+    foreach ([1, 3, 6] as $sessions) {
         foreach ([1, 2, 20] as $quantity) {
             $quote = voucherQuote(number_format($price, 2, '.', ''), $sessions, $quantity);
-            $unit = $sessions === 1 ? $price : ceil($price * ($sessions === 5 ? .95 : .90));
-            voucherCheck($quote['total_cents'] === (int)($unit * 100 * $sessions * $quantity), 'Incorrect package price');
+            $unit = $sessions === 1 ? $price : ceil($price * ($sessions === 3 ? .95 : .90));
+            $package = $unit * $sessions;
+            $package = $sessions === 1 ? $package : ($package == 171 ? 170 : ceil($package / 5) * 5);
+            voucherCheck($quote['total_cents'] === (int)($package * 100 * $quantity), 'Incorrect package price');
             voucherCheck($quote['total_sessions'] === $sessions * $quantity, 'Incorrect session count');
         }
     }
 }
-foreach ([['0', 1, 1], ['-1', 1, 1], ['60', 3, 1], ['60', 5, 0], ['60', 5, 21], ['60.999', 1, 1]] as $invalid) {
+voucherCheck(voucherQuote('60', 3, 1)['total_cents'] === 17000, '171 euro package must be rounded down to 170');
+voucherCheck(voucherQuote('60', 6, 1)['total_cents'] === 32500, '324 euro package must be rounded up to 325');
+foreach ([['0', 1, 1], ['-1', 1, 1], ['60', 5, 1], ['60', 10, 1], ['60', 3, 0], ['60', 3, 21], ['60.999', 1, 1]] as $invalid) {
     try { voucherQuote(...$invalid); throw new RuntimeException('Invalid quote accepted'); }
     catch (InvalidArgumentException $e) { $checks++; }
 }

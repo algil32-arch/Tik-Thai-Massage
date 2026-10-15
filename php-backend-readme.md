@@ -19,10 +19,12 @@ Il backend usa PHP con PDO e MySQL/MariaDB. L'agenda applica le fasce settimanal
 ## Voucher regalo
 
 La pagina `prenota-voucher.html` vende solo servizi attivi di **Studio Prati**, non di APS
-Jaqueline. Si sceglie destinatario, trattamento, formula da 1/5/10 sedute e
+Jaqueline. Si sceglie destinatario, trattamento, formula da 1/3/6 sedute e
 quantita' da 1 a 20. Il server recupera il prezzo dal database e calcola il totale:
-il prezzo delle formule da 5/10 sedute viene arrotondato per seduta come nel
-listino. Un importo inviato dal browser non determina mai l'importo del checkout.
+il prezzo dei pacchetti da 3/6 sedute viene arrotondato al multiplo di 5 euro
+superiore, salvo il pacchetto da 3 sedute a 60 euro, proposto a 170 euro.
+Un importo inviato dal browser non determina mai l'importo del checkout.
+I voucher da 5/10 sedute gia' emessi restano utilizzabili fino a scadenza.
 
 L'anteprima stampabile/scaricabile e' marcata **NON VALIDO / NON PAGATO**. Il
 pagamento usa l'SDK e il client SumUp esistenti, ma l'acquisto e' salvato in
@@ -189,7 +191,13 @@ In `fatture-admin.php` puoi anche selezionare manualmente le righe in tabella e 
 
 La stessa pagina include anche la sezione **Crea fattura da pagamento online**: inserisci l'ID pagamento (es. `12`) e il backend prova a risolvere prima `pagamenti.id`, poi `sumup_payment_intents.id`. Se il pagamento risulta `paid` e ha un appuntamento online confermato, crea la fattura e i documenti collegati.
 
-I file XML sono prodotti in struttura FatturaPA (`FPR12`) con i dati disponibili nel database. Se alcuni campi fiscali minimi mancano (es. CF/P.IVA cliente o fornitore), la fattura viene scartata e indicata in `scarti.csv`.
+Il pulsante **Genera fattura** nell'admin appuntamenti usa lo stesso flusso di creazione e registrazione documenti di `fatture-admin.php`; accetta appuntamenti confermati non pagati con voucher e non modifica lo stato dell'appuntamento.
+
+Le fatture generate ricevono un progressivo annuale autonomo (`TS-AAAA-NNNNN`), assegnato sotto lock per evitare duplicati. In **Gestione fatture** si può cambiare il numero anche dopo il pagamento, purché la fattura non sia stata inviata allo SDI né annullata: il formato deve restare `TS-AAAA-NNNNN` e l'anno deve coincidere con la data di emissione. La modifica aggiorna anche PDF originale, copia di cortesia e XML; gli originali già presenti su disco non vengono cancellati.
+
+Nelle aree admin è disponibile l'eliminazione definitiva singola di fatture e appuntamenti, con conferma e token CSRF. Non si possono eliminare fatture pagate o con pagamenti registrati, né appuntamenti pagati o collegati a pagamenti, richieste SumUp, voucher o fatture. Eliminando una fattura non pagata vengono rimossi anche righe e riferimenti ai documenti dal database; i file PDF/XML su disco restano. Per cancellare un appuntamento fatturato, eliminare prima la fattura se non è pagata.
+
+I file XML sono prodotti in struttura FatturaPA (`FPR12`) con i dati disponibili nel database. Se la P.IVA del professionista non è presente, viene usata la P.IVA predefinita `18730391002`; i valori non vuoti ma non validi causano lo scarto. In assenza dei dati nel profilo, il generatore usa il codice fiscale del professionista `SRBNTP85C69Z241F` e l'email `info@thaitikmassage.it`. Il codice fiscale del cliente privato è sufficiente e viene riportato nell'XML anche senza P.IVA. Se mancano i dati fiscali minimi del cliente, la fattura viene scartata e indicata in `scarti.csv`.
 
 ## API prenotazioni
 Il catalogo attivo è esposto da `php-booking-backend.php?mode=catalog`. Per verificare gli orari, `mode=slots` richiede `studio_id` e `date`; `service_id` è facoltativo e, quando manca, la disponibilità iniziale viene calcolata come per un trattamento da 30 minuti. Il POST richiede invece entrambi gli ID più `date`, `time`, `name` ed `email`; `notes` è facoltativo. Con `payment_method: "online"` la risposta include `payment_intent`, `checkout_id` ed `expires_at`, ma non crea ancora un appuntamento. Dopo il pagamento, il browser invia `payment_intent` e `checkout_id` a `sumup-payment.php`, che verifica lo stato con SumUp e restituisce `booking_id` soltanto dopo la conferma `PAID`.

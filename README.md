@@ -1,8 +1,8 @@
-# Thai Tik Massage — Site Ver 11.0
+# Thai Tik Massage — Site Ver 13.0
 
 Sito statico multipagina per Thai Tik Massage, con backend PHP/MySQL predisposto per l'hosting Aruba.
 
-Note del rilascio corrente: [Site Ver 11.0](RELEASE_NOTES_V11.md).
+Note del rilascio corrente: [Site Ver 13.0](RELEASE_NOTES_V13.md).
 
 ## Run locally
 
@@ -29,15 +29,23 @@ The booking page shows clearly labeled sample studios, services, and time slots 
 
 ## Pacchetti massaggi
 
-I box Trattamenti della home e le cinque schede dei massaggi mostrano i pacchetti
-da 5 e 10 sedute con durata, totale e prezzo per seduta, senza percentuali
-o spiegazioni commerciali. Gli importi restano invariati: il prezzo per seduta
-viene arrotondato all'euro superiore, poi moltiplicato per il numero di sedute.
-I pacchetti sono informativi; prenotazioni e pagamenti online restano per singole
-sedute. Pubblicare anche `packages.css` e `listino-trattamenti.pdf`.
-In caso di variazioni aggiornare insieme home, schede e PDF.
+I box Trattamenti della home, le cinque schede dei massaggi e il listino
+stampabile mostrano i pacchetti da 3 e 6 sedute con durata, totale e prezzo per
+seduta. Il totale viene arrotondato al multiplo di 5 euro superiore, salvo il
+pacchetto da 3 sedute a 60 euro, proposto a 170 euro. I pacchetti sono
+informativi; prenotazioni e pagamenti online restano per singole sedute.
+Pubblicare anche `packages.css`,
+`listino-trattamenti.html` e il PDF aggiornato `listino-trattamenti.pdf`.
+Rigenerare il PDF da `listino-trattamenti.html` con Google Chrome headless,
+disattivando intestazioni e piè di pagina. In caso di variazioni aggiornare
+insieme home, schede e listino.
 Verifica di prezzi, arrotondamenti e coerenza fra le pagine:
 `node --test tests/packages.test.cjs`.
+
+La scheda bilingue italiano/thai delle precauzioni prima del massaggio si trova
+in `controindicazioni-massaggio-thai.html` e `controindicazioni-massaggio-thai.pdf`.
+Per rigenerare il PDF A4 usare Google Chrome headless senza intestazioni e piè
+di pagina.
 
 ## Voucher regalo
 

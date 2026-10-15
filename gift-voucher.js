@@ -1,12 +1,15 @@
 function giftVoucherQuote(price, sessionsPerItem, quantity) {
   const cents = Math.round(Number(price) * 100);
-  if (!Number.isSafeInteger(cents) || cents < 1 || ![1, 5, 10].includes(sessionsPerItem)
+  if (!Number.isSafeInteger(cents) || cents < 1 || ![1, 3, 6].includes(sessionsPerItem)
       || !Number.isInteger(quantity) || quantity < 1 || quantity > 20) {
     throw new Error('Seleziona un trattamento, una formula e una quantità da 1 a 20.');
   }
   const unitCents = sessionsPerItem === 1 ? cents
-    : Math.ceil(cents * (sessionsPerItem === 5 ? 95 : 90) / 10000) * 100;
-  return { itemCents: unitCents * sessionsPerItem, totalCents: unitCents * sessionsPerItem * quantity, totalSessions: sessionsPerItem * quantity };
+    : Math.ceil(cents * (sessionsPerItem === 3 ? 95 : 90) / 10000) * 100;
+  const packageCents = unitCents * sessionsPerItem;
+  const roundedPackageCents = sessionsPerItem === 1 ? packageCents
+    : packageCents === 17100 ? 17000 : Math.ceil(packageCents / 500) * 500;
+  return { itemCents: roundedPackageCents, totalCents: roundedPackageCents * quantity, totalSessions: sessionsPerItem * quantity };
 }
 
 function initGiftVoucher({ studios, services, preview, loadSumUpSdk }) {

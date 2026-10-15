@@ -16,6 +16,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     $action = $_POST['action'] ?? '';
 
+    if ($action === 'generate_invoice') {
+        $id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        if ($id === false) {
+            http_response_code(400);
+            die('Identificativo appuntamento non valido.');
+        }
+        ?>
+        <!doctype html>
+        <html lang="it">
+          <head><meta charset="UTF-8"><title>Apertura fatturazione</title></head>
+          <body>
+            <form id="invoice-forward" method="post" action="fattura-da-pagamento.php">
+              <input type="hidden" name="csrf_token" value="<?= htmlspecialchars((string)$_SESSION['admin_csrf'], ENT_QUOTES, 'UTF-8') ?>">
+              <input type="hidden" name="action" value="create">
+              <input type="hidden" name="appointment_id" value="<?= (int)$id ?>">
+              <button type="submit">Continua alla creazione fattura</button>
+            </form>
+            <script>document.getElementById('invoice-forward').submit();</script>
+          </body>
+        </html>
+        <?php
+        exit;
+    }
+
     if ($action === 'confirm') {
         $id = (int)($_POST['id'] ?? 0);
         $stmt = $pdo->prepare("UPDATE appuntamenti SET stato = 'confermato' WHERE id = :id AND stato = 'in_attesa'");
@@ -41,18 +65,74 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    if ($action === 'generate_invoice') {
-        $id = (int)($_POST['id'] ?? 0);
-        $stmt = $pdo->prepare("SELECT metodo_pagamento FROM appuntamenti WHERE id = :id");
-        $stmt->execute([':id' => $id]);
-        if ($stmt->fetchColumn() === 'voucher') {
-            http_response_code(400);
-            die('Seduta già coperta da voucher: gestisci la fatturazione dell’acquisto dal registro voucher.');
+    if ($action === 'delete') {
+        $id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        if ($id === false) {
+            header('Location: booking-admin-advanced.php?delete=error&msg=' . rawurlencode('Identificativo appuntamento non valido.'));
+            exit;
         }
-        $pdo->prepare("UPDATE appuntamenti SET stato = 'fattura_generata' WHERE id = :id")->execute([':id' => $id]);
-        header('Location: fattura-pa-generator.php?appointment_id=' . $id);
-        exit;
+
+        try {
+            $pdo->beginTransaction();
+            $appointmentStmt = $pdo->prepare(
+                'SELECT id, metodo_pagamento, stato_pagamento
+                 FROM appuntamenti
+                 WHERE id = :id
+                 FOR UPDATE'
+            );
+            $appointmentStmt->execute([':id' => $id]);
+            $appointment = $appointmentStmt->fetch();
+            if (!$appointment) {
+                throw new RuntimeException('Appuntamento non trovato.');
+            }
+            if ($appointment['stato_pagamento'] === 'pagato') {
+                throw new RuntimeException('Un appuntamento pagato non può essere eliminato.');
+            }
+
+            $checks = [
+                ['SELECT COUNT(*) FROM pagamenti WHERE id_appuntamento = :id', 'L’appuntamento è collegato a uno o più pagamenti.'],
+                ['SELECT COUNT(*) FROM sumup_payment_intents WHERE appointment_id = :id', 'L’appuntamento è collegato a una richiesta SumUp; conserva la traccia di pagamento.'],
+                ['SELECT COUNT(*) FROM gift_voucher_bookings WHERE appointment_id = :id', 'L’appuntamento è collegato a un voucher; annullalo per ripristinare la seduta invece di eliminarlo.'],
+            ];
+            foreach ($checks as [$sql, $message]) {
+                $check = $pdo->prepare($sql);
+                $check->execute([':id' => $id]);
+                if ((int)$check->fetchColumn() > 0) {
+                    throw new RuntimeException($message);
+                }
+            }
+
+            $invoiceNumberCheck = $pdo->prepare(
+                'SELECT COUNT(*) FROM fatture
+                 WHERE numero_fattura LIKE :suffix OR note LIKE :reference'
+            );
+            $invoiceNumberCheck->execute([
+                ':suffix' => '%-' . str_pad((string)$id, 5, '0', STR_PAD_LEFT),
+                ':reference' => '%[appuntamento:' . $id . ']%',
+            ]);
+            if ((int)$invoiceNumberCheck->fetchColumn() > 0) {
+                throw new RuntimeException('Esiste una fattura che potrebbe riferirsi a questo appuntamento: elimina prima la fattura se non è pagata.');
+            }
+
+            $pdo->prepare('DELETE FROM appuntamenti WHERE id = :id')->execute([':id' => $id]);
+            $pdo->commit();
+            header('Location: booking-admin-advanced.php?delete=ok&msg=' . rawurlencode('Appuntamento eliminato dal database.'));
+            exit;
+        } catch (Throwable $exception) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            $message = $exception instanceof RuntimeException && !($exception instanceof PDOException)
+                ? $exception->getMessage()
+                : 'Eliminazione non completata. Nessuna modifica salvata.';
+            if (!$exception instanceof RuntimeException || $exception instanceof PDOException) {
+                error_log('Appointment deletion failed: ' . $exception->getMessage());
+            }
+            header('Location: booking-admin-advanced.php?delete=error&msg=' . rawurlencode($message));
+            exit;
+        }
     }
+
 }
 
 $stmt = $pdo->query(
@@ -69,6 +149,8 @@ $stmt = $pdo->query(
      ORDER BY a.data_appuntamento DESC, a.ora_inizio DESC"
 );
 $appointments = $stmt->fetchAll();
+$deleteMessage = isset($_GET['delete']) ? trim((string)($_GET['msg'] ?? '')) : '';
+$deleteMessageType = (string)($_GET['delete'] ?? '') === 'ok' ? 'success' : 'error';
 ?>
 <!doctype html>
 <html lang="it">
@@ -175,6 +257,9 @@ $appointments = $stmt->fetchAll();
         text-transform: uppercase;
       }
       .link-row { flex-wrap: wrap; gap: 10px; }
+      .message { padding: 12px 14px; margin: 0 0 18px; border: 1px solid #e5d9cd; background: #fff; }
+      .message.success { color: #2f5d3f; }
+      .message.error { color: #8b4438; }
     </style>
   </head>
   <body>
@@ -188,6 +273,9 @@ $appointments = $stmt->fetchAll();
         <div class="chip">Area gestione appuntamenti</div>
         <div class="chip">Conferma, annulla e fattura</div>
       </div>
+      <?php if ($deleteMessage !== ''): ?>
+        <p class="message <?= htmlspecialchars($deleteMessageType) ?>" role="status"><?= htmlspecialchars($deleteMessage) ?></p>
+      <?php endif; ?>
       <?php if (empty($appointments)): ?>
         <div class="empty">Nessuna prenotazione trovata.</div>
       <?php else: ?>
@@ -248,13 +336,19 @@ $appointments = $stmt->fetchAll();
                       <button class="btn cancel" type="submit">Annulla</button>
                     </form>
                     <?php if (($booking['stato'] ?? '') === 'confermato' && $booking['metodo_pagamento'] !== 'voucher'): ?>
-                      <form method="post" action="booking-admin-advanced.php">
+                      <form method="post" action="fattura-da-pagamento.php">
                         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['admin_csrf'], ENT_QUOTES, 'UTF-8') ?>" />
-                        <input type="hidden" name="action" value="generate_invoice" />
-                        <input type="hidden" name="id" value="<?= (int)$booking['id'] ?>" />
+                        <input type="hidden" name="action" value="create" />
+                        <input type="hidden" name="appointment_id" value="<?= (int)$booking['id'] ?>" />
                         <button class="btn invoice" type="submit">Genera fattura</button>
                       </form>
                     <?php endif; ?>
+                    <form method="post" action="booking-admin-advanced.php" onsubmit="return confirm('Eliminare definitivamente dal database questo appuntamento? L’azione è consentita solo se non è collegato a pagamenti, fatture, SumUp o voucher.');">
+                      <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['admin_csrf'], ENT_QUOTES, 'UTF-8') ?>" />
+                      <input type="hidden" name="action" value="delete" />
+                      <input type="hidden" name="id" value="<?= (int)$booking['id'] ?>" />
+                      <button class="btn cancel" type="submit">Elimina</button>
+                    </form>
                   </div>
                 </td>
               </tr>

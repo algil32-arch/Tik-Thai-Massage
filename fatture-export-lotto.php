@@ -24,10 +24,12 @@ function ensureRequiredInvoiceData(array $invoice): array
         $errors[] = 'data_emissione mancante';
     }
 
-    $supplierVat = trim((string)($invoice['fornitore_piva'] ?? ''));
-    $supplierCf = trim((string)($invoice['fornitore_cf'] ?? ''));
-    if ($supplierVat === '' && $supplierCf === '') {
-        $errors[] = 'fornitore senza partita IVA e codice fiscale';
+    try {
+        feSupplierVat($invoice);
+        feSupplierTaxCode($invoice);
+        feSupplierEmail($invoice);
+    } catch (InvalidArgumentException $exception) {
+        $errors[] = $exception->getMessage();
     }
 
     $customerVat = trim((string)($invoice['cliente_piva'] ?? ''));
@@ -50,13 +52,7 @@ function buildFatturaPaXml(array $invoice): string
 
 function invoiceFileName(array $invoice): string
 {
-    $supplierVat = preg_replace('/\D+/', '', (string)($invoice['fornitore_piva'] ?? '')) ?? '';
-    if ($supplierVat === '') {
-        $supplierVat = preg_replace('/\D+/', '', (string)($invoice['fornitore_cf'] ?? '')) ?? '';
-    }
-    if ($supplierVat === '') {
-        $supplierVat = '00000000000';
-    }
+    $supplierVat = feSupplierVat($invoice);
 
     $number = preg_replace('/[^A-Za-z0-9]/', '', (string)$invoice['numero_fattura']) ?? '';
     if ($number === '') {
@@ -190,7 +186,8 @@ if ($exportMode === 'selected') {
                c.codice_fiscale AS cliente_cf, c.partita_iva AS cliente_piva, c.codice_destinatario, c.pec AS cliente_pec,
                c.indirizzo AS cliente_indirizzo, c.citta AS cliente_citta, c.provincia AS cliente_provincia, c.cap AS cliente_cap,
                p.nome AS fornitore_nome, p.cognome AS fornitore_cognome, p.ragione_sociale AS fornitore_ragione_sociale,
-               p.partita_iva AS fornitore_piva, p.codice_fiscale AS fornitore_cf, p.pec AS fornitore_pec,
+               p.partita_iva AS fornitore_piva, p.codice_fiscale AS fornitore_cf, p.email AS fornitore_email,
+               p.pec AS fornitore_pec,
                p.indirizzo AS fornitore_indirizzo, p.citta AS fornitore_citta, p.provincia AS fornitore_provincia,
                p.cap AS fornitore_cap, p.regime_fiscale AS fornitore_regime_fiscale
         FROM fatture f
@@ -250,7 +247,8 @@ if ($exportMode === 'selected') {
                c.codice_fiscale AS cliente_cf, c.partita_iva AS cliente_piva, c.codice_destinatario, c.pec AS cliente_pec,
                c.indirizzo AS cliente_indirizzo, c.citta AS cliente_citta, c.provincia AS cliente_provincia, c.cap AS cliente_cap,
                p.nome AS fornitore_nome, p.cognome AS fornitore_cognome, p.ragione_sociale AS fornitore_ragione_sociale,
-               p.partita_iva AS fornitore_piva, p.codice_fiscale AS fornitore_cf, p.pec AS fornitore_pec,
+               p.partita_iva AS fornitore_piva, p.codice_fiscale AS fornitore_cf, p.email AS fornitore_email,
+               p.pec AS fornitore_pec,
                p.indirizzo AS fornitore_indirizzo, p.citta AS fornitore_citta, p.provincia AS fornitore_provincia,
                p.cap AS fornitore_cap, p.regime_fiscale AS fornitore_regime_fiscale
         FROM fatture f

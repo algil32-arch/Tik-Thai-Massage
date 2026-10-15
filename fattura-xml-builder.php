@@ -28,24 +28,54 @@ function feText(DOMDocument $doc, DOMElement $parent, string $name, string $valu
     return $node;
 }
 
+function feSupplierVat(array $payload): string
+{
+    $rawSupplierVat = trim((string)($payload['fornitore_piva'] ?? ''));
+    $supplierVat = $rawSupplierVat === ''
+        ? '18730391002'
+        : (preg_replace('/\D+/', '', $rawSupplierVat) ?? '');
+    if (preg_match('/^\d{11}$/', $supplierVat) !== 1 || $supplierVat === '00000000000') {
+        throw new InvalidArgumentException('La partita IVA del fornitore deve contenere 11 cifre e non può essere tutta zero; correggere i dati fiscali del professionista.');
+    }
+    return $supplierVat;
+}
+
+function feSupplierTaxCode(array $payload): string
+{
+    $supplierCf = strtoupper(trim((string)($payload['fornitore_cf'] ?? '')));
+    if ($supplierCf === '') {
+        $supplierCf = 'SRBNTP85C69Z241F';
+    }
+    if (preg_match('/^[A-Z0-9]{16}$/', $supplierCf) !== 1) {
+        throw new InvalidArgumentException('Il codice fiscale del professionista non è valido; correggere i dati fiscali del profilo.');
+    }
+    return $supplierCf;
+}
+
+function feSupplierEmail(array $payload): string
+{
+    $supplierEmail = trim((string)($payload['fornitore_email'] ?? ''));
+    if ($supplierEmail === '') {
+        $supplierEmail = 'info@thaitikmassage.it';
+    }
+    if (filter_var($supplierEmail, FILTER_VALIDATE_EMAIL) === false) {
+        throw new InvalidArgumentException('L’email del professionista non è valida; correggere i dati del profilo.');
+    }
+    return $supplierEmail;
+}
+
 function buildFatturaElettronicaXml(array $payload): string
 {
-    $supplierVat = preg_replace('/\D+/', '', (string)($payload['fornitore_piva'] ?? '')) ?? '';
-    $supplierCf = strtoupper(trim((string)($payload['fornitore_cf'] ?? '')));
+    $supplierVat = feSupplierVat($payload);
+    $supplierCf = feSupplierTaxCode($payload);
+    $supplierEmail = feSupplierEmail($payload);
     $customerVat = preg_replace('/\D+/', '', (string)($payload['cliente_piva'] ?? '')) ?? '';
     $customerCf = strtoupper(trim((string)($payload['cliente_cf'] ?? '')));
-
-    if ($supplierVat === '' && $supplierCf !== '') {
-        $supplierVat = substr($supplierCf, 0, 11);
-    }
-    if ($supplierVat === '') {
-        $supplierVat = '00000000000';
-    }
 
     $doc = new DOMDocument('1.0', 'UTF-8');
     $doc->formatOutput = true;
 
-    $root = $doc->createElementNS('http://agenziaentrate.gov.it', 'p:FatturaElettronica');
+    $root = $doc->createElementNS('http://ivaservizi.agenziaentrate.gov.it/docs/xsd/fatture/v1.2', 'p:FatturaElettronica');
     $root->setAttribute('versione', 'FPR12');
     $doc->appendChild($root);
 
@@ -79,9 +109,7 @@ function buildFatturaElettronicaXml(array $payload): string
     $cedenteDatiAnagrafici->appendChild($idFiscaleIva);
     feText($doc, $idFiscaleIva, 'IdPaese', 'IT');
     feText($doc, $idFiscaleIva, 'IdCodice', $supplierVat);
-    if ($supplierCf !== '') {
-        feText($doc, $cedenteDatiAnagrafici, 'CodiceFiscale', $supplierCf);
-    }
+    feText($doc, $cedenteDatiAnagrafici, 'CodiceFiscale', $supplierCf);
 
     $cedenteAnagrafica = $doc->createElement('Anagrafica');
     $cedenteDatiAnagrafici->appendChild($cedenteAnagrafica);
@@ -107,6 +135,10 @@ function buildFatturaElettronicaXml(array $payload): string
     $supplierProvince = strtoupper(trim((string)($payload['fornitore_provincia'] ?? 'RM')));
     feText($doc, $cedenteSede, 'Provincia', $supplierProvince !== '' ? substr($supplierProvince, 0, 2) : 'RM');
     feText($doc, $cedenteSede, 'Nazione', 'IT');
+
+    $contatti = $doc->createElement('Contatti');
+    $cedente->appendChild($contatti);
+    feText($doc, $contatti, 'Email', $supplierEmail);
 
     $cessionario = $doc->createElement('CessionarioCommittente');
     $header->appendChild($cessionario);
@@ -192,7 +224,7 @@ function buildFatturaElettronicaXml(array $payload): string
     $lineNumber = 1;
     $grouped = [];
     $defaultNature = trim((string)($payload['natura_iva'] ?? ''));
-    $referenceLaw = "Operazione effettuata ai sensi dell'articolo 1, commi da 54 a 89, della Legge n. 190 del 2014 e successive modificazioni.";
+    $referenceLaw = 'L. 190/2014, art. 1, commi 54-89';
     foreach ($lines as $line) {
         $qty = (float)($line['quantita'] ?? 1.0);
         $unitPrice = (float)($line['prezzo_unitario'] ?? 0.0);
@@ -236,7 +268,7 @@ function buildFatturaElettronicaXml(array $payload): string
         if ((float)$group['rate'] == 0.0 && $group['nature'] !== '') {
             feText($doc, $riepilogo, 'Natura', (string)$group['nature']);
         }
-        feText($doc, $riepilogo, 'ImponibileImposta', feMoney((float)$group['net']));
+        feText($doc, $riepilogo, 'ImponibileImporto', feMoney((float)$group['net']));
         feText($doc, $riepilogo, 'Imposta', feMoney((float)$group['vat']));
         if ((float)$group['rate'] == 0.0 && $group['nature'] !== '') {
             feText($doc, $riepilogo, 'RiferimentoNormativo', $referenceLaw);

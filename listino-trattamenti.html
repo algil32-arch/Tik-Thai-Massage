@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Massaggi e percorsi benessere | Thai Tik Massage</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #33241e;
+        --muted: #76645a;
+        --paper: #fbf8f3;
+        --cream: #f2e9de;
+        --rust: #934b37;
+        --gold: #bd9255;
+        --line: #dfd2c3;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; }
+      body { background: #e9e1d8; color: var(--ink); font-family: Arial, Helvetica, sans-serif; }
+      .page {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        width: 210mm;
+        height: 297mm;
+        margin: 12mm auto;
+        padding: 13mm 14mm 11mm;
+        overflow: hidden;
+        background: var(--paper);
+        page-break-after: always;
+      }
+      .page::before {
+        position: absolute;
+        z-index: 0;
+        top: -37mm;
+        right: -35mm;
+        width: 86mm;
+        height: 86mm;
+        border: 1px solid rgba(189, 146, 85, .24);
+        border-radius: 50%;
+        content: "";
+      }
+      .page::after {
+        position: absolute;
+        z-index: 0;
+        top: -29mm;
+        right: -27mm;
+        width: 70mm;
+        height: 70mm;
+        border: 1px solid rgba(189, 146, 85, .18);
+        border-radius: 50%;
+        content: "";
+      }
+      .page > * { position: relative; z-index: 1; }
+      .top-rule { width: 100%; height: 2px; margin-bottom: 8mm; background: linear-gradient(90deg, var(--gold), var(--rust) 52%, transparent); }
+      .eyebrow { margin: 0 0 3mm; color: var(--rust); font-size: 9pt; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; }
+      h1, h2, h3, p { margin-top: 0; }
+      h1 { max-width: 160mm; margin-bottom: 3mm; font-family: Georgia, "Times New Roman", serif; font-size: 31pt; font-weight: 400; letter-spacing: -.035em; line-height: 1.05; }
+      .lead { max-width: 160mm; margin: 0; color: var(--muted); font-family: Georgia, "Times New Roman", serif; font-size: 12pt; line-height: 1.45; }
+      .list-intro { display: flex; align-items: end; justify-content: space-between; gap: 8mm; margin-bottom: 7mm; }
+      .list-intro h1 { max-width: 135mm; }
+      .section-mark { color: var(--gold); font-family: Georgia, "Times New Roman", serif; font-size: 16pt; white-space: nowrap; }
+      .list-table-wrap { overflow: hidden; border: 1px solid var(--line); border-radius: 3mm; }
+      .list-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+      .list-table th, .list-table td { border-bottom: 1px solid var(--line); }
+      .list-table thead th { height: 12mm; padding: 2.5mm 4mm; background: #402e25; color: #fffaf4; font-size: 9pt; font-weight: 700; text-align: left; }
+      .list-table thead th:last-child { text-align: center; }
+      .list-table tbody tr { height: 17.5mm; }
+      .list-table tbody tr:nth-child(even) { background: var(--cream); }
+      .list-table tbody tr:last-child th, .list-table tbody tr:last-child td { border-bottom: 0; }
+      .list-table tbody th { padding: 2.5mm 4mm; text-align: left; vertical-align: middle; }
+      .treatment-name { display: block; margin-bottom: 1mm; font-family: Georgia, "Times New Roman", serif; font-size: 12pt; font-weight: 700; line-height: 1.15; }
+      .treatment-duration { display: inline-block; margin-right: 2mm; color: var(--rust); font-size: 8pt; font-weight: 700; }
+      .treatment-description { display: block; margin-top: 1mm; color: var(--muted); font-size: 8.5pt; font-weight: 400; line-height: 1.4; }
+      .single-price { color: var(--rust); font-family: Georgia, "Times New Roman", serif; font-size: 18pt; font-weight: 700; white-space: nowrap; }
+      .list-table td { width: 26%; padding: 2mm 3mm; text-align: center; vertical-align: middle; }
+      .package-table tbody tr { height: 20mm; }
+      .package-table .treatment-name { margin-bottom: 1mm; }
+      .package-table .treatment-duration { color: var(--muted); font-weight: 400; }
+      .package-total { display: block; color: var(--rust); font-family: Georgia, "Times New Roman", serif; font-size: 17pt; font-weight: 700; line-height: 1; }
+      .per-session { display: block; margin-top: 1.3mm; color: var(--muted); font-size: 7.5pt; }
+      .package-message { margin-top: 7mm; padding: 5mm 6mm; border-left: 1.2mm solid var(--gold); background: #efe5d9; }
+      .package-message strong { display: block; margin-bottom: 1.2mm; color: var(--rust); font-family: Georgia, "Times New Roman", serif; font-size: 14pt; }
+      .package-message p { margin: 0; color: var(--muted); font-size: 9pt; line-height: 1.45; }
+      .footer { display: flex; justify-content: space-between; align-items: center; gap: 8mm; margin-top: auto; padding-top: 5mm; border-top: 1px solid var(--line); color: var(--muted); font-size: 8pt; }
+      .footer strong { color: var(--ink); font-size: 9pt; }
+      .footer .contact { text-align: right; line-height: 1.5; }
+
+      @media screen {
+        .page { box-shadow: 0 8px 32px rgba(51, 36, 30, .14); }
+      }
+      @media print {
+        @page { size: A4 portrait; margin: 0; }
+        html, body { width: 210mm; background: var(--paper); print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+        .page { margin: 0; box-shadow: none; }
+        .page:last-child { page-break-after: auto; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="page price-page" aria-labelledby="price-title">
+        <div class="top-rule" aria-hidden="true"></div>
+        <header class="list-intro">
+          <div>
+            <p class="eyebrow">Il tuo momento, il tuo massaggio</p>
+            <h1 id="price-title">Massaggi singoli</h1>
+            <p class="lead">Scegli il trattamento e la durata più adatti al tempo che vuoi dedicare al tuo benessere.</p>
+          </div>
+          <span class="section-mark">01 / 02</span>
+        </header>
+        <div class="list-table-wrap">
+          <table class="list-table">
+            <thead>
+              <tr>
+                <th scope="col">Trattamento · descrizione</th>
+                <th scope="col">Prezzo</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><th scope="row"><span class="treatment-name">Thai tradizionale · 60 min</span><span class="treatment-description">Pressioni ritmiche, mobilizzazioni e allungamenti ispirati al Nuad Boran, con abiti comodi e ritmo personalizzato.</span></th><td><span class="single-price">60 €</span></td></tr>
+              <tr><th scope="row"><span class="treatment-name">Thai tradizionale · 90 min</span><span class="treatment-description">Più tempo per alternare pressioni, mobilizzazioni e allungamenti con calma, secondo le tue preferenze.</span></th><td><span class="single-price">80 €</span></td></tr>
+              <tr><th scope="row"><span class="treatment-name">Massaggio sportivo · 60 min</span><span class="treatment-description">Deep Tissue: pressioni graduali e manualità lente sulle aree desiderate, con intensità concordata insieme.</span></th><td><span class="single-price">60 €</span></td></tr>
+              <tr><th scope="row"><span class="treatment-name">Oli e aromaterapia · 60 min</span><span class="treatment-description">Manualità fluide con oli e fragranze scelti insieme; segnala sensibilità o allergie per concordare i prodotti.</span></th><td><span class="single-price">60 €</span></td></tr>
+              <tr><th scope="row"><span class="treatment-name">Oli e aromaterapia · 90 min</span><span class="treatment-description">Una pausa distesa con manualità avvolgenti e aromi personalizzati secondo i tuoi gusti e le tue preferenze.</span></th><td><span class="single-price">80 €</span></td></tr>
+              <tr><th scope="row"><span class="treatment-name">Oli e aromaterapia · 120 min</span><span class="treatment-description">Tempo per tutto il corpo, con oli, fragranze e ritmo concordati prima e durante la seduta.</span></th><td><span class="single-price">100 €</span></td></tr>
+              <tr><th scope="row"><span class="treatment-name">Tok Sen Massage · 60 min</span><span class="treatment-description">Tradizione Lanna e strumenti di legno: percussioni regolari e leggere, adattate alle tue sensazioni.</span></th><td><span class="single-price">70 €</span></td></tr>
+              <tr><th scope="row"><span class="treatment-name">Foot Massage Express · 30 min</span><span class="treatment-description">Una pausa per piedi e caviglie: manualità e pressioni localizzate per concederti un momento di benessere.</span></th><td><span class="single-price">35 €</span></td></tr>
+              <tr><th scope="row"><span class="treatment-name">Foot Massage Completo · 60 min</span><span class="treatment-description">Più tempo per piedi e gambe, con manualità e pressioni concordate per una pausa distesa e rigenerante.</span></th><td><span class="single-price">50 €</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <footer class="footer">
+          <strong>Thai Tik Massage</strong>
+          <div class="contact">Informazioni e appuntamenti<br />info@thaitikmassage.it · www.thaitikmassage.it</div>
+        </footer>
+      </section>
+
+      <section class="page package-page" aria-labelledby="package-title">
+        <div class="top-rule" aria-hidden="true"></div>
+        <header class="list-intro">
+          <div>
+            <p class="eyebrow">Un regalo di tempo per te</p>
+            <h1 id="package-title">Percorsi benessere</h1>
+            <p class="lead">Scegli la continuità: percorsi da 3 o 6 sedute per dedicare più spazio al tuo benessere.</p>
+          </div>
+          <span class="section-mark">02 / 02</span>
+        </header>
+        <div class="list-table-wrap">
+          <table class="list-table package-table">
+            <thead>
+              <tr>
+                <th scope="col">Trattamento e durata</th>
+                <th scope="col">Percorso 3 sedute</th>
+                <th scope="col">Percorso 6 sedute</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><th scope="row"><span class="treatment-name">Thai tradizionale</span><span class="treatment-duration">60 min</span></th><td><span class="package-total">170 €</span><span class="per-session">56,67 € / seduta</span></td><td><span class="package-total">325 €</span><span class="per-session">54,17 € / seduta</span></td></tr>
+              <tr><th scope="row"><span class="treatment-name">Thai tradizionale</span><span class="treatment-duration">90 min</span></th><td><span class="package-total">230 €</span><span class="per-session">76,67 € / seduta</span></td><td><span class="package-total">435 €</span><span class="per-session">72,50 € / seduta</span></td></tr>
+              <tr><th scope="row"><span class="treatment-name">Massaggio sportivo · Deep Tissue</span><span class="treatment-duration">60 min</span></th><td><span class="package-total">170 €</span><span class="per-session">56,67 € / seduta</span></td><td><span class="package-total">325 €</span><span class="per-session">54,17 € / seduta</span></td></tr>
+              <tr><th scope="row"><span class="treatment-name">Oli e aromaterapia</span><span class="treatment-duration">60 min</span></th><td><span class="package-total">170 €</span><span class="per-session">56,67 € / seduta</span></td><td><span class="package-total">325 €</span><span class="per-session">54,17 € / seduta</span></td></tr>
+              <tr><th scope="row"><span class="treatment-name">Oli e aromaterapia</span><span class="treatment-duration">90 min</span></th><td><span class="package-total">230 €</span><span class="per-session">76,67 € / seduta</span></td><td><span class="package-total">435 €</span><span class="per-session">72,50 € / seduta</span></td></tr>
+              <tr><th scope="row"><span class="treatment-name">Oli e aromaterapia</span><span class="treatment-duration">120 min</span></th><td><span class="package-total">285 €</span><span class="per-session">95 € / seduta</span></td><td><span class="package-total">540 €</span><span class="per-session">90 € / seduta</span></td></tr>
+              <tr><th scope="row"><span class="treatment-name">Tok Sen Massage</span><span class="treatment-duration">60 min</span></th><td><span class="package-total">205 €</span><span class="per-session">68,33 € / seduta</span></td><td><span class="package-total">380 €</span><span class="per-session">63,33 € / seduta</span></td></tr>
+              <tr><th scope="row"><span class="treatment-name">Foot Massage Express</span><span class="treatment-duration">30 min</span></th><td><span class="package-total">105 €</span><span class="per-session">35 € / seduta</span></td><td><span class="package-total">195 €</span><span class="per-session">32,50 € / seduta</span></td></tr>
+              <tr><th scope="row"><span class="treatment-name">Foot Massage Completo</span><span class="treatment-duration">60 min</span></th><td><span class="package-total">145 €</span><span class="per-session">48,33 € / seduta</span></td><td><span class="package-total">270 €</span><span class="per-session">45 € / seduta</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <aside class="package-message">
+          <strong>La costanza è un gesto di cura.</strong>
+          <p>Scegli 3 sedute per iniziare il tuo percorso oppure 6 appuntamenti per dedicarti con continuità al tuo benessere.</p>
+        </aside>
+        <footer class="footer">
+          <strong>Thai Tik Massage</strong>
+          <div class="contact">Informazioni e appuntamenti<br />info@thaitikmassage.it · www.thaitikmassage.it</div>
+        </footer>
+      </section>
+    </main>
+  </body>
+</html>

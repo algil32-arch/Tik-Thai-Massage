@@ -3,7 +3,7 @@
 function voucherQuote(string $price, int $sessionsPerItem, int $quantity): array
 {
     if (!preg_match('/^\d{1,6}(?:\.\d{1,2})?$/', $price)
-        || !in_array($sessionsPerItem, [1, 5, 10], true)
+        || !in_array($sessionsPerItem, [1, 3, 6], true)
         || $quantity < 1 || $quantity > 20) {
         throw new InvalidArgumentException('Seleziona una formula e una quantità da 1 a 20.');
     }
@@ -14,10 +14,13 @@ function voucherQuote(string $price, int $sessionsPerItem, int $quantity): array
     }
     $unitCents = $cents;
     if ($sessionsPerItem !== 1) {
-        $percent = $sessionsPerItem === 5 ? 95 : 90;
+        $percent = $sessionsPerItem === 3 ? 95 : 90;
         $unitCents = intdiv($cents * $percent + 9999, 10000) * 100;
     }
-    $totalCents = $unitCents * $sessionsPerItem * $quantity;
+    $packageCents = $unitCents * $sessionsPerItem;
+    $roundedPackageCents = $sessionsPerItem === 1 ? $packageCents
+        : ($packageCents === 17100 ? 17000 : intdiv($packageCents + 499, 500) * 500);
+    $totalCents = $roundedPackageCents * $quantity;
     if ($totalCents > 99999999) {
         throw new InvalidArgumentException('Importo del voucher troppo elevato.');
     }
