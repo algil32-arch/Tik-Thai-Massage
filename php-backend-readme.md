@@ -72,7 +72,7 @@ trattamento fiscale, documenti, condizioni di vendita/recesso e conservazione
 dei dati prima di attivare vendite reali.
 
 File da pubblicare: `prenota.html`, `prenota-massaggio.html`, `prenota-voucher.html`,
-`area-admin.html`, `documenti-legali-premium.html`,
+`area-admin.php`, `area-admin.html`, `documenti-legali-premium.html`,
 `gift-voucher.js`, `gift-voucher.css`, `voucher.php`, `voucher-model.php`,
 `voucher-store.php`, `voucher-pdf.php`, `vouchers-admin.php`, `booking-voucher.php`,
 `php-booking-backend.php`, `booking-admin-advanced.php`, `booking-mailer.php`,
@@ -102,7 +102,7 @@ La guida Aruba per Easy Linux documenta versione PHP e parametri `php.ini`, non 
 3. In `config.local.php`, inserisci la password MySQL in `DB_PASS` e scegli una password robusta per `ADMIN_PASSWORD`.
 4. Non condividere né versionare `config.local.php`. La cartella privata nega l'accesso HTTP; il loader supporta anche variabili d'ambiente, se Aruba le abiliterà in futuro.
 
-`DB_HOST`, `DB_NAME`, `DB_USER` e `DB_PORT` sono già impostati nel template. `ADMIN_PASSWORD` protegge le pagine di gestione prenotazioni, agenda e fatture.
+`DB_HOST`, `DB_NAME`, `DB_USER` e `DB_PORT` sono già impostati nel template. `ADMIN_PASSWORD` protegge le pagine di gestione prenotazioni, agenda, voucher e fatture. Il pulsante **Esci e torna al sito** invalida la sessione e richiede nuovamente la password al prossimo accesso.
 
 ## Configurazione SumUp
 1. Nel profilo sviluppatore SumUp crea una API key per i pagamenti online e recupera il codice esercente.
@@ -119,7 +119,7 @@ Dopo aver salvato la richiesta nel database, il backend usa la funzione PHP `mai
 Prima del test prenotazione, verifica l'invio da **Hosting Linux → Strumenti e impostazioni → Gestione PHP → Test PHP mail**. Se Aruba non accetta o consegna i messaggi, le prenotazioni restano comunque registrate e il form segnala il problema; per SMTP servirà configurare un trasporto autenticato.
 
 ## Configurare l'agenda
-Apri `area-admin.html`, accedi con `ADMIN_PASSWORD` e scegli **Prenotazioni e agenda**. Per ogni studio aggiungi una o più fasce per giorno indicando ora iniziale e ora finale. Il sito propone partenze ogni 15 minuti a partire dall'inizio della fascia; ogni orario è prenotabile solo se il trattamento scelto termina entro la chiusura. Per chiudere una fascia, rimuovila.
+Accedi da `area-admin.php` con `ADMIN_PASSWORD` e scegli **Prenotazioni e agenda**. Per ogni studio aggiungi una o più fasce per giorno indicando ora iniziale e ora finale. Il sito propone partenze ogni 15 minuti a partire dall'inizio della fascia; ogni orario è prenotabile solo se il trattamento scelto termina entro la chiusura. Per chiudere una fascia, rimuovila.
 
 Il backend lascia almeno **15 minuti tra i trattamenti**, sia prima sia dopo gli appuntamenti in attesa o confermati. Le partenze sono proposte ogni 15 minuti; quelle che non possono contenere l'intera durata del trattamento, che si sovrappongono a un appuntamento o a un blocco Google, oppure che non lasciano la pausa necessaria, vengono mostrate come non disponibili. Se il cliente le seleziona, il sito spiega il motivo. La stessa regola viene ricontrollata dal server durante il salvataggio. Gli appuntamenti esistenti non vengono spostati; la durata della seduta e gli orari di apertura restano invariati.
 

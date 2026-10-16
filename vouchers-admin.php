@@ -110,8 +110,10 @@ try {
     p{overflow-wrap:anywhere}.notice{color:#8b4438}dl{display:grid;grid-template-columns:1fr 2fr;gap:6px}dd{margin:0;overflow-wrap:anywhere}
   </style>
 </head>
-<body><main>
-  <a href="area-admin.html">Torna all’area admin</a>
+<body>
+  <?php renderAdminToolbar(); ?>
+<main>
+  <a href="area-admin.php">Torna all’area admin</a>
   <h1>Registro voucher regalo</h1>
   <p>Ultimi 100 acquisti, oppure ricerca per codice completo. La verifica SumUp recupera anche acquisti pagati senza ritorno al sito. Le prenotazioni con codice scalano automaticamente una seduta; l’annullamento dall’agenda la restituisce. Non registrare di nuovo manualmente le sedute già scalate online.</p>
   <?php if ($message !== ''): ?><p class="notice" role="status"><?= voucherEscape($message) ?></p><?php endif; ?>

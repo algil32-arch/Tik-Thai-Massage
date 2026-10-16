@@ -366,6 +366,7 @@ $vatPreview = $form['regime_fiscale'] === 'RF01' ? 22 : 0;
     </style>
   </head>
   <body>
+    <?php renderAdminToolbar(); ?>
     <main>
       <div class="topbar">
         <h1>Inserimento fattura manuale</h1>

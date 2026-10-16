@@ -633,7 +633,8 @@ $batchPath = trim((string)($_GET['batch'] ?? ''));
     </style>
   </head>
   <body>
-    <div class="container">
+      <?php renderAdminToolbar(); ?>
+      <div class="container">
       <div class="topbar">
         <h1>Gestione fatture</h1>
         <div class="topbar-actions">

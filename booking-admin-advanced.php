@@ -27,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <html lang="it">
           <head><meta charset="UTF-8"><title>Apertura fatturazione</title></head>
           <body>
+            <?php renderAdminToolbar(); ?>
             <form id="invoice-forward" method="post" action="fattura-da-pagamento.php">
               <input type="hidden" name="csrf_token" value="<?= htmlspecialchars((string)$_SESSION['admin_csrf'], ENT_QUOTES, 'UTF-8') ?>">
               <input type="hidden" name="action" value="create">
@@ -263,7 +264,8 @@ $deleteMessageType = (string)($_GET['delete'] ?? '') === 'ok' ? 'success' : 'err
     </style>
   </head>
   <body>
-    <div class="container">
+      <?php renderAdminToolbar(); ?>
+      <div class="container">
       <h1>Admin prenotazioni</h1>
       <div class="link-row">
         <a href="fattura-manuale.php">Nuova fattura manuale</a>

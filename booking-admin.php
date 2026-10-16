@@ -142,14 +142,11 @@ $appointments = $stmt->fetchAll();
     </style>
   </head>
   <body>
+    <?php renderAdminToolbar(); ?>
     <div class="admin-header">
       <h1>Gestione prenotazioni e agenda</h1>
       <div class="admin-links">
         <a href="booking-admin-advanced.php">Gestione avanzata</a>
-        <form method="post" class="inline-form">
-          <input type="hidden" name="admin_action" value="logout" />
-          <button type="submit">Esci</button>
-        </form>
       </div>
     </div>
 

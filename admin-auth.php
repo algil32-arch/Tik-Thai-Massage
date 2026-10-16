@@ -10,6 +10,9 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+
 $adminPassword = (string)(appConfig()['ADMIN_PASSWORD'] ?? '');
 if ($adminPassword === '') {
     http_response_code(503);
@@ -29,9 +32,17 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         }
         $loginError = 'Password non corretta.';
     } elseif ($adminAction === 'logout') {
+        $providedToken = (string)($_POST['csrf_token'] ?? '');
+        if (!hash_equals((string)($_SESSION['admin_csrf'] ?? ''), $providedToken)) {
+            http_response_code(400);
+            exit('Richiesta di uscita non valida. Ricarica la pagina e riprova.');
+        }
+
         session_unset();
         session_destroy();
-        header('Location: ' . basename($_SERVER['SCRIPT_NAME']));
+        $cookieParams = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000, $cookieParams['path'], $cookieParams['domain'], $cookieParams['secure'], $cookieParams['httponly']);
+        header('Location: index.html');
         exit;
     }
 }
@@ -75,3 +86,23 @@ if (empty($_SESSION['admin_authenticated'])) {
 }
 
 $_SESSION['admin_csrf'] ??= bin2hex(random_bytes(32));
+
+function renderAdminToolbar(): void
+{
+    $csrfToken = htmlspecialchars((string)$_SESSION['admin_csrf'], ENT_QUOTES, 'UTF-8');
+    ?>
+    <style>
+      .admin-session-toolbar { display: flex; justify-content: flex-end; align-items: center; gap: 12px; padding: 12px max(16px, calc((100% - 1100px) / 2)); background: #2a201d; }
+      .admin-session-toolbar form { margin: 0; }
+      .admin-session-toolbar button { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; padding: 9px 14px; border: 1px solid #fff; background: #8b4438; color: #fff; font: 700 13px Arial, sans-serif; cursor: pointer; }
+      @media (max-width: 480px) { .admin-session-toolbar { justify-content: stretch; } .admin-session-toolbar form, .admin-session-toolbar button { flex: 1; } }
+    </style>
+    <nav class="admin-session-toolbar" aria-label="Sessione amministrativa">
+      <form method="post">
+        <input type="hidden" name="admin_action" value="logout" />
+        <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>" />
+        <button type="submit">Esci e torna al sito</button>
+      </form>
+    </nav>
+    <?php
+}
