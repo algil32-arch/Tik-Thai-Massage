@@ -92,12 +92,16 @@ function renderAdminToolbar(): void
     $csrfToken = htmlspecialchars((string)$_SESSION['admin_csrf'], ENT_QUOTES, 'UTF-8');
     ?>
     <style>
-      .admin-session-toolbar { display: flex; justify-content: flex-end; align-items: center; gap: 12px; padding: 12px max(16px, calc((100% - 1100px) / 2)); background: #2a201d; }
-      .admin-session-toolbar form { margin: 0; }
-      .admin-session-toolbar button { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; padding: 9px 14px; border: 1px solid #fff; background: #8b4438; color: #fff; font: 700 13px Arial, sans-serif; cursor: pointer; }
-      @media (max-width: 480px) { .admin-session-toolbar { justify-content: stretch; } .admin-session-toolbar form, .admin-session-toolbar button { flex: 1; } }
+      .admin-session-toolbar { position: sticky; top: 0; z-index: 1000; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; box-sizing: border-box; width: 100%; padding: 14px max(16px, calc((100% - 1100px) / 2)); background: #2a201d; color: #fff; box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25); }
+      .admin-session-toolbar .admin-session-label { margin: 0; color: #fff; font: 700 16px/1.4 Arial, sans-serif; }
+      .admin-session-toolbar form { display: flex; margin: 0; }
+      .admin-session-toolbar button { box-sizing: border-box; min-height: 48px; display: inline-flex; align-items: center; justify-content: center; padding: 12px 20px; border: 2px solid #fff; border-radius: 6px; background: #fff; color: #2a201d; font: 700 16px/1.4 Arial, sans-serif; text-align: center; cursor: pointer; }
+      .admin-session-toolbar button:hover { background: #eee8df; }
+      .admin-session-toolbar button:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
+      @media (max-width: 480px) { .admin-session-toolbar form, .admin-session-toolbar button { width: 100%; } }
     </style>
     <nav class="admin-session-toolbar" aria-label="Sessione amministrativa">
+      <span class="admin-session-label">Area admin protetta</span>
       <form method="post">
         <input type="hidden" name="admin_action" value="logout" />
         <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>" />
