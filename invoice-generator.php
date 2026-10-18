@@ -19,7 +19,7 @@ function createInvoiceFromAppointment(int $appointmentId): array
     $pdo = connectDatabase();
 
     $stmt = $pdo->prepare(
-        "SELECT a.id, a.data_appuntamento, a.ora_inizio, a.id_cliente, a.id_servizio, a.id_studio,
+        "SELECT a.id, a.data_appuntamento, a.ora_inizio, a.id_cliente, a.id_servizio, a.id_studio, a.id_professionista,
                 c.nome AS cliente_nome, c.cognome AS cliente_cognome, c.email AS cliente_email,
                 c.ragione_sociale AS cliente_ragione_sociale, c.codice_fiscale AS cliente_cf,
                 c.partita_iva AS cliente_piva, c.indirizzo AS cliente_indirizzo,
@@ -64,7 +64,7 @@ function createInvoiceFromAppointment(int $appointmentId): array
             ':data_scadenza_base' => $invoiceDate,
             ':cliente' => $appointment['id_cliente'],
             ':studio' => $appointment['id_studio'],
-            ':professionista' => 1,
+            ':professionista' => $appointment['id_professionista'],
             ':netto' => number_format($imponibile, 2, '.', ''),
             ':iva' => number_format($iva, 2, '.', ''),
             ':totale' => number_format($totale, 2, '.', ''),

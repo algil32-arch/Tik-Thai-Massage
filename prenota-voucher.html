@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Regala un massaggio Thai Tik Massage con un voucher per Studio Prati." />
+    <meta name="description" content="Regala un massaggio Thai Tik Massage con un voucher valido per la sede scelta." />
     <title>Voucher regalo | Thai Tik Massage</title>
     <link rel="stylesheet" href="cookie-consent.css" />
     <script src="cookie-consent.js" defer></script>
@@ -53,16 +53,17 @@
           <a class="back" href="prenota.html">← Tutte le modalità di prenotazione</a>
           <p class="eyebrow">Un regalo di benessere</p>
           <h1 id="page-title">Crea un voucher regalo.</h1>
-          <p>Scegli un trattamento o un pacchetto da regalare presso Studio Prati. Il voucher non prenota un appuntamento ed è valido 12 mesi dal pagamento.</p>
+          <p>Scegli la sede e un trattamento o pacchetto da regalare. Il voucher non prenota un appuntamento ed è valido 12 mesi dal pagamento.</p>
         </div>
       </section>
       <div class="booking-shell">
         <section class="gift-voucher" aria-labelledby="gift-voucher-title">
           <h2 id="gift-voucher-title">Personalizza il regalo</h2>
-          <p>Il voucher è utilizzabile solo presso Studio Prati e non è valido presso APS Jaqueline. Il destinatario potrà prenotare in seguito, scegliendo una seduta della stessa tipologia e durata.</p>
+          <p>Il voucher è utilizzabile esclusivamente presso la sede indicata sul voucher. Il destinatario potrà prenotare in seguito, scegliendo una seduta della stessa tipologia e durata. Chi usa un voucher presso APS Jaqueline e non è già socio dovrà iscriversi all'APS al momento del primo appuntamento; tesseramento ed eventuale quota sono gestiti dall'associazione e non sono inclusi nel voucher.</p>
           <form id="giftVoucherForm" novalidate>
             <fieldset id="giftVoucherSelection" style="border:0; padding:0; margin:0;">
               <div class="gift-voucher-grid">
+                <div class="field"><label for="giftStudio">Sede</label><select id="giftStudio" name="studio_id" required disabled><option value="">Caricamento sedi…</option></select></div>
                 <div class="field"><label for="giftRecipient">Nome del destinatario</label><input id="giftRecipient" name="recipient_name" maxlength="150" required /></div>
                 <div class="field"><label for="giftService">Trattamento e durata</label><select id="giftService" name="service_id" required disabled><option value="">Caricamento trattamenti…</option></select></div>
                 <div class="field"><label for="giftFormula">Formula</label><select id="giftFormula" name="sessions_per_item"><option value="1">Trattamento singolo</option><option value="3">Pacchetto da 3 sedute</option><option value="6">Pacchetto da 6 sedute</option></select></div>
@@ -131,13 +132,18 @@
       async function loadVoucherCatalog() {
         if (localPreview) {
           return {
-            studios: [{ id: 9001, name: 'Studio Prati' }],
+            studios: [{ id: 9001, name: 'Studio Prati' }, { id: 9002, name: 'APS Studio Montesacro' }],
             services: [
               { id: 9101, id_studio: 9001, name: 'Massaggio Thai tradizionale', price: 60, durationMinutes: 60 },
               { id: 9107, id_studio: 9001, name: 'Massaggio Thai tradizionale', price: 80, durationMinutes: 90 },
               { id: 9103, id_studio: 9001, name: 'Aromaterapia', price: 60, durationMinutes: 60 },
               { id: 9108, id_studio: 9001, name: 'Aromaterapia', price: 80, durationMinutes: 90 },
-              { id: 9109, id_studio: 9001, name: 'Aromaterapia', price: 100, durationMinutes: 120 }
+              { id: 9109, id_studio: 9001, name: 'Aromaterapia', price: 100, durationMinutes: 120 },
+              { id: 9201, id_studio: 9002, name: 'Massaggio Thai tradizionale', price: 60, durationMinutes: 60 },
+              { id: 9207, id_studio: 9002, name: 'Massaggio Thai tradizionale', price: 80, durationMinutes: 90 },
+              { id: 9203, id_studio: 9002, name: 'Aromaterapia', price: 60, durationMinutes: 60 },
+              { id: 9208, id_studio: 9002, name: 'Aromaterapia', price: 80, durationMinutes: 90 },
+              { id: 9209, id_studio: 9002, name: 'Aromaterapia', price: 100, durationMinutes: 120 }
             ]
           };
         }

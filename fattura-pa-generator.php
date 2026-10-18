@@ -95,7 +95,7 @@ function generateInvoiceFromAppointment(int $appointmentId): array
     ensureDirs();
 
     $stmt = $pdo->prepare(
-        "SELECT a.id, a.id_cliente, a.id_servizio, a.id_studio, a.data_appuntamento, a.ora_inizio, a.stato,
+        "SELECT a.id, a.id_cliente, a.id_servizio, a.id_studio, a.id_professionista, a.data_appuntamento, a.ora_inizio, a.stato,
                 c.nome AS cliente_nome, c.cognome AS cliente_cognome, c.email AS cliente_email,
                 c.ragione_sociale AS cliente_ragione_sociale, c.codice_fiscale AS cliente_cf,
                 c.partita_iva AS cliente_piva, c.indirizzo AS cliente_indirizzo,
@@ -138,7 +138,7 @@ function generateInvoiceFromAppointment(int $appointmentId): array
 
         $insertInvoice = $pdo->prepare(
             "INSERT INTO fatture (numero_fattura, serie, data_emissione, data_scadenza, id_cliente, id_studio, id_professionista, importo_netto, iva_totale, importo_totale, stato, created_at)
-             VALUES (:numero, 'TS', :data_emissione, DATE_ADD(:data_scadenza_base, INTERVAL 30 DAY), :cliente, :studio, 1, :netto, :iva, :totale, 'emessa', NOW())"
+             VALUES (:numero, 'TS', :data_emissione, DATE_ADD(:data_scadenza_base, INTERVAL 30 DAY), :cliente, :studio, :professionista, :netto, :iva, :totale, 'emessa', NOW())"
         );
         $insertInvoice->execute([
             ':numero' => $invoiceNumber,
@@ -146,6 +146,7 @@ function generateInvoiceFromAppointment(int $appointmentId): array
             ':data_scadenza_base' => $invoiceDate,
             ':cliente' => $appointment['id_cliente'],
             ':studio' => $appointment['id_studio'],
+            ':professionista' => $appointment['id_professionista'],
             ':netto' => number_format($totals['imponibile'], 2, '.', ''),
             ':iva' => number_format($totals['iva'], 2, '.', ''),
             ':totale' => number_format($totals['totale'], 2, '.', ''),

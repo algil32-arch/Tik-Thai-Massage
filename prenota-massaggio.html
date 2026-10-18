@@ -304,11 +304,11 @@
               <label for="bookingVoucherCode">Codice voucher</label>
               <input id="bookingVoucherCode" name="voucher_code" form="bookingRequestForm" maxlength="40" autocomplete="off" placeholder="TTM-…" disabled aria-describedby="bookingVoucherStatus" />
               <button type="button" id="checkBookingVoucher">Verifica codice voucher</button>
-              <p class="field-help" id="bookingVoucherStatus" role="status">Scegli Studio Prati, il trattamento e la durata del voucher, poi data e orario. Una seduta verrà scalata solo dopo la registrazione della richiesta; se lo studio annulla, sarà restituita.</p>
+              <p class="field-help" id="bookingVoucherStatus" role="status">Scegli la sede, il trattamento e la durata indicati sul voucher, poi data e orario. Una seduta verrà scalata solo dopo la registrazione della richiesta; se lo studio annulla, sarà restituita.</p>
             </div>
-            <aside class="payment-warning" id="apsPaymentWarning" hidden role="alert">
-              <strong>⚠️ Nota importante sul pagamento</strong>
-              <p>Si avvisa che sul presente sito web <strong>non è possibile effettuare pagamenti on line per le prestazioni presso l'APS Jaqueline</strong>. La prenotazione effettuata tramite il sito serve esclusivamente a riservare il giorno e l'orario della sessione. Il versamento della quota di partecipazione avverrà <strong>esclusivamente in loco, presso la sede dell'Associazione</strong>, prima dell'inizio del trattamento. Si ricorda che l'accesso ai trattamenti è riservato unicamente ai soci in regola con il tesseramento annuale.</p>
+            <aside class="association-notice" id="apsProfessionalNotice" hidden role="note">
+              <strong>Attività professionale presso la sede associativa</strong>
+              <p>Presso APS Jaqueline, Nuttiporn Sriboust opera come socia professionista in autonomia e con propria Partita IVA. Il trattamento è un servizio professionale di Thai Tik Massage: pagamento e documentazione fiscale sono gestiti direttamente dalla professionista, non dall'APS. Chi non è già socio dell'APS dovrà iscriversi al momento del primo appuntamento; tesseramento ed eventuale quota sono gestiti dall'associazione, non da Thai Tik Massage.</p>
             </aside>
             <p class="payment-note" id="paymentStatus" role="status" hidden></p>
           </section>
@@ -402,11 +402,6 @@
               <div><dt>Prezzo</dt><dd id="summaryPrice">-</dd></div>
               <div><dt>Pagamento</dt><dd id="summaryPayment">In studio</dd></div>
             </dl>
-            <aside class="association-notice" id="associationNotice" hidden aria-label="Regolamento del servizio APS Montesacro">
-              <p><strong>Regolamento del servizio e corrispettivi — APS Jaqueline.</strong> Per le attività erogate presso APS Studio Montesacro, il pagamento del servizio e dei corrispettivi è disciplinato secondo le regole dell'associazione.</p>
-              <p>La Collaboratrice non è autorizzata, per nessuna ragione o titolo, a incassare o ricevere somme di denaro direttamente dagli associati all'interno o fuori dai locali dell'Ente.</p>
-              <p>Il pagamento online non è attivo per questa sede: il servizio presso APS Studio Montesacro viene regolato direttamente con l'associazione.</p>
-            </aside>
           </section>
 
           <div class="submit-row">
@@ -522,31 +517,19 @@
         document.getElementById('billingPostalCode').required = true;
       }
 
-      function isPratiStudio(studio) {
-        return studio?.name === 'Studio Prati';
-      }
-
       function updatePaymentChoice() {
         const studio = getStudioById(selected.studioId);
         const paymentRadio = document.querySelector('input[name="payment_method"]:checked')?.value || 'studio';
         const onlineRadio = document.querySelector('input[name="payment_method"][value="online"]');
-        const studioRadio = document.querySelector('input[name="payment_method"][value="studio"]');
         const voucherRadio = document.querySelector('input[name="payment_method"][value="voucher"]');
         const voucherSelected = paymentRadio === 'voucher';
-        const paymentMethod = isPratiStudio(studio) ? paymentRadio : 'studio';
-        const onlineSelected = paymentMethod === 'online';
+        const onlineSelected = paymentRadio === 'online';
         const paymentStatus = document.getElementById('paymentStatus');
-        const apsPaymentWarning = document.getElementById('apsPaymentWarning');
+        const apsProfessionalNotice = document.getElementById('apsProfessionalNotice');
         const submitButton = document.querySelector('.submit[form="bookingRequestForm"]');
 
-        if (!isPratiStudio(studio) && onlineRadio?.checked) {
-          studioRadio.checked = true;
-        }
-        if (studio && !isPratiStudio(studio) && voucherRadio.checked) {
-          studioRadio.checked = true;
-        }
-        voucherRadio.disabled = Boolean(activeCheckout) || Boolean(studio && !isPratiStudio(studio));
-        const useVoucher = voucherSelected && (!studio || isPratiStudio(studio));
+        voucherRadio.disabled = Boolean(activeCheckout);
+        const useVoucher = voucherSelected;
         document.getElementById('bookingVoucherFields').hidden = !useVoucher;
         document.getElementById('bookingVoucherCode').disabled = !useVoucher;
         document.getElementById('bookingVoucherCode').required = useVoucher;
@@ -555,15 +538,15 @@
           checkedBookingVoucher = '';
           document.getElementById('bookingVoucherStatus').textContent = isLocalPreview
             ? 'Anteprima locale: la verifica dei codici richiede il database Aruba.'
-            : 'Scegli Studio Prati, il trattamento e la durata del voucher, poi data e orario. Il codice sarà ricontrollato all’invio; una seduta viene scalata solo se la richiesta è registrata.';
+            : 'Scegli la sede, il trattamento e la durata indicati sul voucher, poi data e orario. Il codice sarà ricontrollato all’invio; una seduta viene scalata solo se la richiesta è registrata.';
         }
 
         if (onlineRadio) {
-          onlineRadio.disabled = Boolean(activeCheckout) || !isPratiStudio(studio);
+          onlineRadio.disabled = Boolean(activeCheckout);
         }
 
         const showApsWarning = isAssociationStudio(studio);
-        apsPaymentWarning.hidden = !showApsWarning;
+        apsProfessionalNotice.hidden = !showApsWarning;
 
         document.getElementById('summaryPayment').textContent = useVoucher ? 'Voucher regalo · 1 seduta' : onlineSelected ? 'Online · SumUp' : 'In studio';
         const service = getServiceById(selected.serviceId);
@@ -714,7 +697,11 @@
           document.getElementById('sumup-card').hidden = true;
           verifyButton.hidden = true;
           const details = activeCheckout.data;
-          alert(`Pagamento completato.\n\nCodice: ${data.booking_id}\nStudio: ${details.studio}\nServizio: ${details.service}\nData: ${details.date} ${details.time}`);
+          const calendarNotice = data.calendar_sync?.attempted && !data.calendar_sync.success
+            ? '\n\nLa sincronizzazione con il calendario è ancora in attesa; lo studio è stato avvisato.'
+            : '';
+          if (calendarNotice) status.textContent += calendarNotice;
+          alert(`Pagamento completato.\n\nCodice: ${data.booking_id}\nStudio: ${details.studio}\nServizio: ${details.service}\nData: ${details.date} ${details.time}${calendarNotice}`);
           document.getElementById('bookingRequestForm').reset();
           selected.time = null;
           loadAvailableSlots();
@@ -980,7 +967,7 @@
             <span class="tag">Sede</span>
             <h3><a class="studio-location-link" href="${getStudioLocationUrl(studio)}">${escapeHtml(getStudioDisplayName(studio))}</a></h3>
             <p>Consulta i giorni e gli orari configurati per questa sede.</p>
-            ${isAssociationStudio(studio) ? '<p class="association-notice"><strong>Quota associativa separata.</strong> Accesso con adesione ad APS Jaqueline e quota gestita direttamente dall’associazione, non inclusa nel prezzo del trattamento. Verifica importo, validità e modalità con l’associazione.</p>' : ''}
+            ${isAssociationStudio(studio) ? '<p class="association-notice"><strong>Adesione APS necessaria.</strong> Chi non è già socio dovrà iscriversi all’APS al momento del primo appuntamento. Tesseramento ed eventuale quota sono gestiti dall’associazione, non da Thai Tik Massage e non sono inclusi nel prezzo del trattamento.</p>' : ''}
             <div class="studio-meta"><span>Servizi attivi</span> ${servicesForStudio(studio.id).length}</div>
             <div class="link-button"><a href="#booking-form">Scegli questo studio</a></div>
           </article>
@@ -1123,10 +1110,7 @@
         const studio = getStudioById(selected.studioId);
         const service = getServiceById(selected.serviceId);
         const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value || 'studio';
-        const showAssociationNotice = isAssociationStudio(studio) && paymentMethod !== 'online';
-
         document.getElementById('summaryStudio').textContent = studio?.name || 'Non selezionato';
-        document.getElementById('associationNotice').hidden = !showAssociationNotice;
         document.getElementById('summaryService').textContent = service?.name || 'Non selezionato';
         document.getElementById('summaryDate').textContent = selected.date ? formatDate(selected.date) : 'Non selezionata';
         document.getElementById('summaryTime').textContent = selected.time || 'Non selezionato';
@@ -1224,6 +1208,9 @@
             emailStatus = 'La richiesta è registrata e hai ricevuto la ricevuta; la notifica allo studio non è partita. Contattalo per verificare.';
           } else {
             emailStatus = 'La richiesta è registrata e lo studio è stato avvisato, ma la ricevuta email non è partita.';
+          }
+          if (data.calendar_sync?.attempted && !data.calendar_sync.success) {
+            emailStatus += ' La sincronizzazione con il calendario è ancora in attesa; lo studio è stato avvisato.';
           }
           const voucherStatus = data.voucher ? `\nVoucher: una seduta utilizzata. Sedute residue: ${data.voucher.remaining_sessions}. Nessun importo da saldare.` : '';
           alert(`${emailStatus}\n\nCodice: ${data.booking_id}\nStudio: ${data.data.studio}\nServizio: ${data.data.service}\nData: ${data.data.date} ${data.data.time}${voucherStatus}`);

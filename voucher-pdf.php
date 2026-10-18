@@ -12,12 +12,15 @@ function voucherPdf(array $voucher, bool $preview): string
         ['Formula: ' . $voucher['sessions_per_item'] . ' sedute x ' . $voucher['quantity'], 12],
         ['Totale sedute regalate: ' . $voucher['total_sessions'], 15],
         ['Importo totale: ' . number_format((float)$voucher['amount'], 2, ',', '.') . ' EUR', 15],
-        ['Sede: Studio Prati', 12],
+        ['Sede: ' . $voucher['studio_name'], 12],
         [$preview ? 'Validita: 12 mesi dalla conferma del pagamento' :
             'Valido fino al: ' . (new DateTimeImmutable($voucher['valid_until']))->format('d/m/Y H:i'), 12],
         ['Prenota sul sito con il codice: scegli "Prenota con voucher regalo".', 11],
         ['info@thaitikmassage.it | www.thaitikmassage.it', 11],
     ];
+    if ($voucher['studio_name'] === 'APS Studio Montesacro') {
+        $lines[] = ['Chi non e gia socio dovra iscriversi all APS al momento del primo appuntamento. Iscrizione ed eventuale quota sono gestite direttamente dall associazione.', 10];
+    }
     $stream = "0.98 0.96 0.93 rg 0 0 595 842 re f\n0.55 0.27 0.22 RG 35 100 525 635 re S\n";
     $y = 680;
     foreach ($lines as [$text, $size]) {

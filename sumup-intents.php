@@ -1,5 +1,8 @@
 <?php
 
+require_once __DIR__ . '/google-calendar-client.php';
+require_once __DIR__ . '/google-calendar-sync.php';
+
 const SUMUP_INTENT_TTL_MINUTES = 15;
 
 function sumUpIntentByToken(PDO $pdo, string $token): ?array
@@ -65,10 +68,12 @@ function finalizePaidSumUpIntent(PDO $pdo, int $intentId, ?string $transactionId
 
         if ($intent['appointment_id'] !== null) {
             $pdo->commit();
+            $calendarSync = googleCalendarSyncAfterBooking($pdo);
             return [
                 'booking_id' => (int)$intent['appointment_id'],
                 'recorded' => false,
                 'notifications' => ['studio_sent' => false, 'customer_sent' => false],
+                'calendar_sync' => $calendarSync,
             ];
         }
         if ($intent['status'] !== 'pending') {
@@ -149,11 +154,13 @@ function finalizePaidSumUpIntent(PDO $pdo, int $intentId, ?string $transactionId
         'price' => $intent['amount'],
         'notes' => $intent['note'],
     ], (string)$customer['email']);
+    $calendarSync = googleCalendarSyncAfterBooking($pdo);
 
     return [
         'booking_id' => $bookingId,
         'recorded' => true,
         'notifications' => $notifications,
+        'calendar_sync' => $calendarSync,
     ];
 }
 

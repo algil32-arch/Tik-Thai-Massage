@@ -47,11 +47,12 @@ foreach ([['email' => 'invalid'], ['codice_fiscale' => ''], ['name' => ['not a s
     catch (InvalidArgumentException $e) { $checks++; }
 }
 $document = ['recipient_name' => 'Anna Rossi', 'service_name' => 'Thai tradizionale',
-    'duration_minutes' => 60, 'sessions_per_item' => 5, 'quantity' => 2,
+    'studio_name' => 'APS Studio Montesacro', 'duration_minutes' => 60, 'sessions_per_item' => 5, 'quantity' => 2,
     'total_sessions' => 10, 'amount' => '570.00', 'voucher_code' => 'TTM-TEST', 'valid_until' => '2027-10-13 12:00:00'];
 $preview = voucherPdf($document, true);
 $paid = voucherPdf($document, false);
 voucherCheck(strpos($preview, 'ANTEPRIMA - NON VALIDO / NON PAGATO') !== false, 'Preview lacks watermark');
 voucherCheck(strpos($paid, 'TTM-TEST') !== false && strpos($paid, 'NON PAGATO') === false, 'Paid PDF invalid');
+voucherCheck(strpos($paid, 'APS Studio Montesacro') !== false, 'PDF omits selected studio');
 voucherCheck(strpos($paid, '%PDF-1.4') === 0 && substr($paid, -6) === "%%EOF\n", 'Invalid PDF structure');
 echo "$checks voucher checks passed.\n";

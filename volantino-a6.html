@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Volantino A6 fronte-retro Thai Tik Massage: trattamenti, prezzi, sedi e contatti per prenotare a Roma." />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Volantino A6 | Thai Tik Massage</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #30251f;
+        --muted: #71645c;
+        --paper: #fffdf8;
+        --cream: #f4eee5;
+        --rust: #79432f;
+        --gold: #b48a4d;
+        --line: #e4d9ca;
+        --green: #29463b;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; }
+      body {
+        background: #e8e2d9;
+        color: var(--ink);
+        font-family: Arial, Helvetica, sans-serif;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .page {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        width: 105mm;
+        height: 148mm;
+        margin: 10mm auto;
+        padding: 7mm;
+        overflow: hidden;
+        background: var(--paper);
+        page-break-after: always;
+      }
+      .page > * { position: relative; z-index: 1; }
+      .page::before {
+        position: absolute;
+        z-index: 0;
+        top: -28mm;
+        right: -28mm;
+        width: 64mm;
+        height: 64mm;
+        border: .35mm solid rgba(180, 138, 77, .27);
+        border-radius: 50%;
+        content: "";
+      }
+      .page::after {
+        position: absolute;
+        z-index: 0;
+        top: -22mm;
+        right: -22mm;
+        width: 52mm;
+        height: 52mm;
+        border: .25mm solid rgba(180, 138, 77, .2);
+        border-radius: 50%;
+        content: "";
+      }
+      .brand {
+        display: block;
+        width: 65mm;
+        height: 19mm;
+        margin: 0 auto 2mm;
+        object-fit: contain;
+      }
+      .eyebrow {
+        margin: 0 0 2mm;
+        color: var(--rust);
+        font-size: 7pt;
+        font-weight: 700;
+        letter-spacing: .15em;
+        text-align: center;
+        text-transform: uppercase;
+      }
+      h1, h2, p { margin-top: 0; }
+      h1 {
+        margin-bottom: 2mm;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 22pt;
+        font-weight: 400;
+        letter-spacing: -.035em;
+        line-height: 1.02;
+        text-align: center;
+      }
+      .intro {
+        max-width: 82mm;
+        margin: 0 auto 4mm;
+        color: var(--muted);
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 9pt;
+        line-height: 1.35;
+        text-align: center;
+      }
+      .rule {
+        width: 100%;
+        height: .6mm;
+        margin: 0 0 4mm;
+        background: linear-gradient(90deg, transparent, var(--gold), var(--rust), transparent);
+      }
+      .treatments {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2mm;
+        margin: 0 0 4mm;
+        padding: 0;
+        list-style: none;
+      }
+      .treatments li {
+        min-height: 10mm;
+        display: flex;
+        align-items: center;
+        gap: 2mm;
+        padding: 2mm;
+        border: .25mm solid var(--line);
+        background: var(--cream);
+        color: var(--ink);
+        font-size: 7.2pt;
+        font-weight: 700;
+        line-height: 1.15;
+      }
+      .treatments li::before {
+        flex: 0 0 1.4mm;
+        width: 1.4mm;
+        height: 1.4mm;
+        border-radius: 50%;
+        background: var(--gold);
+        content: "";
+      }
+      .callout {
+        margin-top: auto;
+        padding: 3mm;
+        background: var(--green);
+        color: #fffdf8;
+        text-align: center;
+      }
+      .callout strong {
+        display: block;
+        margin-bottom: 1.5mm;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 13pt;
+        font-weight: 400;
+      }
+      .callout p {
+        margin: 0;
+        font-size: 7.2pt;
+        line-height: 1.45;
+      }
+      .contact {
+        margin-top: 3mm;
+        color: var(--ink);
+        font-size: 7pt;
+        line-height: 1.55;
+        text-align: center;
+      }
+      .contact a {
+        color: inherit;
+        font-weight: 700;
+        text-decoration: none;
+      }
+      .back h2 {
+        margin: 0 0 2mm;
+        color: var(--rust);
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 16pt;
+        font-weight: 400;
+        line-height: 1.1;
+      }
+      .back .eyebrow { margin-bottom: 1.5mm; text-align: left; }
+      .price-list {
+        width: 100%;
+        margin-bottom: 3mm;
+        border-collapse: collapse;
+        font-size: 7.1pt;
+        line-height: 1.15;
+      }
+      .price-list td {
+        padding: 1.25mm 1.5mm;
+        border-bottom: .2mm solid var(--line);
+      }
+      .price-list tr:nth-child(even) { background: var(--cream); }
+      .price-list td:last-child {
+        width: 22mm;
+        color: var(--rust);
+        font-weight: 700;
+        text-align: right;
+        white-space: nowrap;
+      }
+      .locations {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2mm;
+        margin-top: 1mm;
+      }
+      .location {
+        padding: 2mm;
+        border: .25mm solid var(--line);
+        background: var(--cream);
+      }
+      .location strong {
+        display: block;
+        margin-bottom: 1mm;
+        color: var(--green);
+        font-size: 7pt;
+      }
+      .location p {
+        margin: 0;
+        color: var(--ink);
+        font-size: 6.4pt;
+        line-height: 1.35;
+      }
+      .membership {
+        margin: 1.5mm 0 0;
+        color: var(--muted);
+        font-size: 6pt;
+        line-height: 1.25;
+      }
+      .book-strip {
+        margin-top: auto;
+        padding: 2.3mm 2mm;
+        background: var(--green);
+        color: #fffdf8;
+        font-size: 6.5pt;
+        line-height: 1.45;
+        text-align: center;
+      }
+      .book-strip strong { font-size: 7pt; }
+      .book-strip a { color: inherit; font-weight: 700; text-decoration: none; }
+      .note {
+        margin: 1.5mm 0 0;
+        color: var(--muted);
+        font-size: 5.6pt;
+        line-height: 1.2;
+        text-align: center;
+      }
+      @media screen {
+        .page { box-shadow: 0 2mm 8mm rgba(48, 37, 31, .15); }
+      }
+      @media print {
+        @page { size: A6 portrait; margin: 0; }
+        html, body { width: 105mm; background: var(--paper); }
+        .page { margin: 0; box-shadow: none; }
+        .page:last-child { page-break-after: auto; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="page front" aria-labelledby="front-title">
+        <img class="brand" src="thai-tik-logo-alternativo.png" alt="Thai Tik Massage" />
+        <p class="eyebrow">Tradizione thailandese · Roma</p>
+        <h1 id="front-title">Il tuo momento<br />di benessere.</h1>
+        <p class="intro">Rallenta, respira, ritrova il tuo equilibrio con un trattamento scelto intorno a te.</p>
+        <div class="rule" aria-hidden="true"></div>
+        <ul class="treatments" aria-label="Trattamenti">
+          <li>Thai tradizionale</li>
+          <li>Deep Tissue sportivo</li>
+          <li>Oli e aromaterapia</li>
+          <li>Tok Sen Massage</li>
+          <li>Foot Massage</li>
+        </ul>
+        <aside class="callout">
+          <strong>Concediti una pausa.</strong>
+          <p>Riceviamo su appuntamento nelle sedi di Prati e Montesacro.<br />Scegli il trattamento e prenota il tuo momento.</p>
+        </aside>
+        <div class="contact">
+          <a href="https://www.thaitikmassage.it/prenota.html">Prenota online · thaitikmassage.it</a><br />
+          WhatsApp: <a href="https://wa.me/message/4ZL65LROJWHFI1">wa.me/message/4ZL65LROJWHFI1</a><br />
+          <a href="mailto:info@thaitikmassage.it">info@thaitikmassage.it</a>
+        </div>
+      </section>
+
+      <section class="page back" aria-labelledby="back-title">
+        <p class="eyebrow">Thai Tik Massage · Roma</p>
+        <h2 id="back-title">Scegli il tuo trattamento</h2>
+        <table class="price-list">
+          <tbody>
+            <tr><td>Thai tradizionale · 60 min</td><td>60 €</td></tr>
+            <tr><td>Thai tradizionale · 90 min</td><td>80 €</td></tr>
+            <tr><td>Sportivo Deep Tissue · 60 min</td><td>60 €</td></tr>
+            <tr><td>Oli e aromaterapia · 60 min</td><td>60 €</td></tr>
+            <tr><td>Oli e aromaterapia · 90 min</td><td>80 €</td></tr>
+            <tr><td>Oli e aromaterapia · 120 min</td><td>100 €</td></tr>
+            <tr><td>Tok Sen Massage · 60 min</td><td>70 €</td></tr>
+            <tr><td>Foot Massage Express · 30 min</td><td>35 €</td></tr>
+            <tr><td>Foot Massage Completo · 60 min</td><td>50 €</td></tr>
+          </tbody>
+        </table>
+        <h2>Due sedi a Roma</h2>
+        <div class="locations">
+          <div class="location">
+            <strong>PRATI · Barbiere Prati</strong>
+            <p>Via Giuseppe Gioachino Belli 1<br />00193 Roma</p>
+          </div>
+          <div class="location">
+            <strong>MONTESACRO · Jaqueline Massaggi APS</strong>
+            <p>Via Valle Borbera 51<br />Montesacro, Roma</p>
+          </div>
+        </div>
+        <p class="membership">Sede Montesacro: per accedere ai servizi è richiesta l’adesione ad APS Jaqueline e la quota associativa annuale di 15 €, non inclusa nei prezzi dei trattamenti. Verifica i dettagli con l’associazione.</p>
+        <div class="book-strip">
+          <strong>INFORMAZIONI E PRENOTAZIONI</strong><br />
+          <a href="https://www.thaitikmassage.it/prenota.html">thaitikmassage.it/prenota.html</a> ·
+          <a href="https://wa.me/message/4ZL65LROJWHFI1">WhatsApp</a> ·
+          <a href="mailto:info@thaitikmassage.it">info@thaitikmassage.it</a><br />
+          Sedi e mappe: <a href="https://www.thaitikmassage.it/dove-trovarmi.html">thaitikmassage.it/dove-trovarmi.html</a>
+        </div>
+        <p class="note">Trattamenti per il benessere, su appuntamento. Verifica sede e disponibilità al momento della prenotazione.</p>
+      </section>
+    </main>
+  </body>
+</html>

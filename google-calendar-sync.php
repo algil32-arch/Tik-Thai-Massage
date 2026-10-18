@@ -358,3 +358,25 @@ function googleCalendarSync(PDO $pdo): array
 
     return array_merge($pulled, $pushed, ['sincronizzato_il' => (new DateTimeImmutable())->format('Y-m-d H:i:s')]);
 }
+
+function googleCalendarSyncAfterBooking(PDO $pdo): array
+{
+    $config = appConfig();
+    if (
+        trim((string)($config['GOOGLE_CALENDAR_ID'] ?? '')) === ''
+        && trim((string)($config['GOOGLE_SERVICE_ACCOUNT_FILE'] ?? '')) === ''
+    ) {
+        return ['attempted' => false, 'success' => false];
+    }
+
+    try {
+        return [
+            'attempted' => true,
+            'success' => true,
+            'result' => googleCalendarSync($pdo),
+        ];
+    } catch (Throwable $e) {
+        error_log('Google Calendar sync after booking failed: ' . $e->getMessage());
+        return ['attempted' => true, 'success' => false];
+    }
+}

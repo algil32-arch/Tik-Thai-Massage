@@ -1,8 +1,8 @@
-# Thai Tik Massage — Site Ver 13.1
+# Thai Tik Massage — Site Ver 14.0
 
 Sito statico multipagina per Thai Tik Massage, con backend PHP/MySQL predisposto per l'hosting Aruba.
 
-Note del rilascio corrente: [Site Ver 13.1](RELEASE_NOTES_V13_1.md).
+Note del rilascio corrente: [Site Ver 14.0](RELEASE_NOTES_V14.md).
 
 La sitemap pubblica è in `sitemap.xml`; `robots.txt` indica ai motori di ricerca
 le aree non pubbliche e il percorso della sitemap. Dopo aver pubblicato questi
@@ -51,10 +51,20 @@ in `controindicazioni-massaggio-thai.html` e `controindicazioni-massaggio-thai.p
 Per rigenerare il PDF A4 usare Google Chrome headless senza intestazioni e piè
 di pagina.
 
+## Volantino promozionale
+
+Il volantino fronte-retro in formato A6 è disponibile in `volantino-a6.html`
+(sorgente), `volantino-a6.pdf` (stampa) e `volantino-a6-canva.pptx` per
+l'importazione e la modifica in Canva. I testi e gli elementi grafici del PPTX
+sono modificabili separatamente; il logo è un'immagine. Per rigenerare il PPTX
+usare `node genera-volantino-canva.js`. Per ristampare il PDF, mantenere il
+formato A6, la scala 100% e i colori di sfondo; disattivare intestazioni e piè
+di pagina. PDF e PPTX contengono due pagine, una per lato.
+
 ## Voucher regalo
 
-La pagina Prenota contiene un acquisto separato di voucher per Studio Prati,
-senza prenotazione. Anteprima, PDF definitivo dopo pagamento SumUp e registro
+La pagina Prenota contiene un acquisto separato di voucher per le sedi con servizi
+attivi, senza prenotazione. Anteprima, PDF definitivo dopo pagamento SumUp e registro
 admin con sedute residue e validita' di 12 mesi sono descritti in
 [php-backend-readme.md](php-backend-readme.md#voucher-regalo).
 Il destinatario prenota dal normale calendario scegliendo **Prenota con voucher

@@ -16,6 +16,7 @@ function initGiftVoucher({ studios, services, preview, loadSumUpSdk }) {
   const form = document.getElementById('giftVoucherForm');
   const status = document.getElementById('giftStatus');
   const selection = document.getElementById('giftVoucherSelection');
+  const studioSelect = document.getElementById('giftStudio');
   const select = document.getElementById('giftService');
   const pay = document.getElementById('giftPay');
   const verify = document.getElementById('giftVerify');
@@ -25,8 +26,7 @@ function initGiftVoucher({ studios, services, preview, loadSumUpSdk }) {
   const buyer = document.getElementById('giftBuyerFields');
   const storageKey = 'thaitik-gift-payment';
   const money = cents => new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(cents / 100);
-  const prati = studios.find(studio => studio.name === 'Studio Prati');
-  const catalog = services.filter(service => prati && Number(service.id_studio) === Number(prati.id));
+  let catalog = [];
   let token = null;
   let paidVoucher = null;
   let pending = false;
@@ -60,26 +60,43 @@ function initGiftVoucher({ studios, services, preview, loadSumUpSdk }) {
   document.getElementById('gift-customerType').addEventListener('change', updateBuyer);
   updateBuyer();
 
-  select.replaceChildren(new Option('Seleziona il trattamento', ''));
-  for (const service of catalog) {
-    select.add(new Option(`${service.name} · ${service.durationMinutes} min · ${money(Math.round(service.price * 100))}`, String(service.id)));
+  studioSelect.replaceChildren(new Option('Seleziona la sede', ''));
+  for (const studio of studios) {
+    const name = studio.name === 'APS Studio Montesacro' ? 'APS Jaqueline · Studio Montesacro' : studio.name;
+    studioSelect.add(new Option(name, String(studio.id)));
   }
-  select.disabled = catalog.length === 0;
-  pay.disabled = preview || catalog.length === 0;
-  status.textContent = preview
-    ? 'Anteprima locale: puoi provare il form, stampare e scaricare l’anteprima. Pagamento disabilitato.'
-    : catalog.length ? 'Il voucher sarà valido solo dopo la conferma del pagamento SumUp.'
-      : 'Catalogo voucher non disponibile. Contatta lo studio.';
+  studioSelect.disabled = studios.length === 0;
+
+  function updateCatalog() {
+    const studioId = Number(studioSelect.value);
+    const studio = studios.find(item => Number(item.id) === studioId);
+    catalog = services.filter(service => studio && Number(service.id_studio) === studioId);
+    select.replaceChildren(new Option('Seleziona il trattamento', ''));
+    for (const service of catalog) {
+      select.add(new Option(`${service.name} · ${service.durationMinutes} min · ${money(Math.round(service.price * 100))}`, String(service.id)));
+    }
+    select.disabled = catalog.length === 0;
+    pay.disabled = preview || !studio || catalog.length === 0;
+    status.textContent = preview
+      ? 'Anteprima locale: puoi provare il form, stampare e scaricare l’anteprima. Pagamento disabilitato.'
+      : catalog.length ? 'Il voucher sarà valido solo dopo la conferma del pagamento SumUp e utilizzabile esclusivamente presso la sede indicata.'
+        : studios.length === 0 ? 'Catalogo voucher non disponibile. Contatta lo studio.'
+          : studio ? 'Nessun trattamento attivo per questa sede. Contatta lo studio.'
+            : 'Seleziona una sede per visualizzare i trattamenti disponibili.';
+    updateQuote();
+  }
+  studioSelect.addEventListener('change', updateCatalog);
 
   function readGift() {
     const service = catalog.find(item => Number(item.id) === Number(select.value));
-    if (!service) throw new Error('Seleziona un trattamento.');
+    const studio = studios.find(item => Number(item.id) === Number(studioSelect.value));
+    if (!service || !studio) throw new Error('Seleziona sede e trattamento.');
     const recipient = document.getElementById('giftRecipient').value.trim();
     if (!recipient) throw new Error('Inserisci il nome del destinatario.');
     const sessions = Number(document.getElementById('giftFormula').value);
     const quantity = Number(document.getElementById('giftQuantity').value);
     const quote = giftVoucherQuote(service.price, sessions, quantity);
-    return { recipient_name: recipient, service_id: service.id, service_name: service.name,
+    return { recipient_name: recipient, service_id: service.id, service_name: service.name, studio_name: studio.name,
       price: Number(service.price).toFixed(2), duration_minutes: service.durationMinutes,
       sessions_per_item: sessions, quantity, total_sessions: quote.totalSessions, amount: (quote.totalCents / 100).toFixed(2) };
   }
@@ -97,6 +114,7 @@ function initGiftVoucher({ studios, services, preview, loadSumUpSdk }) {
   }
   selection.addEventListener('input', updateQuote);
   selection.addEventListener('change', updateQuote);
+  updateCatalog();
   function showPreview(voucher, paid) {
     panel.replaceChildren();
     const logo = document.createElement('img');
@@ -110,7 +128,9 @@ function initGiftVoucher({ studios, services, preview, loadSumUpSdk }) {
       `Per: ${voucher.recipient_name}`, `${voucher.service_name} · ${voucher.duration_minutes} minuti`,
       `Formula: ${voucher.sessions_per_item} sedute × ${voucher.quantity}`,
       `Totale sedute regalate: ${voucher.total_sessions}`, `Importo totale: ${money(Math.round(Number(voucher.amount) * 100))}`,
-      'Sede: Studio Prati',
+      `Sede: ${voucher.studio_name}`,
+      ...(voucher.studio_name === 'APS Studio Montesacro'
+        ? ['Chi non è già socio dovrà iscriversi all’APS al momento del primo appuntamento. Iscrizione ed eventuale quota sono gestite direttamente dall’associazione.'] : []),
       paid ? `Valido fino al: ${new Date(voucher.valid_until.replace(' ', 'T')).toLocaleDateString('it-IT')}` : 'Validità: 12 mesi dalla conferma del pagamento',
       'Prenota sul sito scegliendo "Prenota con voucher regalo" e inserisci il codice.', 'info@thaitikmassage.it · www.thaitikmassage.it'];
     lines.forEach(text => { const line = document.createElement('p'); line.textContent = text; panel.appendChild(line); });
@@ -153,7 +173,7 @@ function initGiftVoucher({ studios, services, preview, loadSumUpSdk }) {
   function lockForm(locked) {
     selection.disabled = locked;
     buyer.querySelectorAll('input, select').forEach(control => { control.disabled = locked; });
-    pay.disabled = locked || preview || !catalog.length;
+    pay.disabled = locked || preview || !studioSelect.value || !catalog.length;
   }
   async function api(input) {
     const response = await fetch('voucher.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });

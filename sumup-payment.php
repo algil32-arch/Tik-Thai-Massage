@@ -82,6 +82,7 @@ if ($checkoutStatus === 'PAID') {
         'message' => 'Pagamento completato. La richiesta di prenotazione è stata registrata.',
         'booking_id' => $result['booking_id'],
         'notifications' => $result['notifications'],
+        'calendar_sync' => $result['calendar_sync'],
     ]);
 }
 
@@ -126,6 +127,7 @@ if (in_array($checkoutStatus, ['PENDING', 'NEW'], true)) {
                     'message' => 'Pagamento completato. La richiesta di prenotazione è stata registrata.',
                     'booking_id' => $result['booking_id'],
                     'notifications' => $result['notifications'],
+                    'calendar_sync' => $result['calendar_sync'],
                 ]);
             }
 

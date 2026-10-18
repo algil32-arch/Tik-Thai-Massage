@@ -183,7 +183,7 @@ function refreshInvoiceDisplayPdfs(PDO $pdo, int $invoiceId): array
 function generateInvoiceFromAppointment(PDO $pdo, int $appointmentId, bool $requireOnlinePaid = true): array
 {
     $stmt = $pdo->prepare(
-        "SELECT a.id, a.id_cliente, a.id_servizio, a.id_studio, a.stato, a.metodo_pagamento, a.stato_pagamento,
+        "SELECT a.id, a.id_cliente, a.id_servizio, a.id_studio, a.id_professionista, a.stato, a.metodo_pagamento, a.stato_pagamento,
                 c.nome AS cliente_nome, c.cognome AS cliente_cognome,
                   s.nome AS servizio_nome, s.prezzo AS servizio_prezzo, s.iva_percentuale,
                   c.ragione_sociale AS cliente_ragione_sociale, c.codice_fiscale AS cliente_cf,
@@ -261,7 +261,7 @@ function generateInvoiceFromAppointment(PDO $pdo, int $appointmentId, bool $requ
              bollo_virtuale, bollo_addebitato, importo_bollo,
              importo_netto, iva_totale, importo_totale, stato, note, created_at)
          VALUES
-            (:numero, 'TS', :data_emissione, DATE_ADD(:data_scadenza_base, INTERVAL 30 DAY), :cliente, :studio, 1,
+            (:numero, 'TS', :data_emissione, DATE_ADD(:data_scadenza_base, INTERVAL 30 DAY), :cliente, :studio, :professionista,
              'TD01', CURDATE(), 'N2.2', 0,
              0, 0, 0,
              :netto, :iva, :totale, 'emessa', :note, NOW())"
@@ -272,6 +272,7 @@ function generateInvoiceFromAppointment(PDO $pdo, int $appointmentId, bool $requ
         ':data_scadenza_base' => $invoiceDate,
         ':cliente' => $appointment['id_cliente'],
         ':studio' => $appointment['id_studio'],
+        ':professionista' => $appointment['id_professionista'],
         ':netto' => number_format($price, 2, '.', ''),
         ':iva' => number_format($vat, 2, '.', ''),
         ':totale' => number_format($total, 2, '.', ''),

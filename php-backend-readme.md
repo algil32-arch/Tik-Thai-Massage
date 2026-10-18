@@ -18,8 +18,8 @@ Il backend usa PHP con PDO e MySQL/MariaDB. L'agenda applica le fasce settimanal
 
 ## Voucher regalo
 
-La pagina `prenota-voucher.html` vende solo servizi attivi di **Studio Prati**, non di APS
-Jaqueline. Si sceglie destinatario, trattamento, formula da 1/3/6 sedute e
+La pagina `prenota-voucher.html` vende servizi attivi scegliendo la sede, compresa
+APS Jaqueline. Si scelgono destinatario, trattamento, formula da 1/3/6 sedute e
 quantita' da 1 a 20. Il server recupera il prezzo dal database e calcola il totale:
 il prezzo dei pacchetti da 3/6 sedute viene arrotondato al multiplo di 5 euro
 superiore, salvo il pacchetto da 3 sedute a 60 euro, proposto a 170 euro.
@@ -32,8 +32,12 @@ pagamento usa l'SDK e il client SumUp esistenti, ma l'acquisto e' salvato in
 Il codice definitivo viene emesso solo dopo verifica server di stato PAID,
 riferimento, valuta EUR e importo. Vale 12 mesi dalla conferma, nello stesso
 trattamento e durata. Le sedute si prenotano dal normale calendario del sito:
-selezionare **Prenota con voucher regalo**, Studio Prati, lo stesso trattamento
-e durata, data/orario, dati cliente e codice. **Verifica codice voucher** mostra
+selezionare **Prenota con voucher regalo**, la sede indicata sul voucher, lo stesso trattamento
+e durata, data/orario, dati cliente e codice. Per APS Jaqueline, chi non è ancora
+socio dovrà iscriversi all'associazione al primo appuntamento; l'iscrizione e
+l'eventuale quota sono gestite direttamente dall'associazione, fuori dal sito e
+dal pagamento del trattamento.
+**Verifica codice voucher** mostra
 le sedute residue senza modificarle. All'invio il server ricontrolla codice,
 pagamento, corrispondenza del servizio, disponibilita' e scadenza (anche rispetto
 alla data dell'appuntamento). Non viene creato alcun checkout SumUp aggiuntivo.
@@ -126,7 +130,7 @@ Il backend lascia almeno **15 minuti tra i trattamenti**, sia prima sia dopo gli
 La funzione condivisa in `booking-slots.php` viene usata sia per mostrare gli orari sia per validarli durante il salvataggio, sotto il lock della professionista. Appuntamenti e checkout in attesa in qualsiasi sede della stessa professionista partecipano al controllo, così una prenotazione in un centro non lascia libero lo stesso orario negli altri. Se un'altra richiesta cambia le disponibilità, il POST restituisce 409 e il form aggiorna gli slot senza perdere i dati inseriti. Carica anche questo file sull'hosting; non serve una migrazione SQL. Per eseguire i test della logica: `php tests/booking-slots-test.php`.
 
 ## Sincronizzazione con Google Calendar
-La sincronizzazione è bidirezionale: gli appuntamenti del sito diventano eventi del calendario e gli impegni creati a mano sul calendario chiudono gli slot sul sito. Poiché la professionista è una sola, un impegno Google blocca **tutte le sedi**. Quando Google accetta l'inserimento di una prenotazione in attesa, questa viene segnata confermata e il cliente riceve l'email di conferma; se la sincronizzazione fallisce, resta in attesa. Il cron gira ogni 10 minuti, quindi la conferma può arrivare al primo ciclo utile e non è immediata.
+La sincronizzazione è bidirezionale: gli appuntamenti del sito diventano eventi del calendario e gli impegni creati a mano sul calendario chiudono gli slot sul sito. Poiché la professionista è una sola, un impegno Google blocca **tutte le sedi**. Dopo il salvataggio di una prenotazione non online e dopo la registrazione di un pagamento SumUp, il backend tenta subito la sincronizzazione: quando Google accetta l'evento, l'appuntamento viene confermato e il cliente riceve l'email di conferma; se il tentativo fallisce, resta in attesa e il cron riprova. Il cron gira comunque ogni 10 minuti per mantenere aggiornati gli impegni del calendario e recuperare eventuali errori.
 
 ### Preparazione su Google Cloud
 1. Crea un progetto su [console.cloud.google.com](https://console.cloud.google.com) e abilita **Google Calendar API**.
@@ -157,7 +161,7 @@ In alternativa, con richiesta HTTP (richiede `GOOGLE_SYNC_TOKEN`):
 */10 * * * * wget -q -O /dev/null "https://www.thaitikmassage.it/cron-calendar-sync.php?token=IL_TUO_TOKEN"
 ```
 
-Puoi lanciare manualmente lo stesso URL dal browser per verificare l'esito: la risposta JSON riporta eventi letti, impegni importati, eventi creati, prenotazioni confermate e email di conferma inviate/non inviate.
+Puoi lanciare manualmente lo stesso URL dal browser per verificare l'esito: la risposta JSON riporta eventi letti, impegni importati, eventi creati, prenotazioni confermate e email di conferma inviate/non inviate. Non richiamare questo URL dal JavaScript della pagina di prenotazione: il token diventerebbe visibile nel browser; il tentativo immediato viene eseguito dal backend.
 
 ### Regole di funzionamento
 - Gli appuntamenti `in_attesa` e `confermato` dalla data odierna in poi vengono creati su Google con una proprietà privata `thaitik_appointment_id`, così la sincronizzazione non li reimporta come impegni. Gli `in_attesa` passano a `confermato` solo dopo la risposta positiva di Google; allora viene spedita l'email di conferma.

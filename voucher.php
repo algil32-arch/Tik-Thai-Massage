@@ -39,7 +39,7 @@ try {
         throw new InvalidArgumentException('Operazione non valida.');
     }
     if ($method === 'POST' && $action === 'preview') {
-        foreach (['recipient_name', 'service_name', 'price'] as $key) {
+        foreach (['recipient_name', 'service_name', 'studio_name', 'price'] as $key) {
             if (!isset($input[$key]) || !is_string($input[$key]) || trim($input[$key]) === ''
                 || strlen($input[$key]) > 150 || preg_match('/[\x00-\x1f]/', $input[$key])) {
                 throw new InvalidArgumentException('Inserisci il destinatario e seleziona un trattamento.');
@@ -54,6 +54,7 @@ try {
         $quote = voucherQuote($input['price'], $sessions, $quantity);
         voucherSendPdf([
             'recipient_name' => trim($input['recipient_name']), 'service_name' => trim($input['service_name']),
+            'studio_name' => trim($input['studio_name']),
             'duration_minutes' => $duration, 'sessions_per_item' => $sessions, 'quantity' => $quantity,
             'total_sessions' => $quote['total_sessions'], 'amount' => $quote['amount'],
         ], true);
@@ -73,11 +74,11 @@ try {
         $pdo = dbConnection();
         $stmt = $pdo->prepare(
             "SELECT sv.durata_minuti FROM servizi sv INNER JOIN studi s ON s.id = sv.id_studio
-             WHERE sv.id = :service AND s.id = :studio AND sv.attivo = 1 AND s.attivo = 1 AND s.nome = 'Studio Prati'"
+             WHERE sv.id = :service AND s.id = :studio AND sv.attivo = 1 AND s.attivo = 1"
         );
         $stmt->execute([':service' => $serviceId, ':studio' => $studioId]);
         $duration = $stmt->fetchColumn();
-        if ($duration === false) throw new InvalidArgumentException('Seleziona un trattamento attivo di Studio Prati.');
+        if ($duration === false) throw new InvalidArgumentException('Seleziona un trattamento attivo della sede scelta.');
         $voucher = bookingVoucherByCode($pdo, $code);
         bookingVoucherValidate($voucher, $studioId, $serviceId, (int)$duration, $appointment, new DateTimeImmutable('now'));
         voucherResponse(200, ['success' => true, 'remaining_sessions' => (int)$voucher['remaining_sessions'],
@@ -132,12 +133,12 @@ try {
     }
     $stmt = $pdo->prepare(
         "SELECT sv.*, s.nome AS studio_name FROM servizi sv INNER JOIN studi s ON s.id = sv.id_studio
-         WHERE sv.id = :service AND sv.attivo = 1 AND s.attivo = 1 AND s.nome = 'Studio Prati'"
+         WHERE sv.id = :service AND sv.attivo = 1 AND s.attivo = 1"
     );
     $stmt->execute([':service' => $serviceId]);
     $service = $stmt->fetch();
     if (!$service) {
-        throw new InvalidArgumentException('Seleziona un trattamento attivo di Studio Prati. APS Jaqueline non è inclusa.');
+        throw new InvalidArgumentException('Seleziona un trattamento attivo della sede scelta.');
     }
     $quote = voucherQuote((string)$service['prezzo'], $sessions, $quantity);
     if (sumUpSettings()['currency'] !== 'EUR') {

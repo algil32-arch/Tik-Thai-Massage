@@ -7,7 +7,10 @@ function voucherByToken(PDO $pdo, string $token): ?array
     if (!preg_match('/^[a-f0-9]{64}$/', $token)) {
         throw new InvalidArgumentException('Codice di accesso al voucher non valido.');
     }
-    $stmt = $pdo->prepare('SELECT * FROM gift_vouchers WHERE token = :token');
+    $stmt = $pdo->prepare(
+        'SELECT gv.*, s.nome AS studio_name FROM gift_vouchers gv
+         INNER JOIN studi s ON s.id = gv.id_studio WHERE gv.token = :token'
+    );
     $stmt->execute([':token' => $token]);
     return $stmt->fetch() ?: null;
 }
@@ -27,7 +30,10 @@ function voucherNotify(array $voucher): array
         . "Destinatario: {$voucher['recipient_name']}\n"
         . "Servizio: {$voucher['service_name']} ({$voucher['duration_minutes']} minuti)\n"
         . "Sedute: {$voucher['total_sessions']}\nImporto: {$voucher['amount']} EUR\n"
-        . "Sede: Studio Prati\nValido fino al: {$voucher['valid_until']}\n"
+        . "Sede: {$voucher['studio_name']}\nValido fino al: {$voucher['valid_until']}\n"
+        . ($voucher['studio_name'] === 'APS Studio Montesacro'
+            ? "Chi non e' gia' socio dovra' iscriversi all'APS al momento del primo appuntamento. Iscrizione ed eventuale quota sono gestite direttamente dall'associazione.\n"
+            : '')
         . "Nessun appuntamento prenotato. Prenota sul sito scegliendo Prenota con voucher regalo e inserisci il codice, oppure contatta lo studio.\n"
         . "Download PDF: https://www.thaitikmassage.it/voucher.php?action=pdf&token={$voucher['token']}\n";
     $headers = "From: Thai Tik Massage <$from>\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=UTF-8";
@@ -120,6 +126,6 @@ function voucherPublic(array $voucher): array
 {
     return array_intersect_key($voucher, array_flip([
         'status', 'recipient_name', 'service_name', 'duration_minutes', 'sessions_per_item',
-        'quantity', 'total_sessions', 'remaining_sessions', 'amount', 'voucher_code', 'valid_until',
+        'quantity', 'total_sessions', 'remaining_sessions', 'amount', 'voucher_code', 'valid_until', 'studio_name',
     ]));
 }
