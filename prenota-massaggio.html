@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Prenota un massaggio thailandese e scegli lo studio, il trattamento e la data più adatta a te." />
-    <title>Prenota | Thai Tik Massage</title>
+    <meta name="description" content="Prenota un massaggio thailandese a Prati e Montesacro: scegli il trattamento, la sede e la data più adatta a te a Roma." />
+    <title>Prenota massaggio a Prati e Montesacro | Thai Tik Massage</title>
     <link rel="stylesheet" href="cookie-consent.css" />
     <script src="cookie-consent.js" defer></script>
     <link rel="stylesheet" href="details.css" />
@@ -475,7 +475,7 @@
       const availableSlots = {};
       const slotOptions = {};
       const params = new URLSearchParams(window.location.search);
-      const isLocalPreviewHost = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+      const isLocalPreviewHost = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname) || window.location.protocol === 'file:';
       const localPreviewMessage = 'Anteprima locale: sedi, servizi e orari sono dimostrativi. Le richieste non vengono salvate.';
       let isLocalPreview = false;
       let activeCheckout = null;
@@ -863,6 +863,11 @@
             fetch('php-booking-backend.php?mode=catalog', { headers: { Accept: 'application/json' } }),
             fetch('php-booking-backend.php?mode=hours', { headers: { Accept: 'application/json' } })
           ]);
+          const catalogContentType = catalogResponse.headers.get('content-type') || '';
+          const hoursContentType = hoursResponse.headers.get('content-type') || '';
+          if (!catalogContentType.includes('application/json') || !hoursContentType.includes('application/json')) {
+            throw new Error('Backend non disponibile in questo ambiente.');
+          }
           if (!catalogResponse.ok || !hoursResponse.ok) throw new Error('Booking catalog request failed');
           const [data, hoursData] = await Promise.all([catalogResponse.json(), hoursResponse.json()]);
           if (!data.success || !hoursData.success || !Array.isArray(hoursData.studios)) {

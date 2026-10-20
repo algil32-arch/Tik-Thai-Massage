@@ -3,8 +3,47 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Regala un massaggio Thai Tik Massage con un voucher valido per la sede scelta." />
-    <title>Voucher regalo | Thai Tik Massage</title>
+    <meta name="description" content="Regala un massaggio Thai Tik Massage a Prati e Montesacro con un voucher valido per la sede scelta a Roma." />
+    <title>Voucher regalo a Prati e Montesacro | Thai Tik Massage</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "LocalBusiness",
+            "@id": "https://www.thaitikmassage.it/#business",
+            "name": "Thai Tik Massage",
+            "url": "https://www.thaitikmassage.it/",
+            "logo": "https://www.thaitikmassage.it/thai-tik-logo-alternativo.png",
+            "image": "https://www.thaitikmassage.it/tik-thai-massage.jpg",
+            "description": "Voucher regalo per trattamenti di benessere Thai a Prati e Montesacro a Roma.",
+            "email": "info@thaitikmassage.it",
+            "telephone": "+39 06 00000000",
+            "priceRange": "€€",
+            "areaServed": { "@type": "City", "name": "Roma" },
+            "address": [
+              { "@type": "PostalAddress", "streetAddress": "Via Giuseppe Gioachino Belli 1", "addressLocality": "Roma", "postalCode": "00193", "addressCountry": "IT" },
+              { "@type": "PostalAddress", "streetAddress": "Via Valle Borbera 51", "addressLocality": "Roma", "postalCode": "00100", "addressCountry": "IT" }
+            ],
+            "sameAs": ["https://wa.me/message/4ZL65LROJWHFI1"]
+          },
+          {
+            "@type": "Product",
+            "name": "Voucher regalo Thai Tik Massage",
+            "brand": { "@type": "Brand", "name": "Thai Tik Massage" },
+            "description": "Voucher regalo valido per trattamenti di massaggio Thai, sportivo, aromaterapia e Foot Massage presso le sedi di Prati e Montesacro.",
+            "category": "Voucher regalo benessere",
+            "offers": {
+              "@type": "Offer",
+              "availability": "https://schema.org/InStock",
+              "priceCurrency": "EUR",
+              "price": "60",
+              "seller": { "@id": "https://www.thaitikmassage.it/#business" }
+            }
+          }
+        ]
+      }
+    </script>
     <link rel="stylesheet" href="cookie-consent.css" />
     <script src="cookie-consent.js" defer></script>
     <link rel="stylesheet" href="details.css" />
@@ -117,7 +156,7 @@
     </footer>
     <script src="gift-voucher.js"></script>
     <script>
-      const localPreview = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+      const localPreview = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname) || window.location.protocol === 'file:';
       const loadVoucherSumUpSdk = () => {
         if (window.SumUpCard) return Promise.resolve();
         return new Promise((resolve, reject) => {
@@ -148,6 +187,10 @@
           };
         }
         const response = await fetch('php-booking-backend.php?mode=catalog', { headers: { Accept: 'application/json' } });
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+          throw new Error('Backend non disponibile: impossibile leggere il catalogo voucher in questo ambiente.');
+        }
         const data = await response.json();
         if (!response.ok || !data.success || !Array.isArray(data.studios) || !Array.isArray(data.services)) {
           throw new Error(data.message || 'Catalogo voucher non disponibile.');
