@@ -2,6 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { test } = require('node:test');
+const vm = require('node:vm');
 
 const root = path.join(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
@@ -45,4 +46,25 @@ test('Online payment and voucher booking are enabled for the APS venue', () => {
   assert.match(massage, /voucherRadio\.disabled = Boolean\(activeCheckout\)/);
   assert.doesNotMatch(backend, /paymentMethod === '(?:online|voucher)' && \$studioRecord\['nome'\]/);
   assert.doesNotMatch(voucher, /s\.nome = 'Studio Prati'/);
+});
+
+test('Partner pages preselect the correct studio and booking cards link to their details', () => {
+  const massage = read('prenota-massaggio.html');
+  const resolver = massage.match(/function resolveInitialStudio\(value\) \{[\s\S]*?\n      \}/)[0];
+  const locationUrl = massage.match(/function getStudioLocationUrl\(studio\) \{[\s\S]*?\n      \}/)[0];
+  const studios = [
+    { id: 9001, name: 'Studio Prati' },
+    { id: 9002, name: 'APS Studio Montesacro' }
+  ];
+  const context = vm.createContext({ studios });
+  vm.runInContext(`${resolver}\n${locationUrl}`, context);
+  for (const [page, expectedId, studio] of [
+    ['centro-prati.html', 9001, studios[0]],
+    ['centro-monte-sacro.html', 9002, studios[1]]
+  ]) {
+    const link = read(page).match(/href="(prenota-massaggio\.html\?studio=[^"]+)"/)[1];
+    const value = new URL(link, 'https://www.thaitikmassage.it/').searchParams.get('studio');
+    assert.equal(context.resolveInitialStudio(value), expectedId);
+    assert.equal(context.getStudioLocationUrl(studio), page);
+  }
 });

@@ -12,7 +12,7 @@ function voucherPdf(array $voucher, bool $preview): string
         ['Formula: ' . $voucher['sessions_per_item'] . ' sedute x ' . $voucher['quantity'], 12],
         ['Totale sedute regalate: ' . $voucher['total_sessions'], 15],
         ['Importo totale: ' . number_format((float)$voucher['amount'], 2, ',', '.') . ' EUR', 15],
-        ['Sede: ' . $voucher['studio_name'], 12],
+        ['Sede: ' . str_replace('Montesacro', 'Monte Sacro', $voucher['studio_name']), 12],
         [$preview ? 'Validita: 12 mesi dalla conferma del pagamento' :
             'Valido fino al: ' . (new DateTimeImmutable($voucher['valid_until']))->format('d/m/Y H:i'), 12],
         ['Prenota sul sito con il codice: scegli "Prenota con voucher regalo".', 11],

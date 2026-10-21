@@ -62,7 +62,7 @@ function initGiftVoucher({ studios, services, preview, loadSumUpSdk }) {
 
   studioSelect.replaceChildren(new Option('Seleziona la sede', ''));
   for (const studio of studios) {
-    const name = studio.name === 'APS Studio Montesacro' ? 'APS Jaqueline · Studio Montesacro' : studio.name;
+    const name = studio.name === 'APS Studio Montesacro' ? 'APS Jaqueline · Studio Monte Sacro' : studio.name;
     studioSelect.add(new Option(name, String(studio.id)));
   }
   studioSelect.disabled = studios.length === 0;
@@ -128,7 +128,7 @@ function initGiftVoucher({ studios, services, preview, loadSumUpSdk }) {
       `Per: ${voucher.recipient_name}`, `${voucher.service_name} · ${voucher.duration_minutes} minuti`,
       `Formula: ${voucher.sessions_per_item} sedute × ${voucher.quantity}`,
       `Totale sedute regalate: ${voucher.total_sessions}`, `Importo totale: ${money(Math.round(Number(voucher.amount) * 100))}`,
-      `Sede: ${voucher.studio_name}`,
+      `Sede: ${voucher.studio_name.replace(/Montesacro/g, 'Monte Sacro')}`,
       ...(voucher.studio_name === 'APS Studio Montesacro'
         ? ['Chi non è già socio dovrà iscriversi all’APS al momento del primo appuntamento. Iscrizione ed eventuale quota sono gestite direttamente dall’associazione.'] : []),
       paid ? `Valido fino al: ${new Date(voucher.valid_until.replace(' ', 'T')).toLocaleDateString('it-IT')}` : 'Validità: 12 mesi dalla conferma del pagamento',

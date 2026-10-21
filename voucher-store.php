@@ -26,11 +26,12 @@ function voucherNotify(array $voucher): array
         error_log('Gift voucher email configuration invalid for voucher #' . $voucher['id']);
         return $result;
     }
+    $studioName = str_replace('Montesacro', 'Monte Sacro', $voucher['studio_name']);
     $body = "Voucher regalo pagato: {$voucher['voucher_code']}\n"
         . "Destinatario: {$voucher['recipient_name']}\n"
         . "Servizio: {$voucher['service_name']} ({$voucher['duration_minutes']} minuti)\n"
         . "Sedute: {$voucher['total_sessions']}\nImporto: {$voucher['amount']} EUR\n"
-        . "Sede: {$voucher['studio_name']}\nValido fino al: {$voucher['valid_until']}\n"
+        . "Sede: {$studioName}\nValido fino al: {$voucher['valid_until']}\n"
         . ($voucher['studio_name'] === 'APS Studio Montesacro'
             ? "Chi non e' gia' socio dovra' iscriversi all'APS al momento del primo appuntamento. Iscrizione ed eventuale quota sono gestite direttamente dall'associazione.\n"
             : '')

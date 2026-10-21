@@ -3,40 +3,96 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Dove trovarmi a Prati e Montesacro: indirizzi, orari e mappe interattive di Thai Tik Massage a Roma." />
-    <title>Dove trovarmi a Prati e Montesacro | Thai Tik Massage</title>
+    <meta name="description" content="Dove trovarmi a Prati e Monte Sacro: indirizzi, orari e mappe interattive di Thai Tik Massage a Roma." />
+    <title>Dove trovarmi a Prati e Monte Sacro | Thai Tik Massage</title>
+    <link rel="canonical" href="https://www.thaitikmassage.it/dove-trovarmi.html" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@graph": [
           {
-            "@type": "LocalBusiness",
+            "@type": "Organization",
             "@id": "https://www.thaitikmassage.it/#business",
             "name": "Thai Tik Massage",
             "url": "https://www.thaitikmassage.it/",
             "logo": "https://www.thaitikmassage.it/thai-tik-logo-alternativo.png",
-            "image": "https://www.thaitikmassage.it/tik-thai-massage.jpg",
-            "description": "Studio di massaggio Thai a Prati e Montesacro, Roma, con trattamenti di benessere e prenotazione online.",
+            "image": "https://www.thaitikmassage.it/thai-tik-logo-alternativo.png",
+            "description": "Trattamenti benessere thailandesi di Nuttiporn Sriboust presso centri partner a Prati e Monte Sacro, Roma.",
+            "email": "info@thaitikmassage.it",
+            "location": [
+              {
+                "@id": "https://www.thaitikmassage.it/#location-prati"
+              },
+              {
+                "@id": "https://www.thaitikmassage.it/#location-monte-sacro"
+              }
+            ]
+          },
+          {
+            "@type": "LocalBusiness",
+            "@id": "https://www.thaitikmassage.it/#location-prati",
+            "name": "Thai Tik Massage - Prati",
+            "url": "https://www.thaitikmassage.it/centro-prati.html",
+            "logo": "https://www.thaitikmassage.it/thai-tik-logo-alternativo.png",
+            "image": "https://www.thaitikmassage.it/thai-tik-logo-alternativo.png",
+            "description": "Trattamenti di Thai Tik Massage presso il centro partner Barbiere Prati - lounge di estetica, a Prati, Roma.",
             "email": "info@thaitikmassage.it",
             "priceRange": "€€",
-            "areaServed": { "@type": "City", "name": "Roma" },
-            "address": [
-              { "@type": "PostalAddress", "streetAddress": "Via Giuseppe Gioachino Belli 1", "addressLocality": "Roma", "postalCode": "00193", "addressCountry": "IT" },
-              { "@type": "PostalAddress", "streetAddress": "Via Valle Borbera 51", "addressLocality": "Roma", "postalCode": "00100", "addressCountry": "IT" }
+            "brand": {
+              "@id": "https://www.thaitikmassage.it/#business"
+            },
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "Via Giuseppe Gioachino Belli 1",
+              "addressLocality": "Roma",
+              "postalCode": "00193",
+              "addressRegion": "RM",
+              "addressCountry": "IT"
+            },
+            "areaServed": [
+              {
+                "@type": "Place",
+                "name": "Prati"
+              },
+              {
+                "@type": "City",
+                "name": "Roma"
+              }
             ],
-            "sameAs": ["https://wa.me/message/4ZL65LROJWHFI1"]
+            "hasMap": "https://www.google.com/maps/search/?api=1&query=Via%20Giuseppe%20Gioachino%20Belli%201%2C%2000193%20Roma"
           },
           {
-            "@type": "Place",
-            "name": "Studio Prati",
-            "address": { "@type": "PostalAddress", "streetAddress": "Via Giuseppe Gioachino Belli 1", "addressLocality": "Roma", "postalCode": "00193", "addressCountry": "IT" },
-            "containedInPlace": { "@type": "City", "name": "Roma" }
-          },
-          {
-            "@type": "Place",
-            "name": "Studio Montesacro",
-            "address": { "@type": "PostalAddress", "streetAddress": "Via Valle Borbera 51", "addressLocality": "Roma", "postalCode": "00100", "addressCountry": "IT" },
-            "containedInPlace": { "@type": "City", "name": "Roma" }
+            "@type": "LocalBusiness",
+            "@id": "https://www.thaitikmassage.it/#location-monte-sacro",
+            "name": "Thai Tik Massage - Monte Sacro",
+            "url": "https://www.thaitikmassage.it/centro-monte-sacro.html",
+            "logo": "https://www.thaitikmassage.it/thai-tik-logo-alternativo.png",
+            "image": "https://www.thaitikmassage.it/thai-tik-logo-alternativo.png",
+            "description": "Trattamenti di Thai Tik Massage presso il centro partner APS Jaqueline, a Monte Sacro, Roma.",
+            "email": "info@thaitikmassage.it",
+            "priceRange": "€€",
+            "brand": {
+              "@id": "https://www.thaitikmassage.it/#business"
+            },
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "Via Valle Borbera 51",
+              "addressLocality": "Roma",
+              "postalCode": "00141",
+              "addressRegion": "RM",
+              "addressCountry": "IT"
+            },
+            "areaServed": [
+              {
+                "@type": "Place",
+                "name": "Monte Sacro"
+              },
+              {
+                "@type": "City",
+                "name": "Roma"
+              }
+            ],
+            "hasMap": "https://www.google.com/maps/search/?api=1&query=Via%20Valle%20Borbera%2051%2C%2000141%20Roma"
           }
         ]
       }
@@ -47,6 +103,7 @@
     <link rel="stylesheet" href="header.css" />
     <script src="language-selector.js" defer></script>
     <script src="header-scroll.js" defer></script>
+    <script src="studio-hours.js" defer></script>
     <style>
       .map-links {
         display: flex;
@@ -137,7 +194,14 @@
               <a href="controindicazioni-massaggio-thai.pdf">Controindicazioni e precauzioni</a>
             </div>
           </details>
-          <a href="mappa-sedi.html">Dove trovarmi</a>
+          <details class="nav-dropdown">
+            <summary>Dove trovarmi</summary>
+            <div class="nav-menu">
+              <a href="dove-trovarmi.html" aria-current="page">Tutte le sedi e le mappe</a>
+              <a href="centro-prati.html">Prati · Barbiere Prati</a>
+              <a href="centro-monte-sacro.html">Monte Sacro · APS Jaqueline</a>
+            </div>
+          </details>
           <a class="nav-book" href="index.html#prenota">Prenota</a>
         </nav>
       </div>
@@ -149,7 +213,7 @@
           <a class="back" href="index.html">← Torna alla home</a>
           <p class="eyebrow">Trovaci</p>
           <h1 id="page-title">Dove trovarmi</h1>
-          <p>Lo studio e i trattamenti dedicati al benessere a Roma.</p>
+          <p>I centri partner di Thai Tik Massage a Prati e Monte Sacro, Roma.</p>
         </div>
       </section>
 
@@ -162,6 +226,7 @@
             <p><strong>Via Giuseppe Gioachino Belli 1<br />00193 Roma</strong></p>
             <p>Trattamenti: massaggio Thai tradizionale, massaggio sportivo (deep tissue), massaggio con oli e aromaterapia (60 min · 60 €, 90 min · 80 € o 120 min · 100 €), Tok Sen e Foot Massage Express (30 min · 35 €) o Completo (60 min · 50 €).</p>
             <p><strong>Orari:</strong> <span data-studio-hours="Studio Prati" aria-live="polite">Caricamento...</span></p>
+            <p><a href="centro-prati.html">Scopri il centro partner di Prati</a></p>
             <p><a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=info%40thaitikmassage.it&amp;su=Informazioni%20Studio%20Prati">info@thaitikmassage.it</a></p>
           </div>
           <div class="studio-card" id="studio-montesacro">
@@ -169,10 +234,11 @@
             <aside class="association-notice" aria-label="Attività professionale presso la sede associativa">
               <p><strong>Attività professionale presso APS Jaqueline.</strong> Nuttiporn Sriboust opera qui come socia professionista, in autonomia e con propria Partita IVA. Trattamenti, pagamenti e documentazione fiscale sono gestiti direttamente da Thai Tik Massage, non dall'APS. Chi non è già socio dovrà iscriversi all'associazione al momento del primo appuntamento. Tesseramento ed eventuale quota sono gestiti esclusivamente dall'associazione e non sono inclusi nel prezzo del trattamento.</p>
             </aside>
-            <p><strong>Via Valle Borbera 51<br />Montesacro, Roma</strong></p>
+            <p><strong>Via Valle Borbera 51<br />00141 Roma, Monte Sacro</strong></p>
             <p>Trattamenti: massaggio Thai tradizionale, massaggio sportivo (deep tissue), massaggio con oli e aromaterapia (60 min · 60 €, 90 min · 80 € o 120 min · 100 €), Tok Sen e Foot Massage Express (30 min · 35 €) o Completo (60 min · 50 €).</p>
             <p><strong>Orari:</strong> <span data-studio-hours="APS Studio Montesacro" aria-live="polite">Caricamento...</span></p>
-            <p><a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=info%40thaitikmassage.it&amp;su=Informazioni%20Studio%20Montesacro">info@thaitikmassage.it</a></p>
+            <p><a href="centro-monte-sacro.html">Scopri il centro partner di Monte Sacro</a></p>
+            <p><a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=info%40thaitikmassage.it&amp;su=Informazioni%20Studio%20Monte%20Sacro">info@thaitikmassage.it</a></p>
           </div>
         </div>
 
@@ -187,8 +253,8 @@
                 <button type="button" data-open-consent>Preferenze per Google Maps</button>
               </div>
               <iframe
-                title="Mappa dello studio di Montesacro"
-                data-consent-src="https://www.google.com/maps?q=Via%20Valle%20Borbera%2049%20Montesacro%20Roma&amp;output=embed"
+                title="Mappa dello studio di Monte Sacro"
+                data-consent-src="https://www.google.com/maps?q=Via%20Valle%20Borbera%2051%2C%2000141%20Roma&amp;output=embed"
                 hidden
                 loading="lazy"
                 allowfullscreen
@@ -196,7 +262,7 @@
               ></iframe>
             </div>
             <div class="map-links">
-              <a href="https://www.google.com/maps/search/?api=1&amp;query=Jaqueline+Massaggi+APS%2C+Via+Valle+Borbera+49+Roma" target="_blank" rel="noopener">Google Maps</a>
+              <a href="https://www.google.com/maps/search/?api=1&amp;query=Jaqueline+Massaggi+APS%2C+Via+Valle+Borbera+51+00141+Roma" target="_blank" rel="noopener">Google Maps</a>
             </div>
           </div>
 
@@ -235,7 +301,7 @@
       <section class="booking-band" aria-labelledby="booking-title">
         <div class="wrap">
           <p class="eyebrow">Prenota</p>
-          <h2 id="booking-title">Prenota il tuo appuntamento a Prati e Montesacro</h2>
+          <h2 id="booking-title">Prenota il tuo appuntamento a Prati e Monte Sacro</h2>
           <p>Scrivici per verificare la seduta più adatta a te e la disponibilità del giorno.</p>
           <a class="button" href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=info%40thaitikmassage.it&amp;su=Richiesta%20appuntamento">Contattaci</a>
         </div>
@@ -262,8 +328,8 @@
         <div class="footer-sedi">
           <h4>Sedi</h4>
           <ul>
-            <li><a href="https://maps.google.com/?q=Barbiere+Prati+Via+Gioacchino+Belli+1" target="_blank" rel="noreferrer">Barbiere Prati · Via Gioacchino Belli, 1</a></li>
-            <li><a href="https://maps.google.com/?q=APS+Jaqueline+Via+Valle+Borbera+51+Roma" target="_blank" rel="noreferrer">APS Jaqueline · Via Valle Borbera, 51</a></li>
+            <li><a href="centro-prati.html">Prati · Barbiere Prati · Via Giuseppe Gioachino Belli, 1</a></li>
+            <li><a href="centro-monte-sacro.html">Monte Sacro · APS Jaqueline · Via Valle Borbera, 51</a></li>
           </ul>
         </div>
 
@@ -273,7 +339,7 @@
             <li><a href="mailto:info@thaitikmassage.it">info@thaitikmassage.it</a></li>
             <li><a href="documenti-legali-premium.html#dsar">DSAR · Richieste privacy</a></li>
             <li><a href="documenti-legali-premium.html#registry">Registro dei trattamenti</a></li>
-            <li><a href="mappa-sedi.html">Mappa sedi e indirizzi</a></li>
+            <li><a href="dove-trovarmi.html">Mappa sedi e indirizzi</a></li>
           </ul>
         </div>
       </div>
@@ -289,36 +355,5 @@
         </div>
       </div>
     </footer>
-    <script>
-      const weekdayNames = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
-
-      async function loadStudioHours() {
-        const hourLabels = [...document.querySelectorAll('[data-studio-hours]')];
-        try {
-          const response = await fetch('php-booking-backend.php?mode=hours', { headers: { Accept: 'application/json' } });
-          if (!response.ok) throw new Error('Unable to load studio hours');
-          const data = await response.json();
-
-          for (const label of hourLabels) {
-            const studio = (data.studios || []).find(item => item.nome === label.dataset.studioHours);
-            if (!studio) {
-              label.textContent = 'Sede non disponibile';
-              continue;
-            }
-
-            const schedule = studio.hours || [];
-            label.textContent = schedule.length
-              ? schedule.map(item => `${weekdayNames[item.weekday - 1]} ${item.start}–${item.end}`).join(' · ')
-              : 'Orari non ancora configurati';
-          }
-        } catch (error) {
-          for (const label of hourLabels) {
-            label.textContent = 'Orari temporaneamente non disponibili';
-          }
-        }
-      }
-
-      loadStudioHours();
-    </script>
   </body>
 </html>

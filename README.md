@@ -1,12 +1,50 @@
-# Thai Tik Massage — Site Ver 14.0
+# Thai Tik Massage — Site Ver 16.0
 
 Sito statico multipagina per Thai Tik Massage, con backend PHP/MySQL predisposto per l'hosting Aruba.
 
-Note del rilascio corrente: [Site Ver 14.0](RELEASE_NOTES_V14.md).
+Note del rilascio corrente: [Site Ver 16.0](RELEASE_NOTES_V16.md).
 
 La sitemap pubblica è in `sitemap.xml`; `robots.txt` indica ai motori di ricerca
 le aree non pubbliche e il percorso della sitemap. Dopo aver pubblicato questi
 file nella root del dominio, inviare la sitemap da Google Search Console.
+
+Nei testi pubblici, nei metadati SEO e nei documenti usare la grafia **Monte Sacro**.
+Il nome storico `APS Studio Montesacro` resta una chiave interna per il database
+e il caricamento degli orari; nei voucher viene mostrato con la grafia separata.
+Verifica della grafia nelle pagine: `node --test tests/seo.test.cjs`.
+
+## Centri partner e dati strutturati
+
+Le pagine `centro-prati.html` e `centro-monte-sacro.html` descrivono i due centri
+partner, con indirizzi, modalita' di accesso e collegamenti al calendario della
+sede. L'attivita' professionale di Tik presso APS Jaqueline resta distinta
+dall'associazione e dal suo tesseramento.
+Il menu superiore "Dove trovarmi" usa la stessa tendina nativa di "Trattamenti":
+contiene il riepilogo delle sedi e i collegamenti ai due centri partner.
+Il menu funziona anche senza JavaScript e usa gli stili esistenti di `header.css`.
+
+La versione canonica e' `https://www.thaitikmassage.it/`, gia' destinazione del
+reindirizzamento dal dominio senza `www`. Ogni pagina pubblica dichiara il proprio
+canonico; `mappa-sedi.html` rimane un alias di `dove-trovarmi.html`, escluso dalla
+sitemap. Gli identificativi delle due sedi sono `/#location-prati` e
+`/#location-monte-sacro`: i nodi `LocalBusiness` descrivono i luoghi dove Tik
+riceve, senza dichiarare i partner filiali di sua proprieta'. L'attivita'
+professionale e' un nodo `Organization`, i trattamenti sono nodi `Service`.
+I dati delle sedi, ripetuti negli HTML per essere disponibili senza JavaScript,
+devono restare coerenti: logo `thai-tik-logo-alternativo.png`, Via Giuseppe
+Gioachino Belli 1 (00193) e Via Valle Borbera 51 (00141).
+
+Per pubblicare questo aggiornamento caricare le due nuove pagine, tutti gli
+HTML aggiornati, `sitemap.xml`, `details.css` e il nuovo `studio-hours.js`.
+Le pagine dei centri incorporano la sola mappa della sede, caricata esclusivamente
+dopo il consenso a Google Maps, e mostrano gli orari correnti tramite
+`php-booking-backend.php?mode=hours`. Lo stesso script degli orari e' usato nella
+pagina riepilogativa delle sedi. Errori di caricamento vengono mostrati e registrati
+nella console; non si inventano orari o disponibilita'. Senza JavaScript restano
+disponibili indirizzi, collegamenti esterni alle mappe e contatto email.
+I percorsi `.html` sono pagine reali e canoniche: non richiedono riscritture URL.
+Non occorrono modifiche al database o alla configurazione Aruba.
+Controlli: `node --test tests/seo.test.cjs tests/booking-pages.test.cjs`.
 
 ## Run locally
 

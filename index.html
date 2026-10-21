@@ -3,72 +3,136 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Thai Tik Massage a Prati e Montesacro: massaggio thai tradizionale, deep tissue, aromaterapia e foot massage. Prenota il tuo trattamento di benessere a Roma." />
-    <title>Thai Tik Massage a Prati e Montesacro | Massaggio Thai e Benessere</title>
+    <meta name="description" content="Thai Tik Massage a Prati e Monte Sacro: massaggio thai tradizionale, deep tissue, aromaterapia e foot massage. Prenota il tuo trattamento di benessere a Roma." />
+    <title>Thai Tik Massage a Prati e Monte Sacro | Massaggio Thai e Benessere</title>
+    <link rel="canonical" href="https://www.thaitikmassage.it/" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@graph": [
           {
-            "@type": "LocalBusiness",
+            "@type": "Organization",
             "@id": "https://www.thaitikmassage.it/#business",
             "name": "Thai Tik Massage",
             "url": "https://www.thaitikmassage.it/",
             "logo": "https://www.thaitikmassage.it/thai-tik-logo-alternativo.png",
-            "image": "https://www.thaitikmassage.it/tik-thai-massage.jpg",
-            "description": "Massaggio Thai tradizionale, Deep Tissue, aromaterapia e Foot Massage a Prati e Montesacro a Roma.",
+            "image": "https://www.thaitikmassage.it/thai-tik-logo-alternativo.png",
+            "description": "Trattamenti benessere thailandesi di Nuttiporn Sriboust presso centri partner a Prati e Monte Sacro, Roma.",
             "email": "info@thaitikmassage.it",
-            "priceRange": "€€",
-            "areaServed": { "@type": "City", "name": "Roma" },
-            "address": [
+            "location": [
               {
-                "@type": "PostalAddress",
-                "streetAddress": "Via Giuseppe Gioachino Belli 1",
-                "addressLocality": "Roma",
-                "postalCode": "00193",
-                "addressCountry": "IT"
+                "@id": "https://www.thaitikmassage.it/#location-prati"
               },
               {
-                "@type": "PostalAddress",
-                "streetAddress": "Via Valle Borbera 51",
-                "addressLocality": "Roma",
-                "postalCode": "00100",
-                "addressCountry": "IT"
+                "@id": "https://www.thaitikmassage.it/#location-monte-sacro"
+              }
+            ]
+          },
+          {
+            "@type": "LocalBusiness",
+            "@id": "https://www.thaitikmassage.it/#location-prati",
+            "name": "Thai Tik Massage - Prati",
+            "url": "https://www.thaitikmassage.it/centro-prati.html",
+            "logo": "https://www.thaitikmassage.it/thai-tik-logo-alternativo.png",
+            "image": "https://www.thaitikmassage.it/thai-tik-logo-alternativo.png",
+            "description": "Trattamenti di Thai Tik Massage presso il centro partner Barbiere Prati - lounge di estetica, a Prati, Roma.",
+            "email": "info@thaitikmassage.it",
+            "priceRange": "€€",
+            "brand": {
+              "@id": "https://www.thaitikmassage.it/#business"
+            },
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "Via Giuseppe Gioachino Belli 1",
+              "addressLocality": "Roma",
+              "postalCode": "00193",
+              "addressRegion": "RM",
+              "addressCountry": "IT"
+            },
+            "areaServed": [
+              {
+                "@type": "Place",
+                "name": "Prati"
+              },
+              {
+                "@type": "City",
+                "name": "Roma"
               }
             ],
-            "sameAs": ["https://wa.me/message/4ZL65LROJWHFI1"]
+            "hasMap": "https://www.google.com/maps/search/?api=1&query=Via%20Giuseppe%20Gioachino%20Belli%201%2C%2000193%20Roma"
           },
           {
-            "@type": "ProfessionalService",
+            "@type": "LocalBusiness",
+            "@id": "https://www.thaitikmassage.it/#location-monte-sacro",
+            "name": "Thai Tik Massage - Monte Sacro",
+            "url": "https://www.thaitikmassage.it/centro-monte-sacro.html",
+            "logo": "https://www.thaitikmassage.it/thai-tik-logo-alternativo.png",
+            "image": "https://www.thaitikmassage.it/thai-tik-logo-alternativo.png",
+            "description": "Trattamenti di Thai Tik Massage presso il centro partner APS Jaqueline, a Monte Sacro, Roma.",
+            "email": "info@thaitikmassage.it",
+            "priceRange": "€€",
+            "brand": {
+              "@id": "https://www.thaitikmassage.it/#business"
+            },
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "Via Valle Borbera 51",
+              "addressLocality": "Roma",
+              "postalCode": "00141",
+              "addressRegion": "RM",
+              "addressCountry": "IT"
+            },
+            "areaServed": [
+              {
+                "@type": "Place",
+                "name": "Monte Sacro"
+              },
+              {
+                "@type": "City",
+                "name": "Roma"
+              }
+            ],
+            "hasMap": "https://www.google.com/maps/search/?api=1&query=Via%20Valle%20Borbera%2051%2C%2000141%20Roma"
+          },
+          {
+            "@type": "Service",
             "name": "Massaggio Thai Tradizionale",
             "serviceType": "Massaggio Thai Tradizionale",
-            "provider": { "@id": "https://www.thaitikmassage.it/#business" },
+            "provider": {
+              "@id": "https://www.thaitikmassage.it/#business"
+            },
             "areaServed": "Roma",
-            "description": "Massaggio Thai tradizionale a Prati e Montesacro per tensioni, flessibilità e benessere." 
+            "description": "Massaggio Thai tradizionale a Prati e Monte Sacro per tensioni, flessibilità e benessere."
           },
           {
-            "@type": "ProfessionalService",
+            "@type": "Service",
             "name": "Massaggio Sportivo",
             "serviceType": "Massaggio Sportivo",
-            "provider": { "@id": "https://www.thaitikmassage.it/#business" },
+            "provider": {
+              "@id": "https://www.thaitikmassage.it/#business"
+            },
             "areaServed": "Roma",
-            "description": "Massaggio sportivo e Deep Tissue a Prati e Montesacro per recupero e distensione muscolare." 
+            "description": "Massaggio sportivo e Deep Tissue a Prati e Monte Sacro per recupero e distensione muscolare."
           },
           {
-            "@type": "ProfessionalService",
+            "@type": "Service",
             "name": "Aromaterapia",
             "serviceType": "Massaggio con Oli e Aromaterapia",
-            "provider": { "@id": "https://www.thaitikmassage.it/#business" },
+            "provider": {
+              "@id": "https://www.thaitikmassage.it/#business"
+            },
             "areaServed": "Roma",
-            "description": "Massaggio con oli essenziali e aromaterapia per relax, distensione e benessere." 
+            "description": "Massaggio con oli essenziali e aromaterapia per relax, distensione e benessere."
           },
           {
-            "@type": "ProfessionalService",
+            "@type": "Service",
             "name": "Foot Massage",
             "serviceType": "Foot Massage",
-            "provider": { "@id": "https://www.thaitikmassage.it/#business" },
+            "provider": {
+              "@id": "https://www.thaitikmassage.it/#business"
+            },
             "areaServed": "Roma",
-            "description": "Foot Massage thailandese per piedi, gambe e relax a Prati e Montesacro." 
+            "description": "Foot Massage thailandese per piedi, gambe e relax a Prati e Monte Sacro."
           }
         ]
       }
@@ -187,7 +251,14 @@
               <a href="controindicazioni-massaggio-thai.pdf">Controindicazioni e precauzioni</a>
             </div>
           </details>
-          <a href="mappa-sedi.html">Dove trovarmi</a>
+          <details class="nav-dropdown">
+            <summary>Dove trovarmi</summary>
+            <div class="nav-menu">
+              <a href="dove-trovarmi.html">Tutte le sedi e le mappe</a>
+              <a href="centro-prati.html">Prati · Barbiere Prati</a>
+              <a href="centro-monte-sacro.html">Monte Sacro · APS Jaqueline</a>
+            </div>
+          </details>
           <a class="nav-book" href="prenota.html">Prenota</a>
           <a class="nav-admin" href="area-admin.php">Area admin</a>
         </nav>
@@ -198,15 +269,15 @@
       <section class="hero" aria-labelledby="hero-title">
         <div class="wrap hero-content">
           <p class="eyebrow">Ritrova il tuo equilibrio nel cuore di Roma.</p>
-          <h1 id="hero-title">Massaggio Thai a Prati e Montesacro</h1>
-          <p>L'autentico <strong>massaggio thailandese</strong> a Prati e Montesacro, pensato per sciogliere tensioni, migliorare la mobilità e regalarti una pausa di benessere profondo.</p>
+          <h1 id="hero-title">Massaggio Thai a Prati e Monte Sacro</h1>
+          <p>L'autentico <strong>massaggio thailandese</strong> a Prati e Monte Sacro, pensato per sciogliere tensioni, migliorare la mobilità e regalarti una pausa di benessere profondo.</p>
           <a class="button" href="#trattamenti">Scopri i trattamenti</a>
         </div>
       </section>
 
       <section class="intro wrap" aria-labelledby="intro-title">
         <p class="eyebrow">Benvenuti da Thai Tik Massage</p>
-        <h2 id="intro-title">Trattamenti di benessere a Prati e Montesacro</h2>
+        <h2 id="intro-title">Trattamenti di benessere a Prati e Monte Sacro</h2>
         <p>Ricevere un <strong>autentico massaggio thai a Roma</strong> significa concedersi un rituale pensato per sciogliere tensioni, migliorare la flessibilità e ritrovare equilibrio.</p>
         <p>Attraverso movimenti precisi e ritmici, l'operatore aiuta a:</p>
         <ul>
@@ -222,7 +293,7 @@
         <div class="wrap">
           <div class="section-heading">
             <p class="eyebrow">I trattamenti</p>
-            <h2 id="treatments-title">I trattamenti più richiesti a Prati e Montesacro</h2>
+            <h2 id="treatments-title">I trattamenti più richiesti a Prati e Monte Sacro</h2>
           </div>
           <div class="treatment-grid">
             <article class="treatment">
@@ -339,16 +410,17 @@
         <img src="tik-thai-massage.jpg" alt="Trattamento benessere di Tik Thai Wellness" loading="lazy" />
         <div>
           <p class="eyebrow">Dove trovarmi</p>
-          <h2 id="locations-title">Le sedi Thai Tik Massage a Prati e Montesacro</h2>
+          <h2 id="locations-title">Le sedi Thai Tik Massage a Prati e Monte Sacro</h2>
+          <p>Scopri i due centri partner: <a href="centro-prati.html">Barbiere Prati - lounge di estetica, a Prati</a> e <a href="centro-monte-sacro.html">APS Jaqueline, a Monte Sacro</a>.</p>
           <p>I trattamenti disponibili nei centri di Roma sono: massaggio Thai tradizionale, massaggio sportivo (deep tissue), massaggio con oli e aromaterapia (60 min · 60 €, 90 min · 80 € o 120 min · 100 €), Tok Sen e Foot Massage Express (30 min · 35 €) o Completo (60 min · 50 €). Verifica la sede e la disponibilità prima di recarti in studio.</p>
-          <a class="button button-outline" href="mappa-sedi.html">Vedi indirizzi e mappe</a>
+          <a class="button button-outline" href="dove-trovarmi.html">Vedi indirizzi e mappe</a>
         </div>
       </section>
 
       <section class="booking" id="prenota" aria-labelledby="booking-title">
         <div class="wrap">
           <p class="eyebrow">Il tuo momento di pausa</p>
-          <h2 id="booking-title">Prenota il tuo trattamento a Prati e Montesacro</h2>
+          <h2 id="booking-title">Prenota il tuo trattamento a Prati e Monte Sacro</h2>
           <p>Per informazioni su trattamenti, sedi e disponibilità, ti invitiamo a usare la pagina dedicata alla prenotazione. Qui puoi scegliere lo studio e il servizio più adatto a te.</p>
           <div style="display:flex; justify-content:center; gap:16px; flex-wrap:wrap;">
             <a class="button" href="prenota.html">Vai alla prenotazione on line</a>
@@ -381,8 +453,8 @@
         <div class="footer-sedi">
           <h4>Sedi</h4>
           <ul>
-            <li><a href="https://maps.google.com/?q=Barbiere+Prati+Via+Gioacchino+Belli+1" target="_blank" rel="noreferrer">Barbiere Prati · Via Gioacchino Belli, 1</a></li>
-            <li><a href="https://maps.google.com/?q=APS+Jaqueline+Via+Valle+Borbera+51+Roma" target="_blank" rel="noreferrer">APS Jaqueline · Via Valle Borbera, 51</a></li>
+            <li><a href="centro-prati.html">Prati · Barbiere Prati · Via Giuseppe Gioachino Belli, 1</a></li>
+            <li><a href="centro-monte-sacro.html">Monte Sacro · APS Jaqueline · Via Valle Borbera, 51</a></li>
           </ul>
         </div>
 
@@ -392,7 +464,7 @@
             <li><a href="mailto:info@thaitikmassage.it">info@thaitikmassage.it</a></li>
             <li><a href="documenti-legali-premium.html#dsar">DSAR · Richieste privacy</a></li>
             <li><a href="documenti-legali-premium.html#registry">Registro dei trattamenti</a></li>
-            <li><a href="mappa-sedi.html">Mappa sedi e indirizzi</a></li>
+            <li><a href="dove-trovarmi.html">Mappa sedi e indirizzi</a></li>
           </ul>
         </div>
       </div>

@@ -3,43 +3,117 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Prenota un massaggio o un voucher Thai Tik Massage a Prati e Montesacro. Scegli il tuo trattamento e la sede più comoda a Roma." />
-    <title>Prenota online a Prati e Montesacro | Thai Tik Massage</title>
+    <meta name="description" content="Prenota un massaggio o un voucher Thai Tik Massage a Prati e Monte Sacro. Scegli il tuo trattamento e la sede più comoda a Roma." />
+    <title>Prenota online a Prati e Monte Sacro | Thai Tik Massage</title>
+    <link rel="canonical" href="https://www.thaitikmassage.it/prenota.html" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@graph": [
           {
-            "@type": "LocalBusiness",
+            "@type": "Organization",
             "@id": "https://www.thaitikmassage.it/#business",
             "name": "Thai Tik Massage",
             "url": "https://www.thaitikmassage.it/",
             "logo": "https://www.thaitikmassage.it/thai-tik-logo-alternativo.png",
-            "image": "https://www.thaitikmassage.it/tik-thai-massage.jpg",
-            "description": "Prenotazioni online per massaggi Thailandesi a Prati e Montesacro a Roma.",
+            "image": "https://www.thaitikmassage.it/thai-tik-logo-alternativo.png",
+            "description": "Trattamenti benessere thailandesi di Nuttiporn Sriboust presso centri partner a Prati e Monte Sacro, Roma.",
             "email": "info@thaitikmassage.it",
-            "telephone": "+39 06 00000000",
+            "location": [
+              {
+                "@id": "https://www.thaitikmassage.it/#location-prati"
+              },
+              {
+                "@id": "https://www.thaitikmassage.it/#location-monte-sacro"
+              }
+            ]
+          },
+          {
+            "@type": "LocalBusiness",
+            "@id": "https://www.thaitikmassage.it/#location-prati",
+            "name": "Thai Tik Massage - Prati",
+            "url": "https://www.thaitikmassage.it/centro-prati.html",
+            "logo": "https://www.thaitikmassage.it/thai-tik-logo-alternativo.png",
+            "image": "https://www.thaitikmassage.it/thai-tik-logo-alternativo.png",
+            "description": "Trattamenti di Thai Tik Massage presso il centro partner Barbiere Prati - lounge di estetica, a Prati, Roma.",
+            "email": "info@thaitikmassage.it",
             "priceRange": "€€",
-            "areaServed": { "@type": "City", "name": "Roma" },
-            "address": [
-              { "@type": "PostalAddress", "streetAddress": "Via Giuseppe Gioachino Belli 1", "addressLocality": "Roma", "postalCode": "00193", "addressCountry": "IT" },
-              { "@type": "PostalAddress", "streetAddress": "Via Valle Borbera 51", "addressLocality": "Roma", "postalCode": "00100", "addressCountry": "IT" }
+            "brand": {
+              "@id": "https://www.thaitikmassage.it/#business"
+            },
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "Via Giuseppe Gioachino Belli 1",
+              "addressLocality": "Roma",
+              "postalCode": "00193",
+              "addressRegion": "RM",
+              "addressCountry": "IT"
+            },
+            "areaServed": [
+              {
+                "@type": "Place",
+                "name": "Prati"
+              },
+              {
+                "@type": "City",
+                "name": "Roma"
+              }
             ],
-            "sameAs": ["https://wa.me/message/4ZL65LROJWHFI1"]
+            "hasMap": "https://www.google.com/maps/search/?api=1&query=Via%20Giuseppe%20Gioachino%20Belli%201%2C%2000193%20Roma"
+          },
+          {
+            "@type": "LocalBusiness",
+            "@id": "https://www.thaitikmassage.it/#location-monte-sacro",
+            "name": "Thai Tik Massage - Monte Sacro",
+            "url": "https://www.thaitikmassage.it/centro-monte-sacro.html",
+            "logo": "https://www.thaitikmassage.it/thai-tik-logo-alternativo.png",
+            "image": "https://www.thaitikmassage.it/thai-tik-logo-alternativo.png",
+            "description": "Trattamenti di Thai Tik Massage presso il centro partner APS Jaqueline, a Monte Sacro, Roma.",
+            "email": "info@thaitikmassage.it",
+            "priceRange": "€€",
+            "brand": {
+              "@id": "https://www.thaitikmassage.it/#business"
+            },
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "Via Valle Borbera 51",
+              "addressLocality": "Roma",
+              "postalCode": "00141",
+              "addressRegion": "RM",
+              "addressCountry": "IT"
+            },
+            "areaServed": [
+              {
+                "@type": "Place",
+                "name": "Monte Sacro"
+              },
+              {
+                "@type": "City",
+                "name": "Roma"
+              }
+            ],
+            "hasMap": "https://www.google.com/maps/search/?api=1&query=Via%20Valle%20Borbera%2051%2C%2000141%20Roma"
           },
           {
             "@type": "Service",
             "name": "Prenotazione massaggio Thai",
-            "provider": { "@id": "https://www.thaitikmassage.it/#business" },
-            "areaServed": { "@type": "City", "name": "Roma" },
-            "description": "Prenotazione online di massaggi Thai, Sportivo, Aromaterapia e Foot Massage a Prati e Montesacro."
+            "provider": {
+              "@id": "https://www.thaitikmassage.it/#business"
+            },
+            "areaServed": {
+              "@type": "City",
+              "name": "Roma"
+            },
+            "description": "Prenotazione online di massaggi Thai, Sportivo, Aromaterapia e Foot Massage a Prati e Monte Sacro."
           },
           {
             "@type": "Offer",
             "itemOffered": {
               "@type": "Service",
               "name": "Massaggio Thai",
-              "provider": { "@id": "https://www.thaitikmassage.it/#business" }
+              "provider": {
+                "@id": "https://www.thaitikmassage.it/#business"
+              }
             },
             "availability": "https://schema.org/InStock",
             "priceCurrency": "EUR",
@@ -88,7 +162,14 @@
         </div>
         <nav class="nav" aria-label="Navigazione principale">
           <a href="index.html#trattamenti">Trattamenti</a>
-          <a href="mappa-sedi.html">Dove trovarmi</a>
+          <details class="nav-dropdown">
+            <summary>Dove trovarmi</summary>
+            <div class="nav-menu">
+              <a href="dove-trovarmi.html">Tutte le sedi e le mappe</a>
+              <a href="centro-prati.html">Prati · Barbiere Prati</a>
+              <a href="centro-monte-sacro.html">Monte Sacro · APS Jaqueline</a>
+            </div>
+          </details>
           <a class="nav-book" href="prenota.html" aria-current="page">Prenota</a>
         </nav>
       </div>
@@ -111,10 +192,12 @@
         <div class="booking-location-grid">
           <article class="booking-location">
             <h3>Studio Prati</h3>
+            <p><a href="centro-prati.html">Informazioni sul centro partner di Prati</a></p>
             <p>Prenota il trattamento e la durata che preferisci. Puoi pagare online con SumUp, saldare in studio oppure usare un voucher regalo valido per questa sede.</p>
           </article>
           <article class="booking-location">
-            <h3>APS Jaqueline · Studio Montesacro</h3>
+            <h3>APS Jaqueline · Studio Monte Sacro</h3>
+            <p><a href="centro-monte-sacro.html">Informazioni sul centro partner di Monte Sacro</a></p>
             <p>Presso la sede associativa Nuttiporn Sriboust opera come socia professionista, in autonomia e con propria Partita IVA. Pagamento e documentazione fiscale del trattamento sono gestiti direttamente da Thai Tik Massage, non dall'APS. Puoi pagare online, in sede o usare un voucher valido per questa sede. Chi non è già socio dell'APS dovrà iscriversi al momento del primo appuntamento; tesseramento ed eventuale quota sono gestiti dall'associazione, non da Thai Tik Massage.</p>
           </article>
         </div>
@@ -139,7 +222,7 @@
     <footer class="site-footer">
       <div class="wrap footer-inner">
         <div class="footer-brand"><h3>Thai Tik Massage</h3><p>Trattamenti benessere thailandesi con prenotazioni online presso diverse sedi.</p></div>
-        <div class="footer-links"><h4>Informazioni</h4><ul><li><a href="mappa-sedi.html">Mappa sedi e indirizzi</a></li><li><a href="documenti-legali-premium.html#privacy">Privacy Policy</a></li></ul></div>
+        <div class="footer-links"><h4>Informazioni</h4><ul><li><a href="dove-trovarmi.html">Mappa sedi e indirizzi</a></li><li><a href="documenti-legali-premium.html#privacy">Privacy Policy</a></li></ul></div>
         <div class="footer-contact"><h4>Contatti</h4><ul><li><a href="mailto:info@thaitikmassage.it">info@thaitikmassage.it</a></li></ul></div>
       </div>
       <div class="wrap footer-legal"><p>© 2026 Thai Tik Massage · P.IVA 18730391002</p></div>

@@ -92,7 +92,7 @@ function makeSlide(page, slideNumber) {
     addRect(8, 116, 89, 18, { fill: "#29463b", name: "Invito a prenotare" });
     addText(10, 118, 85, 6, [{ text: "Concediti una pausa.", size: 1300, font: "Georgia", color: "#fffdf8", align: "ctr" }], { align: "ctr", name: "Messaggio promozionale" });
     addText(11, 125, 83, 7, [
-      { text: "Su appuntamento a Prati e Montesacro.", size: 740, color: "#fffdf8", align: "ctr" },
+      { text: "Su appuntamento a Prati e Monte Sacro.", size: 740, color: "#fffdf8", align: "ctr" },
       { text: "Scegli il trattamento e prenota il tuo momento.", size: 700, color: "#fffdf8", align: "ctr" },
     ], { align: "ctr", name: "Sedi su appuntamento" });
     addText(8, 137, 89, 9, [
@@ -126,7 +126,7 @@ function makeSlide(page, slideNumber) {
     addText(8, 70, 89, 8, [{ text: "Due sedi a Roma", size: 1500, font: "Georgia", color: "#79432f", align: "l" }], { name: "Titolo sedi" });
     const studios = [
       { x: 8, title: "PRATI · Barbiere Prati", lines: ["Via Giuseppe Gioachino Belli 1", "00193 Roma"] },
-      { x: 54, title: "MONTESACRO · Jaqueline", lines: ["Massaggi APS", "Via Valle Borbera 51", "Montesacro, Roma"] },
+      { x: 54, title: "Monte Sacro · Jaqueline", lines: ["Massaggi APS", "Via Valle Borbera 51", "Monte Sacro, Roma"] },
     ];
     studios.forEach(studio => {
       addRect(studio.x, 79, 43, 18, { fill: "#f4eee5", line: "#e4d9ca", name: `Sede ${studio.title}` });
@@ -134,7 +134,7 @@ function makeSlide(page, slideNumber) {
       addText(studio.x + 2, 85.5, 39, 10, studio.lines.map(text => ({ text, size: 610 })), { valign: "t", name: `Indirizzo ${studio.title}` });
     });
     addText(8, 98, 89, 12, [
-      { text: "MONTESACRO: per accedere è richiesta l’adesione ad APS Jaqueline e la quota", size: 550, color: "#71645c" },
+      { text: "Monte Sacro: per accedere è richiesta l’adesione ad APS Jaqueline e la quota", size: 550, color: "#71645c" },
       { text: "associativa annuale di 15 €, non inclusa nei prezzi. Verifica i dettagli", size: 550, color: "#71645c" },
       { text: "con l’associazione prima dell’appuntamento.", size: 550, color: "#71645c" },
     ], { valign: "t", name: "Nota sulla quota associativa" });

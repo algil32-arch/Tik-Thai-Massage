@@ -33,6 +33,9 @@ h1, h2, h3 { font-family: Manrope, sans-serif; line-height: 1.18; }
 .content p, .content li { color: var(--muted); }
 .content ul { padding-left: 22px; }
 .content li + li { margin-top: 10px; }
+.location-map { margin-block: 24px; overflow: hidden; border: 1px solid #ded5cb; border-radius: 18px; background: var(--warm); }
+.location-map iframe { display: block; width: 100%; height: 360px; border: 0; }
+.location-map iframe[hidden] { display: none; }
 .content-figure { margin: 36px 0; }
 .content-figure img { width: auto; max-width: 100%; max-height: 460px; margin-inline: auto; object-fit: contain; }
 .content-figure figcaption { max-width: 64ch; margin: 10px auto 0; color: var(--muted); font-size: 13px; line-height: 1.5; text-align: center; }
