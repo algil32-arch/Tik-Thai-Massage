@@ -1,8 +1,14 @@
-# Thai Tik Massage — Site Ver 16.0
+# Thai Tik Massage — Site Ver 18.0
 
 Sito statico multipagina per Thai Tik Massage, con backend PHP/MySQL predisposto per l'hosting Aruba.
 
-Note del rilascio corrente: [Site Ver 16.0](RELEASE_NOTES_V16.md).
+Note del rilascio corrente: [Site Ver 18.0](RELEASE_NOTES_V18.md).
+
+La versione 18.0 aggiunge le notifiche Google Calendar verso il sito e il sync
+immediato dopo le modifiche dell'agenda amministrativa. Richiede la migrazione
+`backend-aruba-google-push.sql` e `GOOGLE_CALENDAR_WEBHOOK_URL` nella configurazione
+privata. Il cron esistente resta necessario per recupero e rinnovo dei canali.
+Istruzioni e collaudo: [sincronizzazione Google Calendar](php-backend-readme.md#sincronizzazione-con-google-calendar).
 
 La sitemap pubblica è in `sitemap.xml`; `robots.txt` indica ai motori di ricerca
 le aree non pubbliche e il percorso della sitemap. Dopo aver pubblicato questi
@@ -34,7 +40,7 @@ I dati delle sedi, ripetuti negli HTML per essere disponibili senza JavaScript,
 devono restare coerenti: logo `thai-tik-logo-alternativo.png`, Via Giuseppe
 Gioachino Belli 1 (00193) e Via Valle Borbera 51 (00141).
 
-Per pubblicare questo aggiornamento caricare le due nuove pagine, tutti gli
+Per pubblicare l'aggiornamento dei centri partner della versione 16.0 caricare le due nuove pagine, tutti gli
 HTML aggiornati, `sitemap.xml`, `details.css` e il nuovo `studio-hours.js`.
 Le pagine dei centri incorporano la sola mappa della sede, caricata esclusivamente
 dopo il consenso a Google Maps, e mostrano gli orari correnti tramite

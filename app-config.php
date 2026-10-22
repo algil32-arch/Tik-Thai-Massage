@@ -22,6 +22,7 @@ function appConfig(): array
         'GOOGLE_SERVICE_ACCOUNT_FILE' => getenv('GOOGLE_SERVICE_ACCOUNT_FILE') ?: __DIR__ . '/private/google-service-account.json',
         'GOOGLE_CALENDAR_TIMEZONE' => getenv('GOOGLE_CALENDAR_TIMEZONE') ?: 'Europe/Rome',
         'GOOGLE_SYNC_TOKEN' => getenv('GOOGLE_SYNC_TOKEN') ?: '',
+        'GOOGLE_CALENDAR_WEBHOOK_URL' => getenv('GOOGLE_CALENDAR_WEBHOOK_URL') ?: '',
     ];
 
     $privateConfigPath = __DIR__ . '/private/config.local.php';

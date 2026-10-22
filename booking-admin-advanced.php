@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . '/admin-auth.php';
 require_once __DIR__ . '/booking-voucher.php';
+require_once __DIR__ . '/google-calendar-client.php';
+require_once __DIR__ . '/google-calendar-sync.php';
 
 try {
   $pdo = dbConnection();
@@ -49,6 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             http_response_code(400);
             die('Appuntamento non in attesa: non è possibile confermare una prenotazione annullata. Crea una nuova richiesta.');
         }
+        googleCalendarSyncAfterAdminChange($pdo);
         header('Location: booking-admin-advanced.php');
         exit;
     }
@@ -62,6 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             http_response_code(503);
             die('Annullamento non completato. Verifica il registro voucher e riprova; nessuna modifica salvata.');
         }
+        googleCalendarSyncAfterAdminChange($pdo);
         header('Location: booking-admin-advanced.php');
         exit;
     }
@@ -76,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $pdo->beginTransaction();
             $appointmentStmt = $pdo->prepare(
-                'SELECT id, metodo_pagamento, stato_pagamento
+                'SELECT id, metodo_pagamento, stato_pagamento, google_event_id
                  FROM appuntamenti
                  WHERE id = :id
                  FOR UPDATE'
@@ -88,6 +92,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             if ($appointment['stato_pagamento'] === 'pagato') {
                 throw new RuntimeException('Un appuntamento pagato non può essere eliminato.');
+            }
+            if (!empty($appointment['google_event_id'])) {
+                throw new RuntimeException('Annulla prima l’appuntamento e attendi la rimozione da Google Calendar prima di eliminarlo.');
             }
 
             $checks = [
@@ -117,6 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $pdo->prepare('DELETE FROM appuntamenti WHERE id = :id')->execute([':id' => $id]);
             $pdo->commit();
+            googleCalendarSyncAfterAdminChange($pdo);
             header('Location: booking-admin-advanced.php?delete=ok&msg=' . rawurlencode('Appuntamento eliminato dal database.'));
             exit;
         } catch (Throwable $exception) {
@@ -152,6 +160,8 @@ $stmt = $pdo->query(
 $appointments = $stmt->fetchAll();
 $deleteMessage = isset($_GET['delete']) ? trim((string)($_GET['msg'] ?? '')) : '';
 $deleteMessageType = (string)($_GET['delete'] ?? '') === 'ok' ? 'success' : 'error';
+$calendarSyncNotice = (string)($_SESSION['calendar_sync_notice'] ?? '');
+unset($_SESSION['calendar_sync_notice']);
 ?>
 <!doctype html>
 <html lang="it">
@@ -267,6 +277,9 @@ $deleteMessageType = (string)($_GET['delete'] ?? '') === 'ok' ? 'success' : 'err
       <?php renderAdminToolbar(); ?>
       <div class="container">
       <h1>Admin prenotazioni</h1>
+      <?php if ($calendarSyncNotice !== ''): ?>
+        <p class="message" role="status"><?= htmlspecialchars($calendarSyncNotice, ENT_QUOTES, 'UTF-8') ?></p>
+      <?php endif; ?>
       <div class="link-row">
         <a href="fattura-manuale.php">Nuova fattura manuale</a>
         <a href="fatture-admin.php">Gestione fatture</a>

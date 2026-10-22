@@ -15,4 +15,5 @@ return [
     'GOOGLE_SERVICE_ACCOUNT_FILE' => __DIR__ . '/google-service-account.json',
     'GOOGLE_CALENDAR_TIMEZONE' => 'Europe/Rome',
     'GOOGLE_SYNC_TOKEN' => '',
+    'GOOGLE_CALENDAR_WEBHOOK_URL' => '',
 ];

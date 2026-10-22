@@ -5,6 +5,7 @@
  */
 
 header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store');
 date_default_timezone_set('Europe/Rome');
 require_once __DIR__ . '/app-config.php';
 require_once __DIR__ . '/booking-mailer.php';

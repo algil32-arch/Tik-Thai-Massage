@@ -331,6 +331,22 @@ function googleSyncPushAppointments(PDO $pdo): array
 
 function googleCalendarSync(PDO $pdo): array
 {
+    if ($pdo->inTransaction()) {
+        throw new GoogleCalendarException('Avvia la sincronizzazione dopo il salvataggio della transazione.');
+    }
+    $lock = $pdo->query("SELECT GET_LOCK(SHA2(CONCAT(DATABASE(), ':google-calendar-sync'), 256), 5)");
+    if ((int)$lock->fetchColumn() !== 1) {
+        throw new GoogleCalendarException('Sincronizzazione gia in corso. Riprova tra poco.');
+    }
+    try {
+        return googleCalendarSyncLocked($pdo);
+    } finally {
+        $pdo->query("SELECT RELEASE_LOCK(SHA2(CONCAT(DATABASE(), ':google-calendar-sync'), 256))");
+    }
+}
+
+function googleCalendarSyncLocked(PDO $pdo): array
+{
     $settings = googleCalendarSettings();
 
     $initStmt = $pdo->prepare(
@@ -362,10 +378,7 @@ function googleCalendarSync(PDO $pdo): array
 function googleCalendarSyncAfterBooking(PDO $pdo): array
 {
     $config = appConfig();
-    if (
-        trim((string)($config['GOOGLE_CALENDAR_ID'] ?? '')) === ''
-        && trim((string)($config['GOOGLE_SERVICE_ACCOUNT_FILE'] ?? '')) === ''
-    ) {
+    if (trim((string)($config['GOOGLE_CALENDAR_ID'] ?? '')) === '') {
         return ['attempted' => false, 'success' => false];
     }
 
@@ -379,4 +392,14 @@ function googleCalendarSyncAfterBooking(PDO $pdo): array
         error_log('Google Calendar sync after booking failed: ' . $e->getMessage());
         return ['attempted' => true, 'success' => false];
     }
+}
+
+function googleCalendarSyncAfterAdminChange(PDO $pdo): void
+{
+    $result = googleCalendarSyncAfterBooking($pdo);
+    $_SESSION['calendar_sync_notice'] = !$result['attempted']
+        ? 'Modifica salvata. Sincronizzazione Google non configurata.'
+        : ($result['success']
+            ? 'Modifica salvata e sincronizzazione Google completata.'
+            : 'Modifica salvata, ma sincronizzazione Google non riuscita. Il cron riprovera; controlla il log PHP.');
 }

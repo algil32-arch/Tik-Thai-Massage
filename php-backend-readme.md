@@ -15,6 +15,7 @@ Il backend usa PHP con PDO e MySQL/MariaDB. L'agenda applica le fasce settimanal
 10. Per la sincronizzazione con Google Calendar, importa una sola volta `backend-aruba-google-calendar.sql`: aggiunge `google_event_id` e `google_synced_at` ad `appuntamenti` e crea le tabelle `agenda_blocchi` e `google_calendar_stato`.
 11. Per i voucher regalo, importa `backend-aruba-vouchers.sql` sia su database nuovi sia su quelli esistenti, prima di pubblicare il form. Crea due tabelle nuove senza modificare appuntamenti o fatture.
 12. Per prenotare con voucher, importa poi `backend-aruba-voucher-bookings.sql`, anche se i voucher sono gia' installati. Aggiunge la modalita' di pagamento `voucher` agli appuntamenti e una tabella di collegamento/idempotenza; non modifica i voucher esistenti.
+13. Per attivare le notifiche immediate da Google, importa `backend-aruba-google-push.sql` dopo la migrazione Google Calendar, anche sui database nuovi.
 
 ## Voucher regalo
 
@@ -132,6 +133,15 @@ La funzione condivisa in `booking-slots.php` viene usata sia per mostrare gli or
 ## Sincronizzazione con Google Calendar
 La sincronizzazione è bidirezionale: gli appuntamenti del sito diventano eventi del calendario e gli impegni creati a mano sul calendario chiudono gli slot sul sito. Poiché la professionista è una sola, un impegno Google blocca **tutte le sedi**. Dopo il salvataggio di una prenotazione non online e dopo la registrazione di un pagamento SumUp, il backend tenta subito la sincronizzazione: quando Google accetta l'evento, l'appuntamento viene confermato e il cliente riceve l'email di conferma; se il tentativo fallisce, resta in attesa e il cron riprova. Il cron gira comunque ogni 10 minuti per mantenere aggiornati gli impegni del calendario e recuperare eventuali errori.
 
+Anche conferma, annullamento ed eliminazione dall'admin, e aggiunta/rimozione
+delle fasce settimanali, avviano il sync dopo il salvataggio. L'admin mostra
+l'esito senza annullare una modifica gia salvata in caso di errore Google.
+Le fasce settimanali sono lette direttamente dal database dal sito: non
+vengono esportate come eventi Google. Prima dell'eliminazione definitiva
+di un appuntamento collegato a Google bisogna annullarlo e sincronizzarlo,
+per non lasciare un evento orfano. Cron, webhook e prenotazioni usano lo
+stesso lock MySQL per non esportare due volte gli stessi appuntamenti.
+
 ### Preparazione su Google Cloud
 1. Crea un progetto su [console.cloud.google.com](https://console.cloud.google.com) e abilita **Google Calendar API**.
 2. Crea un **account di servizio** e genera una chiave in formato JSON.
@@ -145,6 +155,10 @@ In `private/config.local.php` valorizza:
 - `GOOGLE_SERVICE_ACCOUNT_FILE`: percorso del JSON, di norma `__DIR__ . '/google-service-account.json'`.
 - `GOOGLE_CALENDAR_TIMEZONE`: `Europe/Rome`.
 - `GOOGLE_SYNC_TOKEN`: una stringa casuale lunga, necessaria solo se richiami il cron via URL.
+- `GOOGLE_CALENDAR_WEBHOOK_URL`: facoltativo; per il sito pubblicato usare
+  `https://www.thaitikmassage.it/google-calendar-webhook.php`.
+  Non inserire token nell'URL: le notifiche usano un segreto casuale per canale,
+  distinto dal token del cron.
 
 Carica sull'hosting `google-calendar-client.php`, `google-calendar-sync.php` e `cron-calendar-sync.php`.
 
@@ -162,6 +176,49 @@ In alternativa, con richiesta HTTP (richiede `GOOGLE_SYNC_TOKEN`):
 ```
 
 Puoi lanciare manualmente lo stesso URL dal browser per verificare l'esito: la risposta JSON riporta eventi letti, impegni importati, eventi creati, prenotazioni confermate e email di conferma inviate/non inviate. Non richiamare questo URL dal JavaScript della pagina di prenotazione: il token diventerebbe visibile nel browser; il tentativo immediato viene eseguito dal backend.
+
+### Notifiche immediate delle modifiche Google
+
+Il solo cron non viene chiamato da Google a ogni modifica. Per attivare il push:
+
+1. Importare `backend-aruba-google-push.sql`.
+2. Pubblicare `google-calendar-webhook.php`, `google-calendar-push.php`,
+   `google-calendar-client.php`, `google-calendar-sync.php`, `cron-calendar-sync.php`,
+   `app-config.php`, `booking-admin.php`, `booking-admin-advanced.php` e
+   `php-booking-backend.php`. Conservare le configurazioni private esistenti;
+   per il flusso prenotazioni devono esserci anche le versioni correnti di
+   `sumup-intents.php`, `sumup-payment.php` e `booking-mailer.php`.
+3. Aggiungere `GOOGLE_CALENDAR_WEBHOOK_URL` alla configurazione privata.
+   L'endpoint deve essere pubblico via HTTPS valido, senza login o redirect.
+4. Eseguire una volta il cron autenticato: `notifiche_google.enabled: true`
+   e `renewed: true` indicano la registrazione riuscita. Non pubblicare il
+   token cron o le credenziali. Una chiamata GET al webhook risponde 405:
+   Google invia POST con header di autenticazione del canale.
+5. Lasciare attivo il cron ogni 10 minuti: rinnova i canali prima della scadenza
+   (richiesti 7 giorni, vale la scadenza effettiva restituita da Google) e
+   recupera notifiche perse. Il push riduce il ritardo ma Google non garantisce
+   la consegna di ogni notifica.
+
+Ogni notifica valida rilegge le variazioni del calendario; le notifiche iniziali
+`sync` vengono riconosciute senza esportazioni o email. I canali in rinnovo
+possono sovrapporsi: il lock serializza i cicli e gli ID evento evitano una
+seconda conferma. Il webhook risponde 503 su errore per consentire i tentativi
+successivi di Google; i dettagli sono nel log PHP. Se la registrazione del
+canale fallisce, il cron segnala errore anche se il precedente ciclo dati e'
+riuscito. Senza URL configurato, `enabled: false` mantiene il funzionamento
+precedente con cron e sync immediato delle prenotazioni.
+
+Collaudo su Aruba dopo la pubblicazione: creare, spostare ed eliminare un
+impegno manuale Google e ricaricare gli slot senza invocare il cron a mano;
+prenotare dal sito e verificare evento, prima email e conferma; annullare
+dall'admin e verificare rimozione evento e riapertura slot. Non spostare gli
+appuntamenti originati dal sito direttamente su Google: restano gestiti dal
+database come prima. Una pagina prenotazioni gia aperta rilegge gli slot
+quando si cambia selezione o si ricarica, non riceve aggiornamenti push nel browser.
+
+Test locali: `php tests/google-calendar-test.php` e
+`php tests/booking-slots-test.php`. I test isolano API, email e PDO:
+non sostituiscono il collaudo con HTTPS, Google e MySQL su Aruba.
 
 ### Regole di funzionamento
 - Gli appuntamenti `in_attesa` e `confermato` dalla data odierna in poi vengono creati su Google con una proprietà privata `thaitik_appointment_id`, così la sincronizzazione non li reimporta come impegni. Gli `in_attesa` passano a `confermato` solo dopo la risposta positiva di Google; allora viene spedita l'email di conferma.

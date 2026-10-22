@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . '/admin-auth.php';
 require_once __DIR__ . '/booking-slots.php';
+require_once __DIR__ . '/google-calendar-client.php';
+require_once __DIR__ . '/google-calendar-sync.php';
 
 try {
   $pdo = dbConnection();
@@ -62,6 +64,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && isset($_POST['schedule_a
             ':end_time' => $endTime,
             ':interval' => $slotInterval,
           ]);
+          googleCalendarSyncAfterAdminChange($pdo);
           header('Location: booking-admin.php?studio_id=' . $selectedStudioId . '&notice=added#agenda');
           exit;
         }
@@ -70,6 +73,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && isset($_POST['schedule_a
       $scheduleId = (int)($_POST['schedule_id'] ?? 0);
       $delete = $pdo->prepare('DELETE FROM orari_studio WHERE id = :id AND id_studio = :studio');
       $delete->execute([':id' => $scheduleId, ':studio' => $selectedStudioId]);
+      googleCalendarSyncAfterAdminChange($pdo);
       header('Location: booking-admin.php?studio_id=' . $selectedStudioId . '&notice=deleted#agenda');
       exit;
     }
@@ -97,6 +101,10 @@ try {
 
 if (isset($_GET['notice'])) {
   $adminMessage = $_GET['notice'] === 'added' ? 'Fascia oraria aggiunta.' : 'Fascia oraria rimossa.';
+}
+if (isset($_SESSION['calendar_sync_notice'])) {
+  $adminMessage .= ' ' . (string)$_SESSION['calendar_sync_notice'];
+  unset($_SESSION['calendar_sync_notice']);
 }
 
 $stmt = $pdo->query(

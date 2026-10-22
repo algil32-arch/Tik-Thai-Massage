@@ -9,10 +9,12 @@ date_default_timezone_set('Europe/Rome');
 require_once __DIR__ . '/app-config.php';
 require_once __DIR__ . '/google-calendar-client.php';
 require_once __DIR__ . '/google-calendar-sync.php';
+require_once __DIR__ . '/google-calendar-push.php';
 
 $isCommandLine = PHP_SAPI === 'cli';
 if (!$isCommandLine) {
     header('Content-Type: application/json; charset=utf-8');
+    header('Cache-Control: no-store');
 }
 
 function cronSyncResponse(int $status, array $payload): void
@@ -49,6 +51,11 @@ try {
 
 try {
     $result = googleCalendarSync($pdo);
+    $result['notifiche_google'] = googleCalendarEnsureWatch($pdo);
+    if (!empty($result['notifiche_google']['renewed'])) {
+        // Recupera anche le modifiche arrivate fra la prima lettura e l'attivazione del canale.
+        $result = array_merge($result, ['dopo_attivazione_notifiche' => googleCalendarSync($pdo)]);
+    }
 } catch (GoogleCalendarException $e) {
     cronSyncResponse(502, ['success' => false, 'message' => $e->getMessage()]);
 } catch (Throwable $e) {
