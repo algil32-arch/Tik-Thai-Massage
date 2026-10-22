@@ -42,7 +42,7 @@
       <h2>La tua scelta, il tuo benessere</h2>
       <p>Puoi navigare e prenotare senza autorizzare servizi facoltativi.
       Google Maps e il traduttore GTranslate si caricano solo con il tuo consenso.
-      <a href="documenti-legali-premium.html#cookie">Leggi la Cookie Policy</a>.</p>
+      <a href="documenti-legali-premium.html#cookie" title="Leggi l'informativa sui cookie del sito">Leggi la Cookie Policy</a>.</p>
     </div>
     <div class="consent-actions">
       <button type="button" data-consent-action="accept">Accetta tutti</button>
@@ -68,7 +68,7 @@
       Senza autorizzazione il sito rimane in italiano.</span></label>
     <p>Se disattivi una traduzione gi&agrave; autorizzata, la pagina verr&agrave; ricaricata
     per interrompere il servizio. Salva prima eventuali dati inseriti nei moduli.</p>
-    <p><a href="documenti-legali-premium.html#cookie">Cookie Policy e informazioni sui fornitori</a></p>
+    <p><a href="documenti-legali-premium.html#cookie" title="Consulta i cookie utilizzati e i relativi fornitori">Cookie Policy e informazioni sui fornitori</a></p>
     <div class="consent-actions">
       <button type="button" data-consent-action="save">Salva preferenze</button>
       <button type="button" data-consent-action="reject">Rifiuta i non necessari</button>

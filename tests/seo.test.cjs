@@ -43,6 +43,27 @@ test('public copy consistently spells the neighborhood Monte Sacro', () => {
   }
 });
 
+test('all HTML pages declare existing PNG and ICO favicons with matching dimensions', () => {
+  for (const file of htmlFiles) {
+    const head = read(file).match(/<head\b[^>]*>([\s\S]*?)<\/head>/i)?.[1];
+    assert.ok(head, `${file} must have a head`);
+    assert.match(head, /<link rel="shortcut icon" href="\/favicon\.ico" type="image\/x-icon"\s*\/?>/);
+    assert.match(head, /<link rel="icon" href="\/favicon\.png" type="image\/png" sizes="64x64"\s*\/?>/);
+  }
+  const png = fs.readFileSync(path.join(root, 'favicon.png'));
+  assert.equal(png.subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
+  assert.equal(png.readUInt32BE(16), 64);
+  assert.equal(png.readUInt32BE(20), 64);
+  const ico = fs.readFileSync(path.join(root, 'favicon.ico'));
+  assert.equal(ico.readUInt16LE(0), 0);
+  assert.equal(ico.readUInt16LE(2), 1);
+  assert.equal(ico.readUInt16LE(4), 1);
+  assert.equal(ico[6], 64);
+  assert.equal(ico[7], 64);
+  assert.equal(ico.readUInt32LE(14), png.length);
+  assert.deepEqual(ico.subarray(ico.readUInt32LE(18)), png);
+});
+
 test('sitemap contains only existing public HTML pages without noindex', () => {
   assert.match(sitemap, /^<\?xml version="1\.0" encoding="UTF-8"\?>/);
   assert.ok(urlPaths.length > 0, 'Sitemap should contain URLs');
@@ -56,11 +77,42 @@ test('sitemap contains only existing public HTML pages without noindex', () => {
   }
 });
 
+test('home and cookie consent links include non-empty descriptive titles', () => {
+  for (const file of ['index.html', 'cookie-consent.js']) {
+    const links = [...read(file).matchAll(/<a\b[^>]*>/g)];
+    assert.ok(links.length > 0);
+    for (const [link] of links) {
+      assert.match(link, /\btitle="[^"]*\S[^"]*"/, `${file}: missing title on ${link}`);
+      assert.equal([...link.matchAll(/\btitle=/g)].length, 1, 'Link must not duplicate title attributes');
+    }
+  }
+});
+
 test('robots file points to the sitemap and excludes non-public paths', () => {
   const robots = fs.readFileSync(path.join(root, 'robots.txt'), 'utf8');
   assert.match(robots, /Sitemap:\s+https:\/\/www\.thaitikmassage\.it\/sitemap\.xml/);
   for (const disallowedPath of ['/private/', '/tests/', '/documents/', '/fatture-admin.php']) {
     assert.ok(robots.includes(`Disallow: ${disallowedPath}`), `${disallowedPath} should be disallowed`);
+  }
+});
+
+test('sitemap entries have valid modification dates and exclude backend endpoints', () => {
+  const entries = [...sitemap.matchAll(/<url>([\s\S]*?)<\/url>/g)];
+  assert.equal(entries.length, urlPaths.length);
+  for (const [, entry] of entries) {
+    const locations = [...entry.matchAll(/<loc>([^<]+)<\/loc>/g)];
+    const dates = [...entry.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)];
+    assert.equal(locations.length, 1);
+    assert.equal(dates.length, 1);
+    const url = new URL(locations[0][1]);
+    assert.equal(url.origin, origin);
+    assert.ok(url.pathname === '/' || url.pathname.endsWith('.html'),
+      'Backend endpoints must not be indexed in the sitemap');
+    assert.match(dates[0][1], /^\d{4}-\d{2}-\d{2}$/);
+    const timestamp = Date.parse(dates[0][1]);
+    assert.ok(Number.isFinite(timestamp), 'lastmod must be a valid date');
+    assert.equal(new Date(timestamp).toISOString().slice(0, 10), dates[0][1]);
+    assert.ok(timestamp <= Date.now(), 'lastmod must not be in the future');
   }
 });
 
@@ -177,7 +229,7 @@ test('footer location links lead to the real two-map overview', () => {
   for (const file of htmlFiles) {
     const html = read(file);
     if (html.includes('Mappa sedi e indirizzi')) {
-      assert.ok(html.includes('href="dove-trovarmi.html">Mappa sedi e indirizzi</a>'), file);
+      assert.match(html, /<a\b[^>]*\bhref="dove-trovarmi\.html"[^>]*>Mappa sedi e indirizzi<\/a>/, file);
     }
   }
   const overview = read('dove-trovarmi.html');

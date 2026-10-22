@@ -10,6 +10,13 @@ Aggiornamento rispetto a Site Ver 17.0.
 
 ## Novita
 
+- Aggiunti titoli descrittivi ai link della home e ai link informativi
+  generati dal consenso cookie, senza cambiare destinazioni o testi visibili.
+  Per pubblicare questa correzione caricare `index.html` e `cookie-consent.js`.
+
+- Aggiunte favicon PNG e ICO a 64x64 derivate dal logo ufficiale e dichiarate
+  nell'head di tutte le pagine HTML, incluse pagine pubbliche e alias.
+
 - Aggiunto il webhook per ricevere notifiche Google Calendar e aggiornare gli
   impegni che bloccano gli slot del sito senza attendere il cron periodico.
 - Registrazione e rinnovo dei canali Google tramite il cron esistente, con
@@ -27,6 +34,9 @@ Aggiornamento rispetto a Site Ver 17.0.
   evento Google: prima occorre annullarli e sincronizzare la rimozione.
 - Disabilitata la cache HTTP per disponibilita e risposte cron.
 - Corretto il controllo che tentava il sync senza un ID calendario configurato.
+- Corrette al 22 ottobre 2026 le date `lastmod` della home, di `prenota.html`
+  e delle due pagine dei centri, modificate nella versione 17.0. Gli endpoint
+  PHP della sincronizzazione restano esclusi dalla sitemap.
 
 ## Pubblicazione su Aruba
 
@@ -45,6 +55,14 @@ file, conservando i nomi e sovrascrivendo le versioni precedenti dove presenti:
 Restano necessarie le versioni correnti di `google-calendar-client.php`,
 `sumup-intents.php`, `sumup-payment.php` e `booking-mailer.php`, non modificate
 da questo rilascio. Non occorrono aggiornamenti HTML.
+
+Pubblicare anche `sitemap.xml` nella root per aggiornare le date SEO delle
+pagine pubbliche. Non occorrono modifiche a `robots.txt`.
+
+Per la favicon pubblicare nella root `favicon.ico`, `favicon.png` e tutti
+gli HTML aggiornati con i riferimenti alle icone. Le icone devono essere
+accessibili ai crawler; una modifica della sola favicon non richiede di
+aggiornare tutte le date `lastmod` della sitemap.
 
 Nel database gia usato dal sito importare `backend-aruba-google-push.sql`:
 crea soltanto `google_calendar_canali`, senza modificare dati esistenti.
