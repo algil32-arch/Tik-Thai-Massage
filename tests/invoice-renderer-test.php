@@ -50,7 +50,7 @@ $nonChargedStamp = renderInvoiceCourtesyPdf('TS-2026-00002', array_replace($invo
 if (!str_starts_with($invoice, '%PDF-1.4') || !str_ends_with($invoice, "%%EOF\n")) {
     throw new RuntimeException('La fattura non ha una struttura PDF valida.');
 }
-foreach (['TS-2026-00001', 'Anna Rossi', 'Massaggio Thai tradizionale', 'EUR 102,00', 'N2.2', 'P.IVA: 18730391002', 'C.F.: SRBNTP85C69Z241F', 'Email: info@thaitikmassage.it'] as $expected) {
+foreach (['TS-2026-00001', 'Anna Rossi', 'Massaggio Thai tradizionale', 'EUR 102,00', 'N2.2', 'P.IVA: 18730391002', 'C.F.: SRBNTP85C69Z241F', 'Email: info@thaitikmassage.it', 'Professione esercitata ai sensi della Legge 14 gennaio 2013, n. 4'] as $expected) {
     if (strpos($invoice, $expected) === false) {
         throw new RuntimeException('Testo fattura mancante: ' . $expected);
     }

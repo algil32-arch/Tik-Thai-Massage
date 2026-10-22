@@ -418,6 +418,7 @@ function renderInvoiceCourtesyPdf(
     foreach (array_slice($supplierFooter, 0, 8) as $index => $text) {
         $stream .= invoicePdfText($text, 48, 132 - ($index * 9), $index === 0 ? 'F2' : 'F4', 8, $orange);
     }
+    $stream .= invoicePdfText('Professione esercitata ai sensi della Legge 14 gennaio 2013, n. 4', 48, 90, 'F4', 8, $orange);
     $bankName = trim((string)($data['fornitore_banca'] ?? ''));
     $bankBic = trim((string)($data['fornitore_swift'] ?? ''));
     $bankIban = trim((string)($data['fornitore_iban'] ?? ''));

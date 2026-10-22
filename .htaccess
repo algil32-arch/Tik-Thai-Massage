@@ -1,0 +1,5 @@
+﻿RewriteEngine On
+
+RewriteCond %{THE_REQUEST} \s/+index\.php[\s?] [NC,OR]
+RewriteCond %{THE_REQUEST} \s/+index\.html[\s?] [NC]
+RewriteRule ^(?:|.*/)?index\.(?:php|html)$ / [R=301,L]

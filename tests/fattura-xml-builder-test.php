@@ -60,6 +60,7 @@ assertInvoiceXml($document->getElementsByTagName('Contatti')->item(0)?->getEleme
 assertInvoiceXml($document->getElementsByTagName('ImponibileImporto')->item(0)?->textContent === '35.00', 'L’imponibile riepilogato non coincide con la riga da 35 euro.');
 assertInvoiceXml($document->getElementsByTagName('ImponibileImposta')->length === 0, 'È presente il nodo riepilogo errato ImponibileImposta.');
 assertInvoiceXml($document->getElementsByTagName('ImportoTotaleDocumento')->item(0)?->textContent === '35.00', 'Il totale documento non coincide con imponibile più imposta.');
+assertInvoiceXml(strpos($xml, 'Professione esercitata ai sensi della Legge 14 gennaio 2013, n. 4') !== false, 'La frase obbligatoria non è inclusa nel file XML Aruba.');
 
 $reference = $document->getElementsByTagName('RiferimentoNormativo')->item(0)?->textContent ?? '';
 assertInvoiceXml($reference !== '' && strlen($reference) <= 100, 'Il riferimento normativo supera il limite di 100 caratteri o è vuoto.');

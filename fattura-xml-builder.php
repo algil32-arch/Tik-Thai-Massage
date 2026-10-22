@@ -187,6 +187,7 @@ function buildFatturaElettronicaXml(array $payload): string
     feText($doc, $datiGeneraliDocumento, 'Divisa', 'EUR');
     feText($doc, $datiGeneraliDocumento, 'Data', (string)($payload['data_emissione'] ?? date('Y-m-d')));
     feText($doc, $datiGeneraliDocumento, 'Numero', feSafeAscii((string)($payload['numero_fattura'] ?? '')));
+    feText($doc, $datiGeneraliDocumento, 'Causale', 'Professione esercitata ai sensi della Legge 14 gennaio 2013, n. 4');
 
     $total = (float)($payload['importo_totale'] ?? 0.0);
     $stampAmount = (float)($payload['importo_bollo'] ?? 0.0);
