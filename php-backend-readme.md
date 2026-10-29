@@ -119,7 +119,9 @@ La guida Aruba per Easy Linux documenta versione PHP e parametri `php.ini`, non 
 Il widget ufficiale invia i dati della carta direttamente a SumUp. Dopo il callback del widget, `sumup-payment.php` interroga l'API SumUp e confronta identificativo, riferimento, importo e valuta con l'intento temporaneo prima di creare l'appuntamento. Le chiamate ripetute di verifica sono idempotenti e non inviano email duplicate. Anche le richieste successive degli slot elaborano gli intenti scaduti: un checkout già pagato viene finalizzato, mentre un checkout non pagato viene disattivato e liberato.
 
 ## Email di prenotazione
-Dopo aver salvato la richiesta nel database, il backend usa la funzione PHP `mail()` per inviare una notifica a `BOOKING_NOTIFICATION_EMAIL` e una ricevuta al cliente. Per impostazione predefinita mittente e notifica studio sono `info@thaitikmassage.it`; puoi sovrascriverli in `private/config.local.php` con `MAIL_FROM_EMAIL` e `BOOKING_NOTIFICATION_EMAIL`. La ricevuta iniziale specifica che la richiesta è in attesa. Quando la sincronizzazione Google inserisce correttamente l'evento, il backend imposta lo stato su confermato e invia una seconda email al cliente. La risposta del cron distingue email inviate e non inviate; un errore e' registrato nei log e richiede verifica manuale. Il valore di ritorno di `mail()` indica che Aruba ha accettato il messaggio per l'invio, non garantisce la consegna in inbox.
+Dopo aver salvato la richiesta nel database, il backend usa la funzione PHP `mail()` per inviare una notifica a `BOOKING_NOTIFICATION_EMAIL` e una ricevuta al cliente. Per impostazione predefinita mittente e notifica studio sono `info@thaitikmassage.it`; puoi sovrascriverli in `private/config.local.php` con `MAIL_FROM_EMAIL` e `BOOKING_NOTIFICATION_EMAIL`. La ricevuta iniziale specifica che la richiesta è in attesa. Quando la sincronizzazione Google inserisce correttamente l'evento, il backend imposta lo stato su confermato e invia una seconda email al cliente, con copia a `BOOKING_NOTIFICATION_EMAIL`. La risposta del cron distingue email inviate e non inviate; un errore e' registrato nei log e richiede verifica manuale. Il valore di ritorno di `mail()` indica che Aruba ha accettato il messaggio per l'invio, non garantisce la consegna in inbox.
+
+Le email di conferma non accettate da Aruba vengono ritentate al successivo sync, senza ricreare l'evento Google. Dopo avere pubblicato questo aggiornamento, esegui una sola volta `backend-aruba-booking-confirmation.sql`; il file aggiunge alla tabella `appuntamenti` il tracciamento delle conferme inviate e marca gli appuntamenti già sincronizzati per evitare email duplicate. Per ritentare una conferma precedente, verifica prima dai log che non sia stata accettata da Aruba, poi azzera `conferma_email_inviata_at` per il solo appuntamento interessato e richiama il cron.
 
 Prima del test prenotazione, verifica l'invio da **Hosting Linux → Strumenti e impostazioni → Gestione PHP → Test PHP mail**. Se Aruba non accetta o consegna i messaggi, le prenotazioni restano comunque registrate e il form segnala il problema; per SMTP servirà configurare un trasporto autenticato.
 
@@ -159,6 +161,8 @@ In `private/config.local.php` valorizza:
   `https://www.thaitikmassage.it/google-calendar-webhook.php`.
   Non inserire token nell'URL: le notifiche usano un segreto casuale per canale,
   distinto dal token del cron.
+
+La condivisione del calendario rende gli eventi visibili agli utenti autorizzati, ma non equivale a una email di notifica per ogni evento creato via API. L'email di conferma dell'appuntamento è invece inviata dal sito al cliente dopo che l'evento è stato registrato correttamente su Calendar.
 
 Carica sull'hosting `google-calendar-client.php`, `google-calendar-sync.php` e `cron-calendar-sync.php`.
 

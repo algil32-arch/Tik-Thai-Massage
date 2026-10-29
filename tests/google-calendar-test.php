@@ -12,11 +12,15 @@ $listResponse = ['items' => [], 'nextSyncToken' => 'next-token'];
 $inserted = [];
 $deleted = [];
 $emails = 0;
+$emailResult = true;
 
 class GoogleCalendarException extends RuntimeException {}
 class GoogleCalendarSyncTokenExpired extends RuntimeException {}
 
 function appConfig(): array { return $GLOBALS['config']; }
+if (!function_exists('mb_substr')) {
+    function mb_substr(string $value, int $start, ?int $length = null): string { return substr($value, $start, $length); }
+}
 function googleCalendarSettings(): array
 {
     return ['calendar_id' => appConfig()['GOOGLE_CALENDAR_ID'], 'timezone' => 'Europe/Rome'];
@@ -28,6 +32,7 @@ function googleCalendarRequest(PDO $pdo, string $method, string $path, ?array $p
 function googleCalendarListEvents(PDO $pdo, array $query): array
 {
     $GLOBALS['lists'][] = $query;
+    if (!empty($GLOBALS['listFailure'])) throw new GoogleCalendarException('list failed');
     return $GLOBALS['listResponse'];
 }
 function googleCalendarInsertEvent(PDO $pdo, array $payload): array
@@ -39,7 +44,7 @@ function googleCalendarDeleteEvent(PDO $pdo, string $id): void { $GLOBALS['delet
 function sendBookingConfirmationEmail(int $id, array $booking, string $email): bool
 {
     $GLOBALS['emails']++;
-    return true;
+    return $GLOBALS['emailResult'];
 }
 function calendarCheck(bool $condition, string $message): void
 {
@@ -191,12 +196,15 @@ try {
         'cliente_email' => 'customer@example.test', 'cliente_telefono' => ''];
     $link = calendarStep('SET google_event_id = :event');
     $link['params'] = [':event' => 'created-event', ':id' => 42, ':expected_status' => 'in_attesa'];
+    $emailResult = false;
+    $pendingConfirmation = calendarStep("WHERE a.google_event_id IS NOT NULL", [$appointment]);
     $pdo = new CalendarPDO([
         calendarStep('GET_LOCK', 1), calendarStep('INSERT INTO google_calendar_stato'),
         calendarStep('SELECT sync_token', ['sync_token' => 'old-token']),
         calendarStep('UPDATE google_calendar_stato SET sync_token'),
         calendarStep('DELETE FROM agenda_blocchi WHERE data_blocco'),
         calendarStep('WHERE a.google_event_id IS NULL', [$appointment]), $link,
+        $pendingConfirmation,
         calendarStep("WHERE stato = 'annullato'", [['id' => 43, 'google_event_id' => 'cancelled-event']]),
         calendarStep('UPDATE appuntamenti SET google_event_id = NULL'),
         calendarStep('SET last_sync_at = NOW(), last_error = NULL'), calendarStep('RELEASE_LOCK', 1),
@@ -204,21 +212,57 @@ try {
     $result = googleCalendarSync($pdo);
     calendarCheck($result['eventi_creati'] === 1 && $result['appuntamenti_confermati'] === 1, 'Booking not exported and confirmed');
     calendarCheck($result['eventi_rimossi'] === 1 && $deleted === ['cancelled-event'], 'Cancelled event not deleted');
-    calendarCheck($emails === 1 && $result['email_conferma_inviate'] === 1, 'Confirmation email missing');
+    calendarCheck($emails === 1 && $result['email_conferma_inviate'] === 0, 'Failed confirmation email reported as sent');
+    calendarCheck($result['email_conferma_non_inviate'] === [42], 'Failed confirmation email not reported');
     calendarCheck($inserted[0]['extendedProperties']['private'][GOOGLE_SYNC_APPOINTMENT_PROPERTY] === '42', 'Missing event identity');
     calendarCheck($pdo->steps === [], 'Sync failed to release lock');
 
-    $pdo = new CalendarPDO([calendarStep('GET_LOCK', 1), calendarStep('INSERT INTO google_calendar_stato')]);
-    $pdo->steps[] = calendarStep('SELECT sync_token', ['sync_token' => 'old-token']);
-    $pdo->steps[] = calendarStep('UPDATE google_calendar_stato SET sync_token');
-    $pdo->steps[] = calendarStep('DELETE FROM agenda_blocchi WHERE data_blocco');
-    $pdo->steps[] = calendarStep('WHERE a.google_event_id IS NULL', []);
-    $pdo->steps[] = calendarStep("WHERE stato = 'annullato'", []);
-    $pdo->steps[] = calendarStep('SET last_sync_at = NOW(), last_error = NULL');
-    $pdo->steps[] = calendarStep('RELEASE_LOCK', 1);
+    $emailResult = true;
+    $sent = calendarStep('UPDATE appuntamenti SET conferma_email_inviata_at');
+    $sent['params'] = [':id' => 42];
+    $pdo = new CalendarPDO([
+        calendarStep('GET_LOCK', 1), calendarStep('INSERT INTO google_calendar_stato'),
+        calendarStep('SELECT sync_token', ['sync_token' => 'old-token']),
+        calendarStep('UPDATE google_calendar_stato SET sync_token'),
+        calendarStep('DELETE FROM agenda_blocchi WHERE data_blocco'),
+        calendarStep('WHERE a.google_event_id IS NULL', []),
+        calendarStep('WHERE a.google_event_id IS NOT NULL', [$appointment]), $sent,
+        calendarStep("WHERE stato = 'annullato'", []),
+        calendarStep('SET last_sync_at = NOW(), last_error = NULL'), calendarStep('RELEASE_LOCK', 1),
+    ]);
+    $retryResult = googleCalendarSync($pdo);
+    calendarCheck($emails === 2 && $retryResult['email_conferma_inviate'] === 1, 'Failed confirmation email was not retried');
+    calendarCheck($retryResult['email_conferma_non_inviate'] === [], 'Successful retry still reported as failed');
+    calendarCheck($pdo->steps === [], 'Retry sync failed to release lock');
+
+    $pdo = new CalendarPDO([
+        calendarStep('GET_LOCK', 1), calendarStep('INSERT INTO google_calendar_stato'),
+        calendarStep('SELECT sync_token', ['sync_token' => 'old-token']),
+        calendarStep('UPDATE google_calendar_stato SET sync_token'),
+        calendarStep('DELETE FROM agenda_blocchi WHERE data_blocco'),
+        calendarStep('WHERE a.google_event_id IS NULL', []),
+        calendarStep('WHERE a.google_event_id IS NOT NULL', []),
+        calendarStep("WHERE stato = 'annullato'", []),
+        calendarStep('SET last_sync_at = NOW(), last_error = NULL'), calendarStep('RELEASE_LOCK', 1),
+    ]);
     googleCalendarSyncAfterAdminChange($pdo);
     calendarCheck(str_contains($_SESSION['calendar_sync_notice'], 'completata'), 'Admin success not shown');
-    calendarCheck($emails === 1 && count($inserted) === 1, 'Repeated notification must not reconfirm or resend');
+    calendarCheck($emails === 2 && count($inserted) === 1, 'Repeated notification must not reconfirm or resend');
+
+    $listFailure = true;
+    $link['params'] = [':event' => 'created-event', ':id' => 42, ':expected_status' => 'in_attesa'];
+    $pdo = new CalendarPDO([
+        calendarStep('GET_LOCK', 1), calendarStep('INSERT INTO google_calendar_stato'),
+        calendarStep('SELECT sync_token', ['sync_token' => 'old-token']),
+        calendarStep('WHERE a.google_event_id IS NULL', [$appointment]), $link,
+        calendarStep('WHERE a.google_event_id IS NOT NULL', [$appointment]), $sent,
+        calendarStep("WHERE stato = 'annullato'", []),
+        calendarStep('SET last_error = :errore'), calendarStep('RELEASE_LOCK', 1),
+    ]);
+    calendarReject(fn() => googleCalendarSync($pdo), 'list failed');
+    calendarCheck(count($inserted) === 2 && $emails === 3, 'Pull failure must not block booking export and confirmation');
+    calendarCheck($pdo->steps === [], 'Pull failure flow incomplete');
+    $listFailure = false;
 
     $failure = calendarStep('INSERT INTO google_calendar_stato');
     $failure['verify'] = fn() => throw new GoogleCalendarException('database write failed');

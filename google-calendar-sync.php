@@ -283,26 +283,55 @@ function googleSyncPushAppointments(PDO $pdo): array
         $created++;
         if ($wasAwaitingConfirmation) {
             $confirmed++;
-            try {
-                $sent = sendBookingConfirmationEmail((int)$appointment['id'], [
-                    'name' => trim((string)$appointment['cliente_nome'] . ' ' . (string)$appointment['cliente_cognome']),
-                    'studio' => (string)$appointment['studio_nome'],
-                    'service' => (string)$appointment['servizio_nome'],
-                    'date' => (string)$appointment['data_appuntamento'],
-                    'time' => substr((string)$appointment['ora_inizio'], 0, 5),
-                    'price' => (float)$appointment['prezzo'],
-                ], (string)$appointment['cliente_email']);
-            } catch (Throwable $e) {
-                $sent = false;
-                error_log('Google Calendar synced booking, but confirmation email raised an error for appointment #' . $appointment['id'] . ': ' . $e->getMessage());
-            }
-            if ($sent) {
-                $confirmationEmailsSent++;
-            } else {
-                $confirmationEmailFailures[] = (int)$appointment['id'];
-                error_log('Google Calendar synced booking, but confirmation email failed for appointment #' . $appointment['id']);
-            }
         }
+    }
+
+    $confirmationStmt = $pdo->prepare(
+        "SELECT a.id, a.data_appuntamento, a.ora_inizio, a.stato, a.metodo_pagamento,
+                a.stato_pagamento, a.note,
+                st.nome AS studio_nome, sv.nome AS servizio_nome,
+                sv.prezzo, c.nome AS cliente_nome, c.cognome AS cliente_cognome,
+                c.email AS cliente_email
+         FROM appuntamenti a
+         INNER JOIN studi st ON st.id = a.id_studio
+         INNER JOIN servizi sv ON sv.id = a.id_servizio
+         INNER JOIN clienti c ON c.id = a.id_cliente
+         WHERE a.google_event_id IS NOT NULL
+           AND a.conferma_email_inviata_at IS NULL
+           AND a.stato = 'confermato'
+           AND a.data_appuntamento >= :oggi
+         ORDER BY a.data_appuntamento, a.ora_inizio
+         LIMIT 50"
+    );
+    $confirmationStmt->execute([':oggi' => (new DateTimeImmutable('today'))->format('Y-m-d')]);
+    foreach ($confirmationStmt->fetchAll() as $appointment) {
+        try {
+            $sent = sendBookingConfirmationEmail((int)$appointment['id'], [
+                'name' => trim((string)$appointment['cliente_nome'] . ' ' . (string)$appointment['cliente_cognome']),
+                'studio' => (string)$appointment['studio_nome'],
+                'service' => (string)$appointment['servizio_nome'],
+                'date' => (string)$appointment['data_appuntamento'],
+                'time' => substr((string)$appointment['ora_inizio'], 0, 5),
+                'price' => (float)$appointment['prezzo'],
+            ], (string)$appointment['cliente_email']);
+        } catch (Throwable $e) {
+            $sent = false;
+            error_log('Google Calendar synced booking, but confirmation email raised an error for appointment #' . $appointment['id'] . ': ' . $e->getMessage());
+        }
+
+        if (!$sent) {
+            $confirmationEmailFailures[] = (int)$appointment['id'];
+            error_log('Google Calendar synced booking, but confirmation email failed for appointment #' . $appointment['id']);
+            continue;
+        }
+
+        $sentStmt = $pdo->prepare(
+            'UPDATE appuntamenti SET conferma_email_inviata_at = NOW()
+             WHERE id = :id AND google_event_id IS NOT NULL
+               AND stato = \'confermato\' AND conferma_email_inviata_at IS NULL'
+        );
+        $sentStmt->execute([':id' => $appointment['id']]);
+        $confirmationEmailsSent++;
     }
 
     $cancelledStmt = $pdo->query(
@@ -356,9 +385,20 @@ function googleCalendarSyncLocked(PDO $pdo): array
     );
     $initStmt->execute([':calendar' => $settings['calendar_id']]);
 
+    $pullError = null;
     try {
         $pulled = googleSyncPullBlocks($pdo);
+    } catch (Throwable $e) {
+        // L'export delle prenotazioni (e la relativa email di conferma) non deve dipendere dalla lettura.
+        $pullError = $e;
+        error_log('Google Calendar pull failed, continuing with push: ' . $e->getMessage());
+    }
+
+    try {
         $pushed = googleSyncPushAppointments($pdo);
+        if ($pullError !== null) {
+            throw $pullError;
+        }
     } catch (Throwable $e) {
         $errorStmt = $pdo->prepare(
             'UPDATE google_calendar_stato SET last_error = :errore, last_sync_at = NOW() WHERE id = 1'

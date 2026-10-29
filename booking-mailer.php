@@ -102,6 +102,7 @@ function sendBookingConfirmationEmail(int $bookingId, array $booking, string $cu
     $headers = [
         'From: Thai Tik Massage <' . $fromEmail . '>',
         'Reply-To: ' . $notificationEmail,
+        'Cc: ' . $notificationEmail,
         'MIME-Version: 1.0',
         'Content-Type: text/plain; charset=UTF-8',
         'Content-Transfer-Encoding: 8bit',

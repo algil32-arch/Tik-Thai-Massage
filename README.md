@@ -1,8 +1,13 @@
-# Thai Tik Massage — Site Ver 18.0
+# Thai Tik Massage — Site Ver 19.0
 
 Sito statico multipagina per Thai Tik Massage, con backend PHP/MySQL predisposto per l'hosting Aruba.
 
-Note del rilascio corrente: [Site Ver 18.0](RELEASE_NOTES_V18.md).
+Note del rilascio corrente: [Site Ver 19.0](RELEASE_NOTES_V19.md).
+
+La versione 19.0 invia la conferma dell'appuntamento anche in copia a `info@`,
+ritenta le conferme non accettate da Aruba e conferma le prenotazioni anche se
+la lettura degli impegni Google fallisce. Richiede la migrazione
+`backend-aruba-booking-confirmation.sql`, da importare prima di caricare i file.
 
 La versione 18.0 aggiunge le notifiche Google Calendar verso il sito e il sync
 immediato dopo le modifiche dell'agenda amministrativa. Richiede la migrazione
