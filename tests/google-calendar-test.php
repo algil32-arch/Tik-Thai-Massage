@@ -9,6 +9,7 @@ $config = ['GOOGLE_CALENDAR_ID' => 'test-calendar', 'GOOGLE_CALENDAR_WEBHOOK_URL
 $api = null;
 $lists = [];
 $listResponse = ['items' => [], 'nextSyncToken' => 'next-token'];
+$expireSyncTokenOnce = false;
 $inserted = [];
 $deleted = [];
 $emails = 0;
@@ -33,6 +34,10 @@ function googleCalendarListEvents(PDO $pdo, array $query): array
 {
     $GLOBALS['lists'][] = $query;
     if (!empty($GLOBALS['listFailure'])) throw new GoogleCalendarException('list failed');
+    if (!empty($GLOBALS['expireSyncTokenOnce']) && isset($query['syncToken'])) {
+        $GLOBALS['expireSyncTokenOnce'] = false;
+        throw new GoogleCalendarSyncTokenExpired('expired');
+    }
     return $GLOBALS['listResponse'];
 }
 function googleCalendarInsertEvent(PDO $pdo, array $payload): array
@@ -85,6 +90,9 @@ class CalendarPDO extends PDO
 {
     public bool $transaction = false;
     public function __construct(public array $steps = []) {}
+    public function beginTransaction(): bool { $this->transaction = true; return true; }
+    public function commit(): bool { $this->transaction = false; return true; }
+    public function rollBack(): bool { $this->transaction = false; return true; }
     public function prepare(string $query, array $options = []): PDOStatement|false
     {
         $step = array_shift($this->steps);
@@ -101,7 +109,7 @@ function calendarStep(string $sql, mixed $result = false): array { return compac
 
 try {
     // Copie delle librerie reali con soli confini esterni (API/email) sostituiti.
-    foreach (['google-calendar-push.php', 'google-calendar-sync.php'] as $file) {
+    foreach (['google-calendar-push.php', 'google-calendar-sync.php', 'booking-voucher.php', 'voucher-model.php'] as $file) {
         copy($root . '/' . $file, $temporary . '/' . $file);
     }
     foreach (['google-calendar-client.php', 'booking-mailer.php'] as $file) {
@@ -181,6 +189,22 @@ try {
         calendarCheck(googleCalendarNotificationStatus(new CalendarPDO([$step]), $input) === $expected, 'Wrong notification acceptance status');
     }
     calendarCheck(googleCalendarNotificationStatus(new CalendarPDO(), []) === 403, 'Missing notification headers accepted');
+
+    $expireSyncTokenOnce = true;
+    $listResponse = ['items' => [], 'nextSyncToken' => 'fresh-token'];
+    $pdo = new CalendarPDO([
+        calendarStep('SELECT sync_token', ['sync_token' => 'expired-token']),
+        calendarStep('UPDATE google_calendar_stato SET sync_token = NULL'),
+        calendarStep('DELETE FROM agenda_blocchi'),
+        calendarStep('UPDATE google_calendar_stato SET sync_token'),
+        calendarStep('DELETE FROM agenda_blocchi WHERE data_blocco'),
+    ]);
+    $resyncResult = googleSyncPullBlocks($pdo);
+    calendarCheck($resyncResult['full_resync'] && $pdo->steps === [], 'Expired token did not trigger a complete resync');
+    calendarCheck(!isset($lists[count($lists) - 1]['timeMin'], $lists[count($lists) - 1]['timeMax'])
+        && !isset($lists[count($lists) - 1]['syncToken']), 'Full resync used incompatible or expired query parameters');
+    calendarCheck($lists[count($lists) - 1]['singleEvents'] === 'true'
+        && $lists[count($lists) - 1]['showDeleted'] === 'true', 'Full resync query lost required event options');
 
     $pdo = new CalendarPDO([calendarStep('GET_LOCK', 0)]);
     calendarReject(fn() => googleCalendarSync($pdo), 'gia in corso');
@@ -276,7 +300,7 @@ try {
         if ($start === null) $event['status'] = 'cancelled';
         $listResponse = ['items' => [$event], 'nextSyncToken' => 'updated-token'];
         $steps = [calendarStep('SELECT sync_token', ['sync_token' => 'previous-token'])];
-        if ($start === null) $steps[] = calendarStep('UPDATE appuntamenti SET google_event_id = NULL');
+        if ($start === null) $steps[] = calendarStep('SELECT id FROM appuntamenti', []);
         $remove = calendarStep('DELETE FROM agenda_blocchi WHERE google_event_id');
         $remove['params'] = [':event' => 'manual-event'];
         $steps[] = $remove;
@@ -298,6 +322,24 @@ try {
         calendarCheck(in_array('10:00', $available, true) === ($start !== '10:00:00'), 'Old slot not released after Google move/delete');
         calendarCheck(in_array('12:00', $available, true) === ($start !== '12:00:00'), 'Moved Google event not blocking new slot');
     }
+
+    $listResponse = ['items' => [['id' => 'site-event', 'status' => 'cancelled']], 'nextSyncToken' => 'cancel-token'];
+    $pdo = new CalendarPDO([
+        calendarStep('SELECT sync_token', ['sync_token' => 'previous-token']),
+        calendarStep('SELECT id FROM appuntamenti', [['id' => 42]]),
+        calendarStep('SELECT id_studio FROM appuntamenti', 1),
+        calendarStep('SELECT id FROM studi', 1),
+        calendarStep('SELECT * FROM appuntamenti', [
+            'id' => 42, 'stato' => 'confermato', 'metodo_pagamento' => 'studio',
+        ]),
+        calendarStep("SET stato = 'annullato'"),
+        calendarStep('DELETE FROM agenda_blocchi WHERE google_event_id'),
+        calendarStep('UPDATE google_calendar_stato SET sync_token'),
+        calendarStep('DELETE FROM agenda_blocchi WHERE data_blocco'),
+    ]);
+    $cancelResult = googleSyncPullBlocks($pdo);
+    calendarCheck($cancelResult['appuntamenti_annullati'] === 1, 'Deleted site booking was not cancelled');
+    calendarCheck($pdo->steps === [] && !$pdo->transaction, 'Site booking cancellation incomplete');
 
     $config['GOOGLE_CALENDAR_ID'] = '';
     googleCalendarSyncAfterAdminChange(new CalendarPDO());
@@ -348,7 +390,8 @@ PHP;
     }
     echo "Google Calendar: {$checks} checks passed.\n";
 } finally {
-    foreach (['google-calendar-push.php', 'google-calendar-sync.php', 'google-calendar-client.php', 'booking-mailer.php', 'app-config.php', 'google-calendar-webhook.php'] as $file) {
+    foreach (['google-calendar-push.php', 'google-calendar-sync.php', 'booking-voucher.php', 'voucher-model.php',
+        'google-calendar-client.php', 'booking-mailer.php', 'app-config.php', 'google-calendar-webhook.php'] as $file) {
         if (is_file($temporary . '/' . $file)) unlink($temporary . '/' . $file);
     }
     rmdir($temporary);

@@ -1,9 +1,9 @@
 <?php
 
 require_once __DIR__ . '/booking-mailer.php';
+require_once __DIR__ . '/booking-voucher.php';
 
 const GOOGLE_SYNC_APPOINTMENT_PROPERTY = 'thaitik_appointment_id';
-const GOOGLE_SYNC_FUTURE_DAYS = 365;
 
 function googleEventIsOwnAppointment(array $event): bool
 {
@@ -114,8 +114,6 @@ function googleSyncFullQuery(): array
         'singleEvents' => 'true',
         'showDeleted' => 'true',
         'maxResults' => 250,
-        'timeMin' => (new DateTimeImmutable('-1 day'))->format(DateTimeInterface::RFC3339),
-        'timeMax' => (new DateTimeImmutable('+' . GOOGLE_SYNC_FUTURE_DAYS . ' days'))->format(DateTimeInterface::RFC3339),
     ];
 }
 
@@ -140,9 +138,22 @@ function googleSyncPullBlocks(PDO $pdo): array
     try {
         $result = googleSyncFetchEvents($pdo, $query);
     } catch (GoogleCalendarSyncTokenExpired $e) {
-        // Google invalida i token dopo lunghe inattività: si riparte da una lettura completa.
+        if ($fullResync) {
+            throw new GoogleCalendarException(
+                'Google ha restituito HTTP 410 anche durante una sincronizzazione completa. Controlla il log PHP per il dettaglio della richiesta.'
+            );
+        }
+
         $fullResync = true;
-        $result = googleSyncFetchEvents($pdo, googleSyncFullQuery());
+        $pdo->prepare('UPDATE google_calendar_stato SET sync_token = NULL WHERE id = 1')->execute();
+        try {
+            $result = googleSyncFetchEvents($pdo, googleSyncFullQuery());
+        } catch (GoogleCalendarSyncTokenExpired $fullResyncError) {
+            error_log('Google Calendar full resync was rejected with HTTP 410.');
+            throw new GoogleCalendarException(
+                'Google ha restituito HTTP 410 anche durante il recupero completo. Controlla il log PHP per il dettaglio della richiesta.'
+            );
+        }
     }
 
     if ($fullResync) {
@@ -151,17 +162,18 @@ function googleSyncPullBlocks(PDO $pdo): array
 
     $importedBlocks = 0;
     $skippedOwnEvents = 0;
-    $restoredAppointments = 0;
+    $cancelledAppointments = 0;
     foreach ($result['events'] as $event) {
         if (($event['status'] ?? '') === 'cancelled') {
-            // Un appuntamento del sito cancellato a mano da Google viene ricreato al push
-            // successivo: le disdette vanno fatte dall'area amministrativa.
-            $restoreStmt = $pdo->prepare(
-                "UPDATE appuntamenti SET google_event_id = NULL
+            $appointmentsStmt = $pdo->prepare(
+                "SELECT id FROM appuntamenti
                  WHERE google_event_id = :event AND stato IN ('in_attesa', 'confermato')"
             );
-            $restoreStmt->execute([':event' => (string)($event['id'] ?? '')]);
-            $restoredAppointments += $restoreStmt->rowCount();
+            $appointmentsStmt->execute([':event' => (string)($event['id'] ?? '')]);
+            foreach ($appointmentsStmt->fetchAll() as $appointment) {
+                bookingVoucherCancel($pdo, (int)$appointment['id']);
+                $cancelledAppointments++;
+            }
         }
 
         if (googleEventIsOwnAppointment($event)) {
@@ -185,7 +197,7 @@ function googleSyncPullBlocks(PDO $pdo): array
         'eventi_letti' => count($result['events']),
         'impegni_importati' => $importedBlocks,
         'eventi_del_sito_ignorati' => $skippedOwnEvents,
-        'appuntamenti_da_ricreare' => $restoredAppointments,
+        'appuntamenti_annullati' => $cancelledAppointments,
     ];
 }
 

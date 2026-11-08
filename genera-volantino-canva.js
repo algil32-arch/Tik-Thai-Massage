@@ -97,7 +97,7 @@ function makeSlide(page, slideNumber) {
     ], { align: "ctr", name: "Sedi su appuntamento" });
     addText(8, 137, 89, 9, [
       { text: "PRENOTA ONLINE  ·  thaitikmassage.it", size: 710, bold: true, align: "ctr" },
-      { text: "WhatsApp: wa.me/message/4ZL65LROJWHFI1", size: 650, align: "ctr" },
+      { text: "WhatsApp: wa.me/393895212306", size: 650, align: "ctr" },
       { text: "info@thaitikmassage.it", size: 700, bold: true, align: "ctr" },
     ], { align: "ctr", name: "Contatti per prenotazione" });
   } else {

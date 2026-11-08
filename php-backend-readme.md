@@ -220,8 +220,9 @@ appuntamenti originati dal sito direttamente su Google: restano gestiti dal
 database come prima. Una pagina prenotazioni gia aperta rilegge gli slot
 quando si cambia selezione o si ricarica, non riceve aggiornamenti push nel browser.
 
-Test locali: `php tests/google-calendar-test.php` e
-`php tests/booking-slots-test.php`. I test isolano API, email e PDO:
+Test locali: `php tests/google-calendar-client-test.php`,
+`php tests/google-calendar-test.php` e `php tests/booking-slots-test.php`.
+I test isolano API, email e PDO:
 non sostituiscono il collaudo con HTTPS, Google e MySQL su Aruba.
 
 ### Regole di funzionamento
@@ -229,8 +230,9 @@ non sostituiscono il collaudo con HTTPS, Google e MySQL su Aruba.
 - Gli appuntamenti `annullato` vengono rimossi dal calendario.
 - Gli eventi Google che non provengono dal sito sono salvati in `agenda_blocchi` giorno per giorno e rendono gli slot non prenotabili. Gli eventi marcati come **Disponibile** (`transparency: transparent`) non bloccano nulla.
 - Per liberare uno slot occupato a mano basta eliminare o spostare l'evento su Google: al ciclo successivo il sito lo rimette a disposizione.
-- Le disdette vanno fatte dall'area amministrativa: se cancelli su Google l'evento di un appuntamento attivo, il cron lo ricrea per evitare doppie prenotazioni.
-- Google invalida i token di sincronizzazione dopo lunghi periodi di inattività; in quel caso il cron esegue automaticamente una rilettura completa dei prossimi 12 mesi.
+- Se elimini da Google Calendar l'evento di una prenotazione attiva creata dal sito, la prenotazione viene annullata anche sul sito e la fascia torna disponibile. Se era stata pagata con voucher, la seduta viene ripristinata. Gli eventi aggiunti manualmente continuano invece a liberare o bloccare le fasce in base a eliminazioni e spostamenti.
+- Le modifiche vengono recepite quando arriva la notifica Google o gira il cron. Una pagina prenotazioni già aperta non si aggiorna in tempo reale: ricaricala o cambia selezione per rileggere le disponibilità.
+- Google invalida i token di sincronizzazione dopo lunghi periodi di inattività; in quel caso il cron esegue automaticamente una rilettura completa del calendario e salva un nuovo token.
 - Finché `GOOGLE_CALENDAR_ID` non è configurato, il sito funziona esattamente come prima.
 
 ## Inserimento manuale fatture

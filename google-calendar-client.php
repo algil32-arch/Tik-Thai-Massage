@@ -7,6 +7,11 @@ final class GoogleCalendarSyncTokenExpired extends RuntimeException
 {
 }
 
+function googleCalendarDeleteAlreadyGone(int $statusCode, string $method): bool
+{
+    return $method === 'DELETE' && in_array($statusCode, [404, 410], true);
+}
+
 function googleCalendarSettings(): array
 {
     $config = appConfig();
@@ -205,12 +210,17 @@ function googleCalendarRequest(
         throw new GoogleCalendarException('Google Calendar non è raggiungibile.');
     }
 
+    if (googleCalendarDeleteAlreadyGone($statusCode, $method)) {
+        return [];
+    }
+
     // Un token di sincronizzazione scaduto richiede una rilettura completa del calendario.
     if ($statusCode === 410) {
+        $response = json_decode((string)$responseBody, true);
+        $reason = is_array($response) ? (string)($response['error']['message'] ?? '') : '';
+        error_log('Google Calendar API returned HTTP 410 for ' . $method . ' ' . $path
+            . ($reason !== '' ? ': ' . mb_substr($reason, 0, 300) : ''));
         throw new GoogleCalendarSyncTokenExpired('Token di sincronizzazione Google scaduto.');
-    }
-    if ($statusCode === 404 && $method === 'DELETE') {
-        return [];
     }
     if ($statusCode === 204 || trim((string)$responseBody) === '') {
         if ($statusCode >= 200 && $statusCode < 300) {
