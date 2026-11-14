@@ -46,16 +46,54 @@ foreach ([['email' => 'invalid'], ['codice_fiscale' => ''], ['name' => ['not a s
     try { voucherCustomer(array_replace($buyer, $change)); throw new RuntimeException('Invalid customer accepted'); }
     catch (InvalidArgumentException $e) { $checks++; }
 }
-$document = ['recipient_name' => 'Anna Rossi', 'service_name' => 'Thai tradizionale',
+$document = ['recipient_name' => 'Anna Rossi', 'recipient_title' => 'sigra', 'service_name' => 'Thai tradizionale',
+    'studio_address' => 'Via Valle Borbera 51', 'studio_city' => 'Roma', 'studio_postal_code' => '00141',
     'studio_name' => 'APS Studio Montesacro', 'duration_minutes' => 60, 'sessions_per_item' => 5, 'quantity' => 2,
     'total_sessions' => 10, 'amount' => '570.00', 'voucher_code' => 'TTM-TEST', 'valid_until' => '2027-10-13 12:00:00'];
 $preview = voucherPdf($document, true);
 $paid = voucherPdf($document, false);
 voucherCheck(strpos($preview, 'ANTEPRIMA - NON VALIDO / NON PAGATO') !== false, 'Preview lacks watermark');
 voucherCheck(strpos($paid, 'TTM-TEST') !== false && strpos($paid, 'NON PAGATO') === false, 'Paid PDF invalid');
+voucherCheck(strpos($paid, 'Sig.ra Anna Rossi') !== false && strpos($paid, 'Thai tradizionale') !== false, 'Personalized gift message missing');
+voucherCheck(strpos(voucherPdf(array_replace($document, ['recipient_title' => 'sig']), false), 'Sig. Anna Rossi') !== false, 'Male title missing');
+$oldPdf = voucherPdf(array_replace($document, ['recipient_title' => null]), false);
+voucherCheck(strpos($oldPdf, 'Per Anna Rossi') !== false && strpos($oldPdf, 'Sig.') === false, 'Existing voucher must use neutral greeting');
+voucherCheck(voucherStudioName('Studio Prati') === 'Studio Prati - C/O Barbiere Prati lounge di estetica', 'Studio Prati location missing');
+foreach (['', 'other', 1, null] as $invalidTitle) {
+    try { voucherRecipientTitle($invalidTitle); throw new RuntimeException('Invalid title accepted'); }
+    catch (InvalidArgumentException $e) { $checks++; }
+}
+voucherCheck(strpos($paid, '"Thai tradizionale"') !== false, 'Massage name must be quoted in the PDF');
+voucherCheck(strpos($paid, 'massaggiatrice certificata Thailandese.') !== false, 'Thailandese must be capitalized in the PDF');
+voucherCheck(strpos($paid, 'Siamo certi che per lei') !== false, 'Gift message conclusion missing');
 voucherCheck(strpos($paid, 'APS Studio Monte Sacro') !== false, 'PDF omits selected studio or uses the old spelling');
+voucherCheck(strpos($paid, 'Indirizzo: Via Valle Borbera 51, 00141 Roma') !== false, 'Full studio address missing');
+voucherCheck(strpos(voucherPdf(array_replace($document, ['studio_postal_code' => '']), false), 'dati incompleti') !== false, 'Missing postal code not disclosed');
 voucherCheck(strpos($preview, 'APS Studio Monte Sacro') !== false, 'Preview uses the old studio spelling');
 voucherCheck(strpos($paid, 'Montesacro') === false, 'PDF contains the old studio spelling');
 voucherCheck(strpos($paid, 'Chi non e gia socio') !== false, 'PDF omits APS membership information');
+voucherCheck(strpos($paid, '/Subtype /Image') !== false && strpos($paid, '/Logo Do') !== false, 'PDF logo missing');
+voucherCheck(strpos($paid, 'COME PRENOTARE') !== false && strpos($paid, 'Email facoltativa') !== false, 'Booking or email instructions missing');
+voucherCheck(strpos($paid, 'annulla-voucher.php') !== false && strpos($paid, '3 ore') !== false, 'Cancellation instructions missing');
 voucherCheck(strpos($paid, '%PDF-1.4') === 0 && substr($paid, -6) === "%%EOF\n", 'Invalid PDF structure');
+voucherCheck(abs(voucherTimesItalicWidth('iiii', 12) - 13.344) < 0.001, 'Narrow italic characters have incorrect width');
+voucherCheck(abs(voucherTimesItalicWidth('WWWW', 12) - 39.984) < 0.001, 'Wide italic characters have incorrect width');
+voucherCheck((bool)preg_match('/\/F4 12 Tf ([0-9.]+) [0-9]+ Td \((Sig\.ra Anna Rossi[^()]*)\)/', $paid, $greetingPosition), 'Greeting position not found');
+voucherCheck(abs((float)$greetingPosition[1] + voucherTimesItalicWidth($greetingPosition[2], 12) / 2 - 297.5) < 0.001, 'Greeting is not centered using Times-Italic widths');
+voucherCheck((bool)preg_match('/\/F1 12 Tf 55 ([0-9]+) Td \(Valido fino al:/', $paid, $validityPosition), 'Validity position not found');
+voucherCheck((bool)preg_match('/\/F3 14 Tf 55 ([0-9]+) Td \(COME PRENOTARE\)/', $paid, $bookingPosition), 'Booking heading position not found');
+voucherCheck((int)$validityPosition[1] - (int)$bookingPosition[1] >= 38, 'Booking heading is not sufficiently separated');
+$instruction = '3. Scegli "Prenota con voucher regalo", inserisci il codice e seleziona data e orario.';
+$wrappedInstruction = voucherWrapInstructions($instruction, 11, 480);
+voucherCheck(count($wrappedInstruction) === 1 && $wrappedInstruction[0] === $instruction, 'Booking instructions wrap before using the available width');
+voucherCheck(voucherHelveticaWidth($instruction, 11) > 350 && voucherHelveticaWidth($instruction, 11) <= 480, 'Booking instruction does not fit the intended width');
+voucherCheck(strpos($paid, $instruction) !== false, 'PDF does not use the full width for booking instructions');
+$longWord = str_repeat('W', 100);
+$wrappedWord = voucherWrapInstructions($longWord, 11, 480);
+voucherCheck(implode('', $wrappedWord) === $longWord && count($wrappedWord) > 1, 'Long unbroken words are not preserved and wrapped');
+foreach ($wrappedWord as $line) voucherCheck(voucherHelveticaWidth($line, 11) <= 480, 'Wrapped line exceeds the PDF margin');
+$longDocument = array_replace($document, ['recipient_name' => str_repeat('Nome ', 30),
+    'service_name' => str_repeat('Massaggio ', 15)]);
+voucherCheck(strpos(voucherPdf($longDocument, false), 'annulla-voucher.php') !== false, 'Long voucher loses instructions');
+voucherCheck(strpos(voucherPdf($longDocument, true), 'ANTEPRIMA - NON VALIDO / NON PAGATO') !== false, 'Long preview fails');
 echo "$checks voucher checks passed.\n";

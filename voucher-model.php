@@ -1,5 +1,31 @@
 <?php
 
+function voucherRecipientTitle($value): string
+{
+    if (!is_string($value) || !in_array($value, ['sig', 'sigra'], true)) {
+        throw new InvalidArgumentException('Seleziona Sig. oppure Sig.ra per il destinatario.');
+    }
+    return $value;
+}
+
+function voucherGreeting(array $voucher): string
+{
+    $title = $voucher['recipient_title'] ?? null;
+    if ($title === null) {
+        return 'Per ' . $voucher['recipient_name'] . ' è stato scelto un regalo esclusivo: un massaggio "'
+            . $voucher['service_name'] . '", eseguito da Tik, una massaggiatrice certificata Thailandese.';
+    }
+    $label = voucherRecipientTitle($title) === 'sig' ? 'Sig.' : 'Sig.ra';
+    return $label . ' ' . $voucher['recipient_name'] . ', le è stato fatto un regalo esclusivo: un massaggio "'
+        . $voucher['service_name'] . '", eseguito da Tik, una massaggiatrice certificata Thailandese.';
+}
+
+function voucherStudioName(string $name): string
+{
+    return $name === 'Studio Prati' ? 'Studio Prati - C/O Barbiere Prati lounge di estetica'
+        : str_replace('Montesacro', 'Monte Sacro', $name);
+}
+
 function voucherQuote(string $price, int $sessionsPerItem, int $quantity): array
 {
     if (!preg_match('/^\d{1,6}(?:\.\d{1,2})?$/', $price)
@@ -75,7 +101,7 @@ function voucherValidUntil(DateTimeImmutable $paidAt): DateTimeImmutable
 
 function voucherCanUse(array $voucher, DateTimeImmutable $now): bool
 {
-    return $voucher['status'] === 'paid' && (int)$voucher['remaining_sessions'] > 0
+    return ($voucher['disabled_at'] ?? null) === null && $voucher['status'] === 'paid' && (int)$voucher['remaining_sessions'] > 0
         && $voucher['valid_until'] !== null && new DateTimeImmutable($voucher['valid_until']) > $now;
 }
 

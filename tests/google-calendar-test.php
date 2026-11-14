@@ -13,6 +13,7 @@ $expireSyncTokenOnce = false;
 $inserted = [];
 $deleted = [];
 $emails = 0;
+$lastConfirmation = null;
 $emailResult = true;
 
 class GoogleCalendarException extends RuntimeException {}
@@ -49,6 +50,7 @@ function googleCalendarDeleteEvent(PDO $pdo, string $id): void { $GLOBALS['delet
 function sendBookingConfirmationEmail(int $id, array $booking, string $email): bool
 {
     $GLOBALS['emails']++;
+    $GLOBALS['lastConfirmation'] = $booking;
     return $GLOBALS['emailResult'];
 }
 function calendarCheck(bool $condition, string $message): void
@@ -258,6 +260,20 @@ try {
     calendarCheck($emails === 2 && $retryResult['email_conferma_inviate'] === 1, 'Failed confirmation email was not retried');
     calendarCheck($retryResult['email_conferma_non_inviate'] === [], 'Successful retry still reported as failed');
     calendarCheck($pdo->steps === [], 'Retry sync failed to release lock');
+
+    $voucherAppointment = array_replace($appointment, ['metodo_pagamento' => 'voucher',
+        'voucher_code' => 'TTM-AAAAAAAAAAAAAAAAAAAA', 'voucher_remaining_sessions' => 2]);
+    $pdo = new CalendarPDO([
+        calendarStep('WHERE a.google_event_id IS NULL', []),
+        calendarStep('WHERE a.google_event_id IS NOT NULL', [$voucherAppointment]), $sent,
+        calendarStep("WHERE stato = 'annullato'", []),
+    ]);
+    $voucherResult = googleSyncPushAppointments($pdo);
+    calendarCheck($voucherResult['email_conferma_inviate'] === 1
+        && $lastConfirmation['payment_method'] === 'voucher'
+        && $lastConfirmation['voucher_code'] === $voucherAppointment['voucher_code']
+        && $lastConfirmation['remaining_sessions'] === 2, 'Voucher data missing from confirmation');
+    $emails--;
 
     $pdo = new CalendarPDO([
         calendarStep('GET_LOCK', 1), calendarStep('INSERT INTO google_calendar_stato'),

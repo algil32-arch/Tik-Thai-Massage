@@ -62,6 +62,10 @@ function voucherSql(string $sql, array $params, $result = false, int $count = 1)
 }
 
 $code = 'TTM-' . str_repeat('A', 20);
+bookingVoucherCheck(bookingEmailValid('', 'voucher'), 'Voucher booking must allow no email');
+bookingVoucherCheck(!bookingEmailValid('', 'studio') && !bookingEmailValid('', 'online'), 'Non-voucher booking must require email');
+bookingVoucherCheck(!bookingEmailValid('invalid', 'voucher'), 'Invalid optional email accepted');
+bookingVoucherCheck(bookingEmailValid('mario@example.com', 'voucher'), 'Valid email rejected');
 bookingVoucherCheck(bookingVoucherCode('  ' . strtolower($code) . ' ') === $code, 'Code normalization');
 foreach (['', 'TTM-TEST', 'TTM-' . str_repeat('G', 20), [], null] as $invalid) {
     bookingVoucherReject(fn() => bookingVoucherCode($invalid));
@@ -71,6 +75,23 @@ $appointment = new DateTimeImmutable('2026-10-15 14:00:00');
 $voucher = ['id' => 1, 'voucher_code' => $code, 'id_studio' => 2, 'id_servizio' => 3,
     'duration_minutes' => 60, 'status' => 'paid', 'remaining_sessions' => 1,
     'valid_until' => '2027-10-14 12:00:00'];
+$emptyBilling = ['customer_type' => 'privato', 'ragione_sociale' => '', 'codice_fiscale' => '',
+    'partita_iva' => '', 'indirizzo' => '', 'citta' => '', 'cap' => '', 'codice_destinatario' => '', 'pec' => ''];
+bookingVoucherCheck(!bookingVoucherRequiresBilling(['source' => 'manual']), 'Manual voucher requires billing');
+bookingVoucherCheck(bookingVoucherRequiresBilling(['source' => 'online']), 'Online voucher bypasses billing');
+bookingVoucherCheck(bookingVoucherRequiresBilling([]), 'Missing source must require billing');
+bookingBillingValidate($emptyBilling, bookingVoucherRequiresBilling(['source' => 'manual']));
+bookingVoucherCheck(true, 'Manual voucher rejected without billing data');
+bookingVoucherReject(fn() => bookingBillingValidate($emptyBilling, bookingVoucherRequiresBilling(['source' => 'online'])));
+bookingVoucherReject(fn() => bookingBillingValidate($emptyBilling, true));
+$privateBilling = array_replace($emptyBilling, ['indirizzo' => 'Via Roma', 'citta' => 'Roma', 'cap' => '00100', 'codice_fiscale' => 'RSSMRA80A01H501U']);
+bookingBillingValidate($privateBilling, true);
+bookingVoucherCheck(true, 'Valid private billing rejected');
+bookingVoucherReject(fn() => bookingBillingValidate(array_replace($privateBilling, ['codice_fiscale' => '']), true));
+$companyBilling = array_replace($privateBilling, ['customer_type' => 'azienda', 'ragione_sociale' => 'Impresa', 'partita_iva' => '12345678901', 'pec' => 'test@example.com']);
+bookingBillingValidate($companyBilling, true);
+bookingVoucherCheck(true, 'Valid company billing rejected');
+bookingVoucherReject(fn() => bookingBillingValidate(array_replace($companyBilling, ['pec' => '']), true));
 bookingVoucherValidate($voucher, 2, 3, 60, $appointment, $now);
 bookingVoucherCheck(true, 'Valid last session rejected');
 foreach ([['status' => 'pending'], ['status' => 'failed'], ['status' => 'expired'],
@@ -79,6 +100,7 @@ foreach ([['status' => 'pending'], ['status' => 'failed'], ['status' => 'expired
     ['duration_minutes' => 90]] as $change) {
     bookingVoucherReject(fn() => bookingVoucherValidate(array_replace($voucher, $change), 2, 3, 60, $appointment, $now));
 }
+bookingVoucherReject(fn() => bookingVoucherValidate(array_replace($voucher, ['disabled_at' => '2026-10-14 12:00:00']), 2, 3, 60, $appointment, $now));
 $pdo = new VoucherTestPDO([voucherSql('voucher_code = :code FOR UPDATE', [':code' => $code], $voucher)]);
 bookingVoucherCheck(bookingVoucherByCode($pdo, $code, true)['id'] === 1, 'Locked voucher lookup');
 $pdo = new VoucherTestPDO([voucherSql('voucher_code = :code', [':code' => $code])]);
@@ -146,6 +168,36 @@ $pdo = new VoucherTestPDO(array_merge($cancelStart, [$cancelEnd]));
 bookingVoucherCancel($pdo, 42);
 bookingVoucherCheck($pdo->steps === [] && $pdo->commits === 1, 'Online cancellation accessed voucher tables');
 $cancelStart[2]['result'] = $booking;
+$future = new DateTimeImmutable('+4 hours');
+$customerBooking = array_replace($booking, ['data_appuntamento' => $future->format('Y-m-d'), 'ora_inizio' => $future->format('H:i:s')]);
+$customerStart = $cancelStart;
+$customerStart[2]['result'] = $customerBooking;
+$customerSteps = [
+    voucherSql('SELECT * FROM gift_voucher_bookings WHERE appointment_id = :id FOR UPDATE', [':id' => 42], $use),
+    voucherSql('WHERE id = :id AND voucher_code = :code', [':id' => 1, ':code' => $code], 1),
+    voucherSql('remaining_sessions + 1 WHERE id = :id AND remaining_sessions < total_sessions', [':id' => 1]),
+    voucherSql('SET restored_at = NOW()', [':id' => 8]), $cancelEnd,
+];
+$pdo = new VoucherTestPDO(array_merge($customerStart, $customerSteps));
+bookingVoucherCancel($pdo, 42, $code);
+bookingVoucherCheck($pdo->commits === 1 && $pdo->steps === [], 'Customer cancellation failed');
+$customerSteps[1]['result'] = false;
+$pdo = new VoucherTestPDO(array_merge($customerStart, array_slice($customerSteps, 0, 2)));
+bookingVoucherReject(fn() => bookingVoucherCancel($pdo, 42, $code));
+bookingVoucherCheck($pdo->rollbacks === 1 && $pdo->commits === 0, 'Wrong voucher canceled appointment');
+$customerStart[2]['result'] = array_replace($customerBooking, ['stato' => 'annullato']);
+$pdo = new VoucherTestPDO($customerStart);
+bookingVoucherReject(fn() => bookingVoucherCancel($pdo, 42, $code));
+bookingVoucherCheck($pdo->rollbacks === 1, 'Canceled booking restored again');
+$late = new DateTimeImmutable('+2 hours');
+$customerStart[2]['result'] = array_replace($customerBooking, ['data_appuntamento' => $late->format('Y-m-d'), 'ora_inizio' => $late->format('H:i:s')]);
+$pdo = new VoucherTestPDO($customerStart);
+bookingVoucherReject(fn() => bookingVoucherCancel($pdo, 42, $code));
+bookingVoucherCheck($pdo->rollbacks === 1, 'Late cancellation was not rolled back');
+$start = new DateTimeImmutable('2027-01-15 12:00:00');
+bookingVoucherCheck(bookingVoucherCancellationAllowed($start, new DateTimeImmutable('2027-01-15 09:00:00')), 'Three-hour boundary rejected');
+bookingVoucherCheck(!bookingVoucherCancellationAllowed($start, new DateTimeImmutable('2027-01-15 09:00:01')), 'Less than three hours accepted');
+bookingVoucherCheck(bookingVoucherCancellationAllowed($start, new DateTimeImmutable('2027-01-15 08:59:59')), 'More than three hours rejected');
 $pdo = new VoucherTestPDO(array_merge($cancelStart, [
     voucherSql('SELECT * FROM gift_voucher_bookings', [':id' => 42], array_replace($use, ['restored_at' => '2026-10-14 13:00:00'])),
     $cancelEnd,

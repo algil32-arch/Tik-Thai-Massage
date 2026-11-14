@@ -185,6 +185,7 @@
             <fieldset id="giftVoucherSelection" style="border:0; padding:0; margin:0;">
               <div class="gift-voucher-grid">
                 <div class="field"><label for="giftStudio">Sede</label><select id="giftStudio" name="studio_id" required disabled><option value="">Caricamento sedi…</option></select></div>
+                <div class="field"><label for="giftTitle">Appellativo del destinatario</label><select id="giftTitle" name="recipient_title" required><option value="">Seleziona</option><option value="sig">Sig.</option><option value="sigra">Sig.ra</option></select></div>
                 <div class="field"><label for="giftRecipient">Nome del destinatario</label><input id="giftRecipient" name="recipient_name" maxlength="150" required /></div>
                 <div class="field"><label for="giftService">Trattamento e durata</label><select id="giftService" name="service_id" required disabled><option value="">Caricamento trattamenti…</option></select></div>
                 <div class="field"><label for="giftFormula">Formula</label><select id="giftFormula" name="sessions_per_item"><option value="1">Trattamento singolo</option><option value="3">Pacchetto da 3 sedute</option><option value="6">Pacchetto da 6 sedute</option></select></div>
@@ -236,7 +237,7 @@
       </div>
       <div class="wrap footer-legal"><p>© 2026 Thai Tik Massage · P.IVA 18730391002</p></div>
     </footer>
-    <script src="gift-voucher.js"></script>
+    <script src="gift-voucher.js?v=appellativo"></script>
     <script>
       const localPreview = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname) || window.location.protocol === 'file:';
       const loadVoucherSumUpSdk = () => {
@@ -253,7 +254,8 @@
       async function loadVoucherCatalog() {
         if (localPreview) {
           return {
-            studios: [{ id: 9001, name: 'Studio Prati' }, { id: 9002, name: 'APS Studio Montesacro' }],
+            studios: [{ id: 9001, name: 'Studio Prati', address: 'Via Giuseppe Gioachino Belli 1', city: 'Roma', postalCode: '00193' },
+              { id: 9002, name: 'APS Studio Montesacro', address: 'Via Valle Borbera 51', city: 'Roma', postalCode: '00141' }],
             services: [
               { id: 9101, id_studio: 9001, name: 'Massaggio Thai tradizionale', price: 60, durationMinutes: 60 },
               { id: 9107, id_studio: 9001, name: 'Massaggio Thai tradizionale', price: 80, durationMinutes: 90 },
@@ -278,7 +280,8 @@
           throw new Error(data.message || 'Catalogo voucher non disponibile.');
         }
         return {
-          studios: data.studios.map(studio => ({ id: Number(studio.id), name: studio.nome })),
+          studios: data.studios.map(studio => ({ id: Number(studio.id), name: studio.nome,
+            address: studio.indirizzo || '', city: studio.citta || '', postalCode: studio.cap || '' })),
           services: data.services.map(service => ({
             id: Number(service.id), id_studio: Number(service.id_studio),
             name: service.nome, price: Number(service.prezzo), durationMinutes: Number(service.durata_minuti)

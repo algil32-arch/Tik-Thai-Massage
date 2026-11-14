@@ -12,6 +12,19 @@ function giftVoucherQuote(price, sessionsPerItem, quantity) {
   return { itemCents: roundedPackageCents, totalCents: roundedPackageCents * quantity, totalSessions: sessionsPerItem * quantity };
 }
 
+function giftVoucherGreeting(voucher) {
+  const title = voucher.recipient_title;
+  const message = `un massaggio "${voucher.service_name}", eseguito da Tik, una massaggiatrice certificata Thailandese.`;
+  if (title == null) return `Per ${voucher.recipient_name} è stato scelto un regalo esclusivo: ${message}`;
+  if (!['sig', 'sigra'].includes(title)) throw new Error('Appellativo del destinatario non valido.');
+  return `${title === 'sig' ? 'Sig.' : 'Sig.ra'} ${voucher.recipient_name}, le è stato fatto un regalo esclusivo: ${message}`;
+}
+
+function giftVoucherStudioName(name) {
+  return name === 'Studio Prati' ? 'Studio Prati - C/O Barbiere Prati lounge di estetica'
+    : name.replace(/Montesacro/g, 'Monte Sacro');
+}
+
 function initGiftVoucher({ studios, services, preview, loadSumUpSdk }) {
   const form = document.getElementById('giftVoucherForm');
   const status = document.getElementById('giftStatus');
@@ -93,10 +106,13 @@ function initGiftVoucher({ studios, services, preview, loadSumUpSdk }) {
     if (!service || !studio) throw new Error('Seleziona sede e trattamento.');
     const recipient = document.getElementById('giftRecipient').value.trim();
     if (!recipient) throw new Error('Inserisci il nome del destinatario.');
+    const title = document.getElementById('giftTitle').value;
+    if (!['sig', 'sigra'].includes(title)) throw new Error('Seleziona Sig. oppure Sig.ra per il destinatario.');
     const sessions = Number(document.getElementById('giftFormula').value);
     const quantity = Number(document.getElementById('giftQuantity').value);
     const quote = giftVoucherQuote(service.price, sessions, quantity);
-    return { recipient_name: recipient, service_id: service.id, service_name: service.name, studio_name: studio.name,
+    return { recipient_name: recipient, recipient_title: title, service_id: service.id, service_name: service.name, studio_name: studio.name,
+      studio_address: studio.address || '', studio_city: studio.city || '', studio_postal_code: studio.postalCode || '',
       price: Number(service.price).toFixed(2), duration_minutes: service.durationMinutes,
       sessions_per_item: sessions, quantity, total_sessions: quote.totalSessions, amount: (quote.totalCents / 100).toFixed(2) };
   }
@@ -124,16 +140,39 @@ function initGiftVoucher({ studios, services, preview, loadSumUpSdk }) {
     const heading = document.createElement('h3');
     heading.textContent = 'Voucher regalo';
     panel.appendChild(heading);
+    const address = voucher.studio_address?.trim();
+    const city = voucher.studio_city?.trim();
+    const postalCode = voucher.studio_postal_code?.trim() || '';
+    const addressParts = [address, [postalCode, city].filter(Boolean).join(' ')].filter(Boolean);
+    const studioAddress = address && city && postalCode ? addressParts.join(', ')
+      : `${addressParts.length ? `${addressParts.join(', ')} (dati incompleti)` : 'Non disponibile'}: contatta lo studio.`;
     const lines = [paid ? `Codice: ${voucher.voucher_code}` : 'ANTEPRIMA — NON VALIDO / NON PAGATO',
-      `Per: ${voucher.recipient_name}`, `${voucher.service_name} · ${voucher.duration_minutes} minuti`,
+      giftVoucherGreeting(voucher),
+      'Siamo certi che per lei sarà un’esperienza unica! Faremo del nostro meglio perché lo sia.',
+      `Durata della seduta: ${voucher.duration_minutes} minuti`,
       `Formula: ${voucher.sessions_per_item} sedute × ${voucher.quantity}`,
       `Totale sedute regalate: ${voucher.total_sessions}`, `Importo totale: ${money(Math.round(Number(voucher.amount) * 100))}`,
-      `Sede: ${voucher.studio_name.replace(/Montesacro/g, 'Monte Sacro')}`,
+      `Sede: ${giftVoucherStudioName(voucher.studio_name)}`,
+      `Indirizzo: ${studioAddress}`,
       ...(voucher.studio_name === 'APS Studio Montesacro'
         ? ['Chi non è già socio dovrà iscriversi all’APS al momento del primo appuntamento. Iscrizione ed eventuale quota sono gestite direttamente dall’associazione.'] : []),
       paid ? `Valido fino al: ${new Date(voucher.valid_until.replace(' ', 'T')).toLocaleDateString('it-IT')}` : 'Validità: 12 mesi dalla conferma del pagamento',
-      'Prenota sul sito scegliendo "Prenota con voucher regalo" e inserisci il codice.', 'info@thaitikmassage.it · www.thaitikmassage.it'];
-    lines.forEach(text => { const line = document.createElement('p'); line.textContent = text; panel.appendChild(line); });
+      'COME PRENOTARE',
+      '1. Vai su www.thaitikmassage.it e scegli Prenota un massaggio.',
+      '2. Seleziona la sede, il trattamento e la durata indicati sul voucher.',
+      '3. Scegli "Prenota con voucher regalo", inserisci il codice e seleziona data e orario.',
+      '4. Verifica il codice in fondo alla pagina e invia la richiesta di appuntamento.',
+      'Email facoltativa: inseriscila per ricevere la conferma e gestire meglio la prenotazione.',
+      'Per annullare online: www.thaitikmassage.it/annulla-voucher.php entro 3 ore prima.',
+      'Informazioni: info@thaitikmassage.it'];
+    lines.forEach((text, index) => {
+      const line = document.createElement('p');
+      if (index === 0) line.className = 'gift-voucher-code';
+      else if (index === 1 || index === 2) line.className = 'gift-voucher-message';
+      else if (text === 'COME PRENOTARE') line.className = 'gift-voucher-heading';
+      line.textContent = text;
+      panel.appendChild(line);
+    });
     panel.hidden = false;
   }
   function currentVoucher() {
@@ -299,4 +338,4 @@ function initGiftVoucher({ studios, services, preview, loadSumUpSdk }) {
   }
 }
 
-if (typeof module !== 'undefined') module.exports = { giftVoucherQuote };
+if (typeof module !== 'undefined') module.exports = { giftVoucherQuote, giftVoucherGreeting, giftVoucherStudioName };

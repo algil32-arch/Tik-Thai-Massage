@@ -303,14 +303,17 @@ function googleSyncPushAppointments(PDO $pdo): array
                 a.stato_pagamento, a.note,
                 st.nome AS studio_nome, sv.nome AS servizio_nome,
                 sv.prezzo, c.nome AS cliente_nome, c.cognome AS cliente_cognome,
-                c.email AS cliente_email
+                c.email AS cliente_email, gv.voucher_code, gv.remaining_sessions AS voucher_remaining_sessions
          FROM appuntamenti a
          INNER JOIN studi st ON st.id = a.id_studio
          INNER JOIN servizi sv ON sv.id = a.id_servizio
          INNER JOIN clienti c ON c.id = a.id_cliente
+         LEFT JOIN gift_voucher_bookings vb ON vb.appointment_id = a.id AND vb.restored_at IS NULL
+         LEFT JOIN gift_vouchers gv ON gv.id = vb.voucher_id
          WHERE a.google_event_id IS NOT NULL
            AND a.conferma_email_inviata_at IS NULL
            AND a.stato = 'confermato'
+           AND c.email IS NOT NULL AND c.email <> ''
            AND a.data_appuntamento >= :oggi
          ORDER BY a.data_appuntamento, a.ora_inizio
          LIMIT 50"
@@ -325,6 +328,9 @@ function googleSyncPushAppointments(PDO $pdo): array
                 'date' => (string)$appointment['data_appuntamento'],
                 'time' => substr((string)$appointment['ora_inizio'], 0, 5),
                 'price' => (float)$appointment['prezzo'],
+                'payment_method' => $appointment['metodo_pagamento'],
+                'voucher_code' => $appointment['voucher_code'] ?? null,
+                'remaining_sessions' => $appointment['voucher_remaining_sessions'] ?? null,
             ], (string)$appointment['cliente_email']);
         } catch (Throwable $e) {
             $sent = false;

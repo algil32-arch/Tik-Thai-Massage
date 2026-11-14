@@ -36,7 +36,7 @@ if ($method === 'GET') {
     $mode = $_GET['mode'] ?? 'status';
 
     if ($mode === 'catalog') {
-        $studios = $pdo->query('SELECT id, nome FROM studi WHERE attivo = 1 ORDER BY nome')->fetchAll();
+        $studios = $pdo->query('SELECT id, nome, indirizzo, citta, cap FROM studi WHERE attivo = 1 ORDER BY nome')->fetchAll();
         $services = $pdo->query(
             'SELECT id, id_studio, nome, durata_minuti, prezzo
              FROM servizi WHERE attivo = 1 ORDER BY id_studio, nome, durata_minuti'
@@ -176,7 +176,7 @@ if (!is_array($input)) {
     $input = $_POST;
 }
 
-$required = ['studio_id', 'service_id', 'date', 'time', 'name', 'email'];
+$required = ['studio_id', 'service_id', 'date', 'time', 'name'];
 foreach ($required as $field) {
     if (!isset($input[$field]) || trim((string)$input[$field]) === '') {
         apiResponse(400, [
@@ -191,7 +191,7 @@ $serviceId = filter_var($input['service_id'], FILTER_VALIDATE_INT);
 $date = trim((string)$input['date']);
 $time = trim((string)$input['time']);
 $name = trim((string)$input['name']);
-$email = trim((string)$input['email']);
+$email = trim((string)($input['email'] ?? ''));
 $phone = trim((string)($input['phone'] ?? ''));
 $paymentMethod = trim((string)($input['payment_method'] ?? 'studio'));
 $customerType = trim((string)($input['customer_type'] ?? 'privato'));
@@ -208,18 +208,22 @@ $notes = trim((string)($input['notes'] ?? ''));
 if (!in_array($paymentMethod, ['studio', 'online', 'voucher'], true)) {
     apiResponse(400, ['success' => false, 'message' => 'Modalità di pagamento non valida.']);
 }
-if (!in_array($customerType, ['privato', 'azienda'], true) || $billingAddress === '' || $billingCity === '' || $billingPostalCode === '') {
-    apiResponse(400, ['success' => false, 'message' => 'Inserisci i dati fiscali e l’indirizzo di fatturazione.']);
-}
-if ($customerType === 'privato' && $taxCode === '') {
-    apiResponse(400, ['success' => false, 'message' => 'Il codice fiscale è obbligatorio per il cliente privato.']);
-}
-if ($customerType === 'azienda' && ($companyName === '' || $vatNumber === '' || ($recipientCode === '' && $pec === ''))) {
-    apiResponse(400, ['success' => false, 'message' => 'Per aziende e professionisti sono necessari ragione sociale, partita IVA e codice destinatario o PEC.']);
+$billing = [
+    'customer_type' => $customerType, 'ragione_sociale' => $companyName, 'codice_fiscale' => $taxCode,
+    'partita_iva' => $vatNumber, 'indirizzo' => $billingAddress, 'citta' => $billingCity,
+    'cap' => $billingPostalCode, 'codice_destinatario' => $recipientCode, 'pec' => $pec,
+];
+if ($paymentMethod !== 'voucher') {
+    try {
+        bookingBillingValidate($billing, true);
+    } catch (InvalidArgumentException $e) {
+        apiResponse(400, ['success' => false, 'message' => $e->getMessage()]);
+    }
 }
 
 $dateObject = DateTimeImmutable::createFromFormat('!Y-m-d', $date);
-if (!$studioId || !$serviceId || !$dateObject || $dateObject->format('Y-m-d') !== $date || preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $time) !== 1 || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+if (!$studioId || !$serviceId || !$dateObject || $dateObject->format('Y-m-d') !== $date || preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $time) !== 1
+    || !bookingEmailValid($email, $paymentMethod)) {
     apiResponse(400, ['success' => false, 'message' => 'Controlla studio, servizio, data, orario ed email.']);
 }
 
@@ -313,6 +317,11 @@ try {
             ]);
         }
         bookingVoucherValidate($bookingVoucher, $studioId, $serviceId, (int)$serviceRecord['durata_minuti'], $startDateTime, new DateTimeImmutable('now'));
+        bookingBillingValidate($billing, bookingVoucherRequiresBilling($bookingVoucher));
+        if (!bookingVoucherRequiresBilling($bookingVoucher)) {
+            $customerType = 'privato';
+            $companyName = $taxCode = $vatNumber = $billingAddress = $billingCity = $billingPostalCode = $recipientCode = $pec = '';
+        }
     }
 
     $appointmentsStmt = $pdo->prepare(
@@ -419,7 +428,7 @@ try {
             ':nome' => $firstName,
             ':cognome' => $lastName,
             ':ragione_sociale' => $companyName !== '' ? $companyName : null,
-            ':email' => $email,
+            ':email' => $email !== '' ? $email : null,
             ':telefono' => $phone,
             ':codice_fiscale' => $taxCode !== '' ? $taxCode : null,
             ':partita_iva' => $vatNumber !== '' ? $vatNumber : null,
@@ -491,7 +500,9 @@ if ($paymentMethod !== 'online') {
         'date' => $date,
         'time' => $time,
         'price' => $bookingVoucher !== null ? 0 : $serviceRecord['prezzo'],
+        'payment_method' => $paymentMethod,
         'voucher_code' => $bookingVoucher['voucher_code'] ?? null,
+        'remaining_sessions' => $bookingVoucher['remaining_sessions'] ?? null,
         'notes' => $notes,
     ], $email);
 }

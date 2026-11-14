@@ -1,6 +1,32 @@
 <?php
 require_once __DIR__ . '/voucher-model.php';
 
+function bookingEmailValid(string $email, string $paymentMethod): bool
+{
+    return $email === '' ? $paymentMethod === 'voucher' : filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+}
+
+function bookingBillingValidate(array $billing, bool $billingRequired): void
+{
+    if (!$billingRequired) return;
+    if (!in_array($billing['customer_type'], ['privato', 'azienda'], true)
+        || $billing['indirizzo'] === '' || $billing['citta'] === '' || $billing['cap'] === '') {
+        throw new InvalidArgumentException('Inserisci i dati fiscali e l’indirizzo di fatturazione.');
+    }
+    if ($billing['customer_type'] === 'privato' && $billing['codice_fiscale'] === '') {
+        throw new InvalidArgumentException('Il codice fiscale è obbligatorio per il cliente privato.');
+    }
+    if ($billing['customer_type'] === 'azienda' && ($billing['ragione_sociale'] === ''
+        || $billing['partita_iva'] === '' || ($billing['codice_destinatario'] === '' && $billing['pec'] === ''))) {
+        throw new InvalidArgumentException('Per aziende e professionisti sono necessari ragione sociale, partita IVA e codice destinatario o PEC.');
+    }
+}
+
+function bookingVoucherRequiresBilling(array $voucher): bool
+{
+    return ($voucher['source'] ?? 'online') !== 'manual';
+}
+
 function bookingVoucherCode($value): string
 {
     if (!is_string($value)) {
@@ -31,7 +57,7 @@ function bookingVoucherValidate(array $voucher, int $studioId, int $serviceId, i
         throw new InvalidArgumentException('Il voucher non corrisponde allo studio e al trattamento selezionati. Seleziona anche la durata indicata sul voucher.');
     }
     if (!voucherCanUse($voucher, $now)) {
-        throw new InvalidArgumentException('Voucher non utilizzabile: pagamento non confermato, scadenza superata o sedute esaurite.');
+        throw new InvalidArgumentException('Voucher non utilizzabile: disattivato, pagamento non confermato, scadenza superata o sedute esaurite.');
     }
     if ($appointment >= new DateTimeImmutable($voucher['valid_until'])) {
         throw new InvalidArgumentException('L’appuntamento deve essere precedente alla scadenza del voucher.');
@@ -66,7 +92,12 @@ function bookingVoucherDebit(PDO $pdo, int $voucherId, int $bookingId, string $t
     if ($stmt->rowCount() !== 1) throw new InvalidArgumentException('Le sedute del voucher sono esaurite.');
 }
 
-function bookingVoucherCancel(PDO $pdo, int $bookingId): void
+function bookingVoucherCancellationAllowed(DateTimeImmutable $appointment, DateTimeImmutable $now): bool
+{
+    return $now <= $appointment->modify('-3 hours');
+}
+
+function bookingVoucherCancel(PDO $pdo, int $bookingId, ?string $customerCode = null): void
 {
     $pdo->beginTransaction();
     try {
@@ -79,11 +110,28 @@ function bookingVoucherCancel(PDO $pdo, int $bookingId): void
         $stmt = $pdo->prepare('SELECT * FROM appuntamenti WHERE id = :id FOR UPDATE');
         $stmt->execute([':id' => $bookingId]);
         $booking = $stmt->fetch();
+        if (!$booking) throw new InvalidArgumentException('Appuntamento non trovato.');
+        if ($customerCode !== null) {
+            if ($booking['metodo_pagamento'] !== 'voucher' || !in_array($booking['stato'], ['in_attesa', 'confermato'], true)) {
+                throw new InvalidArgumentException('Prenotazione non disponibile per l’annullamento.');
+            }
+            $start = new DateTimeImmutable($booking['data_appuntamento'] . ' ' . $booking['ora_inizio']);
+            if (!bookingVoucherCancellationAllowed($start, new DateTimeImmutable('now'))) {
+                throw new InvalidArgumentException('Il termine per l’annullamento online è scaduto. Contatta lo studio.');
+            }
+        }
         if ($booking['stato'] !== 'annullato' && $booking['metodo_pagamento'] === 'voucher') {
             $stmt = $pdo->prepare('SELECT * FROM gift_voucher_bookings WHERE appointment_id = :id FOR UPDATE');
             $stmt->execute([':id' => $bookingId]);
             $use = $stmt->fetch();
             if (!$use) throw new RuntimeException('Collegamento voucher mancante: annullamento non completato.');
+            if ($customerCode !== null) {
+                $stmt = $pdo->prepare('SELECT id FROM gift_vouchers WHERE id = :id AND voucher_code = :code');
+                $stmt->execute([':id' => $use['voucher_id'], ':code' => bookingVoucherCode($customerCode)]);
+                if ($stmt->fetchColumn() === false || $use['restored_at'] !== null) {
+                    throw new InvalidArgumentException('Prenotazione non disponibile per questo voucher.');
+                }
+            }
             if ($use['restored_at'] === null) {
                 $stmt = $pdo->prepare('UPDATE gift_vouchers SET remaining_sessions = remaining_sessions + 1 WHERE id = :id AND remaining_sessions < total_sessions');
                 $stmt->execute([':id' => $use['voucher_id']]);

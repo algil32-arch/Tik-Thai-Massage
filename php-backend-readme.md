@@ -16,6 +16,10 @@ Il backend usa PHP con PDO e MySQL/MariaDB. L'agenda applica le fasce settimanal
 11. Per i voucher regalo, importa `backend-aruba-vouchers.sql` sia su database nuovi sia su quelli esistenti, prima di pubblicare il form. Crea due tabelle nuove senza modificare appuntamenti o fatture.
 12. Per prenotare con voucher, importa poi `backend-aruba-voucher-bookings.sql`, anche se i voucher sono gia' installati. Aggiunge la modalita' di pagamento `voucher` agli appuntamenti e una tabella di collegamento/idempotenza; non modifica i voucher esistenti.
 13. Per attivare le notifiche immediate da Google, importa `backend-aruba-google-push.sql` dopo la migrazione Google Calendar, anche sui database nuovi.
+14. Per i voucher emessi manualmente, importa una sola volta `backend-aruba-voucher-manuali.sql` dopo `backend-aruba-vouchers.sql`, anche sui database nuovi, prima di pubblicare i file aggiornati.
+15. Per disattivare i voucher conservando lo storico, importa una sola volta `backend-aruba-voucher-disattivazione.sql` dopo `backend-aruba-vouchers.sql`, anche sui database nuovi.
+16. Per completare il CAP di Monte Sacro quando manca, importa `backend-aruba-voucher-indirizzi.sql`. Lo script non sovrascrive i CAP esistenti: verificare indirizzo, città e CAP delle sedi nel database prima di emettere i voucher.
+17. Per scegliere l'appellativo dei nuovi voucher, importa una sola volta `backend-aruba-voucher-appellativo.sql` dopo `backend-aruba-vouchers.sql`, anche sui database nuovi, prima di pubblicare i file aggiornati.
 
 ## Voucher regalo
 
@@ -46,6 +50,18 @@ La richiesta resta in attesa della sincronizzazione Google; quando l'evento vien
 inserito correttamente il sito la conferma e invia un'email al cliente.
 Il PDF e' generato in PHP, senza librerie esterne, e si scarica usando un token
 segreto: non condividere il link se non con acquirente/destinatario.
+Il PDF e la stampa dal browser mostrano il logo e le istruzioni per prenotare,
+inclusa l'email facoltativa per ricevere conferme e la pagina di annullamento.
+Includono anche un messaggio di regalo personalizzato con destinatario e trattamento.
+Per i nuovi voucher si sceglie Sig. o Sig.ra; quelli già emessi usano una formula neutra.
+Per Studio Prati il documento indica anche C/O Barbiere Prati lounge di estetica.
+Mostrano indirizzo, città e CAP della sede configurati nel database; se un dato
+manca, invitano a contattare lo studio. Il PDF definitivo usa i dati correnti
+della sede, anche per voucher già emessi.
+Per il logo PDF pubblicare `fattura-cortesia-renderer.php` e, preferibilmente,
+`invoice-template-logo.jpg` con `invoice-template-logo-mask.deflate`; in loro
+assenza viene usato `thai-tik-logo-alternativo.png`. Se nessun logo è disponibile
+il PDF non viene generato. Sono richiesti iconv e zlib.
 
 Il browser conserva solo il token nella sessione della scheda per recuperare
 un acquisto interrotto. Prima di riprovare il pagamento, usare **Verifica
@@ -87,14 +103,59 @@ presenti: `app-config.php`, `admin-auth.php`, `sumup-client.php` e logo.
 Serve PHP con PDO MySQL, cURL e iconv, un database migrato e SumUp in EUR.
 
 Verifiche locali:
-`php tests/voucher-test.php`, `php tests/booking-voucher-test.php` e
-`node --test tests/gift-voucher.test.cjs tests/packages.test.cjs tests/booking-pages.test.cjs`.
+`php tests/voucher-test.php`, `php tests/voucher-manual-test.php`,
+`php tests/booking-voucher-test.php` e
+`node --test tests/gift-voucher.test.cjs tests/voucher-manual-admin.test.cjs tests/packages.test.cjs tests/booking-pages.test.cjs`.
 Prima delle vendite, collaudare su Aruba con credenziali SumUp di test: pagamento
 riuscito/fallito/scaduto, recupero dopo ricarica o abbandono, doppia verifica,
 due utilizzi concorrenti dell'ultima seduta, scadenza, email e fatturazione.
 Collaudare anche una prenotazione con codice, doppio invio, slot occupato,
 trattamento/durata errati e annullamento ripetuto: una sola seduta scalata o
 restituita. I test con PDO simulato non sostituiscono questo collaudo MySQL.
+
+Nel registro admin **Emetti voucher per pagamento al centro** richiede soltanto
+nome e cognome del destinatario, sede, trattamento, formula da 1/3/6 sedute,
+quantità e importo. Il prezzo viene proposto come online, ma può essere modificato
+anche successivamente nel registro; non compare nel PDF del voucher manuale.
+L'emissione conferma che il pagamento è stato ricevuto fuori dal sito, senza
+checkout, email o fattura automatica. Il codice `TTM-...` viene mostrato nel
+registro e nel PDF e permette di prenotare la sede e il trattamento selezionati.
+Le sedute e la validità di 12 mesi seguono le stesse regole dei voucher online:
+ogni prenotazione scala una seduta e l'annullamento dall'agenda la restituisce.
+Le email di richiesta e conferma delle prenotazioni con voucher riportano codice
+e sedute residue, anziché il prezzo della singola seduta. Nella conferma le
+sedute residue sono quelle disponibili al momento dell'invio.
+In entrambe le email è presente il link alla pagina `annulla-voucher.php`: il
+cliente inserisce il codice, sceglie un appuntamento attivo e può annullarlo fino
+a tre ore prima dell'inizio (limite incluso). La seduta viene restituita una sola
+volta, senza prolungare la scadenza. La disponibilità del sito si libera subito;
+la rimozione dell'evento Google avviene tramite la normale sincronizzazione, con
+avviso se non riesce. Lo studio riceve una notifica email, se configurata.
+Pubblicare `annulla-voucher.php`, `booking-voucher.php` e `booking-mailer.php`;
+verificare il funzionamento su Aruba con appuntamenti multipli, termine di tre
+ore, annullamento ripetuto e sincronizzazione Google.
+Per prenotare con un voucher emesso dal centro, il cliente seleziona sede,
+trattamento e orario e usa **Verifica codice voucher**: dopo la verifica il
+modulo non richiede né invia dati di fatturazione. Per tutti i voucher l'email
+e il telefono sono facoltativi; senza email non vengono inviate ricevute o
+conferme al cliente. Il nome rimane obbligatorio. La verifica viene ripetuta dal
+server all'invio. I voucher acquistati online e gli altri pagamenti continuano
+a richiedere i dati di fatturazione.
+Pubblicare anche `voucher-manual.php` e `voucher-manual-admin.js`; verificare
+emissione, ripetizione dell'invio, PDF senza prezzo e prenotazione/annullamento
+su MySQL prima di usare la funzione in produzione.
+
+Nel registro, **Elimina o disattiva voucher** elimina definitivamente solo i
+voucher manuali senza utilizzi o prenotazioni. Gli altri voucher vengono
+disattivati conservando storico e pagamenti: non possono essere prenotati né
+scaricati come PDF. I checkout in attesa vanno prima verificati. La
+disattivazione non annulla automaticamente gli appuntamenti già prenotati.
+Dal registro o dall'agenda si può annullare una prenotazione con voucher:
+la seduta viene restituita una sola volta e lo storico resta visibile; il
+voucher eventualmente disattivato non torna utilizzabile. La sincronizzazione
+Google rimuove l'evento secondo il normale flusso di annullamento.
+Pubblicare anche `voucher-admin-actions.php`, `voucher-model.php`,
+`booking-mailer.php` e `google-calendar-sync.php`.
 
 ## Dati della prenotazione
 Nome, cognome, email e dati fiscali sono richiesti; il telefono è facoltativo. Per i privati è richiesto il codice fiscale, per aziende e professionisti ragione sociale, partita IVA e codice destinatario o PEC. Il metodo `studio` registra subito la richiesta e invia le notifiche. Il metodo `online` crea un intento temporaneo che riserva lo slot per 15 minuti, senza inserire righe in `clienti` o `appuntamenti`. Cliente, appuntamento e notifiche vengono creati solo dopo che il backend ha verificato lo stato `PAID` direttamente con SumUp. Alla scadenza il checkout viene disattivato e lo slot liberato; se il cliente abbandona la pagina senza pagare non rimane alcun appuntamento.

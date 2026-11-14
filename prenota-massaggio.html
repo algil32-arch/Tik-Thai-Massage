@@ -220,7 +220,9 @@
         text-transform: uppercase;
         cursor: pointer;
       }
-      .submit-row { display: flex; justify-content: center; }
+      .submit-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+      #checkBookingVoucher { padding: 12px 20px; border: 1px solid var(--ink); background: #fff; color: var(--ink); font: inherit; cursor: pointer; }
+      #checkBookingVoucher:disabled { opacity: .6; cursor: not-allowed; }
       .submit.submit-online { background: #93ae61; color: var(--ink); }
       .submit.submit-online:hover:not(:disabled), .submit.submit-online:focus-visible:not(:disabled) { background: #a4bc78; }
       .submit:disabled { background: #857b75; color: #fff; cursor: not-allowed; }
@@ -313,8 +315,7 @@
             <div class="field" id="bookingVoucherFields" hidden style="margin-top:16px;">
               <label for="bookingVoucherCode">Codice voucher</label>
               <input id="bookingVoucherCode" name="voucher_code" form="bookingRequestForm" maxlength="40" autocomplete="off" placeholder="TTM-…" disabled aria-describedby="bookingVoucherStatus" />
-              <button type="button" id="checkBookingVoucher">Verifica codice voucher</button>
-              <p class="field-help" id="bookingVoucherStatus" role="status">Scegli la sede, il trattamento e la durata indicati sul voucher, poi data e orario. Una seduta verrà scalata solo dopo la registrazione della richiesta; se lo studio annulla, sarà restituita.</p>
+              <p class="field-help">Scegli la sede, il trattamento e la durata indicati sul voucher, poi data e orario. Verifica il codice in fondo alla pagina prima di prenotare.</p>
             </div>
             <aside class="association-notice" id="apsProfessionalNotice" hidden role="note">
               <strong>Attività professionale presso la sede associativa</strong>
@@ -345,14 +346,14 @@
                 <input id="name" name="name" type="text" autocomplete="name" placeholder="Nome e cognome" required />
               </div>
               <div class="field">
-                <label for="email">Email</label>
+                <label for="email">Email <span id="emailOptional" class="field-help" hidden>(facoltativa per prenotazioni con voucher)</span></label>
                 <input id="email" name="email" type="email" placeholder="tuo@email.com" required />
               </div>
               <div class="field">
                 <label for="phone">Telefono <span class="field-help">(facoltativo, per WhatsApp o SMS)</span></label>
                 <input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="Numero di telefono" />
               </div>
-              <p class="field-help">Inserisci i dati fiscali anche se scegli il pagamento in studio.</p>
+              <p class="field-help" id="billingNotice">Inserisci i dati fiscali anche se scegli il pagamento in studio. Per un voucher emesso dal centro, verifica il codice per continuare senza dati fiscali.</p>
               <fieldset class="billing-fields" id="billingFields" style="border:0; margin:0; padding:0;">
                 <div class="field">
                   <label for="customerType">Tipo cliente</label>
@@ -415,8 +416,10 @@
           </section>
 
           <div class="submit-row">
+            <button type="button" id="checkBookingVoucher" hidden>Verifica codice voucher</button>
             <button class="submit" type="submit" form="bookingRequestForm">Invia richiesta</button>
           </div>
+          <p class="field-help" id="bookingVoucherStatus" role="status" hidden></p>
 
           <section class="section-panel sumup-checkout-panel" id="sumupCheckoutPanel" aria-labelledby="sumup-checkout-title" hidden>
             <h2 class="panel-title" id="sumup-checkout-title"><span class="panel-step-number">6</span><span>Completa il pagamento</span></h2>
@@ -493,6 +496,7 @@
       let sumUpSdkPromise = null;
       let checkoutExpiryTimer = null;
       let checkedBookingVoucher = '';
+      let checkedVoucherBillingRequired = true;
       const selected = {
         studioId: null,
         serviceId: null,
@@ -510,7 +514,14 @@
 
       function updateInvoiceFields() {
         const isCompany = document.getElementById('customerType').value === 'azienda';
-        document.getElementById('billingFields').hidden = false;
+        const skipBilling = document.querySelector('input[name="payment_method"]:checked')?.value === 'voucher'
+          && checkedBookingVoucher !== '' && checkedBookingVoucher === bookingVoucherSelection()
+          && checkedVoucherBillingRequired === false;
+        document.getElementById('billingFields').hidden = skipBilling;
+        document.getElementById('billingFields').disabled = skipBilling;
+        document.getElementById('billingNotice').textContent = skipBilling
+          ? 'Voucher emesso dal centro verificato: non sono richiesti dati di fatturazione.'
+          : 'Inserisci i dati fiscali anche se scegli il pagamento in studio. Per un voucher emesso dal centro, verifica il codice per continuare senza dati fiscali.';
         document.getElementById('companyNameField').hidden = !isCompany;
         document.getElementById('vatField').hidden = !isCompany;
         document.getElementById('recipientField').hidden = !isCompany;
@@ -543,13 +554,19 @@
         document.getElementById('bookingVoucherFields').hidden = !useVoucher;
         document.getElementById('bookingVoucherCode').disabled = !useVoucher;
         document.getElementById('bookingVoucherCode').required = useVoucher;
+        document.getElementById('email').required = !useVoucher;
+        document.getElementById('emailOptional').hidden = !useVoucher;
+        document.getElementById('checkBookingVoucher').hidden = !useVoucher;
+        document.getElementById('bookingVoucherStatus').hidden = !useVoucher;
         document.getElementById('checkBookingVoucher').disabled = isLocalPreview || submissionPending || Boolean(activeCheckout);
-        if (checkedBookingVoucher !== bookingVoucherSelection()) {
+        if (!useVoucher || checkedBookingVoucher !== bookingVoucherSelection()) {
           checkedBookingVoucher = '';
+          checkedVoucherBillingRequired = true;
           document.getElementById('bookingVoucherStatus').textContent = isLocalPreview
             ? 'Anteprima locale: la verifica dei codici richiede il database Aruba.'
             : 'Scegli la sede, il trattamento e la durata indicati sul voucher, poi data e orario. Il codice sarà ricontrollato all’invio; una seduta viene scalata solo se la richiesta è registrata.';
         }
+        updateInvoiceFields();
 
         if (onlineRadio) {
           onlineRadio.disabled = Boolean(activeCheckout);
@@ -579,6 +596,9 @@
       document.getElementById('checkBookingVoucher').addEventListener('click', async function() {
         const signature = bookingVoucherSelection();
         const status = document.getElementById('bookingVoucherStatus');
+        checkedBookingVoucher = '';
+        checkedVoucherBillingRequired = true;
+        updateInvoiceFields();
         this.disabled = true;
         status.textContent = 'Verifica in corso…';
         try {
@@ -589,8 +609,12 @@
           });
           const data = await response.json();
           if (!response.ok || !data.success) throw new Error(data.message || 'Impossibile verificare il voucher.');
-          if (signature !== bookingVoucherSelection()) return;
+          if (signature !== bookingVoucherSelection()
+              || document.querySelector('input[name="payment_method"]:checked')?.value !== 'voucher') return;
+          if (typeof data.billing_required !== 'boolean') throw new Error('Risposta di verifica voucher non valida.');
           checkedBookingVoucher = signature;
+          checkedVoucherBillingRequired = data.billing_required;
+          updateInvoiceFields();
           status.textContent = `${data.message} Sedute residue: ${data.remaining_sessions}.`;
         } catch (error) {
           if (signature === bookingVoucherSelection()) status.textContent = error.message || 'Impossibile verificare il voucher.';
@@ -1151,11 +1175,13 @@
           return;
         }
 
-        if (!selected.studioId || !selected.serviceId || !selected.date || !selected.time || !name || !email) {
+        if (!selected.studioId || !selected.serviceId || !selected.date || !selected.time || !name || (!email && paymentMethod !== 'voucher')) {
           alert('Completa tutti i campi e scegli studio, servizio, data e orario.');
           return;
         }
-        if (customerType === 'azienda' && !recipientCode && !pec) {
+        const skipBilling = paymentMethod === 'voucher' && checkedBookingVoucher !== ''
+          && checkedBookingVoucher === bookingVoucherSelection() && checkedVoucherBillingRequired === false;
+        if (!skipBilling && customerType === 'azienda' && !recipientCode && !pec) {
           alert('Per la fattura aziendale inserisci il codice destinatario o la PEC.');
           return;
         }
@@ -1169,6 +1195,9 @@
           email,
           phone: document.getElementById('phone').value.trim(),
           payment_method: paymentMethod,
+          notes: document.getElementById('notes').value.trim()
+        };
+        if (!skipBilling) Object.assign(payload, {
           customer_type: customerType,
           ragione_sociale: document.getElementById('companyName').value.trim(),
           codice_fiscale: document.getElementById('taxCode').value.trim(),
@@ -1177,9 +1206,8 @@
           citta: document.getElementById('billingCity').value.trim(),
           cap: document.getElementById('billingPostalCode').value.trim(),
           codice_destinatario: recipientCode,
-          pec,
-          notes: document.getElementById('notes').value.trim()
-        };
+          pec
+        });
         if (paymentMethod === 'voucher') {
           payload.voucher_code = document.getElementById('bookingVoucherCode').value.trim().toUpperCase();
         }
@@ -1215,6 +1243,10 @@
           let emailStatus = 'La richiesta è registrata; lo studio ti ricontatterà per confermare.';
           if (data.already_registered) {
             emailStatus = data.message;
+          } else if (!email && notifications.studio_sent) {
+            emailStatus = 'La richiesta è registrata e lo studio è stato avvisato. Non hai indicato un’email: non riceverai conferme via email.';
+          } else if (!email) {
+            emailStatus = 'La richiesta è registrata, ma non è stato possibile avvisare lo studio. Contattalo per verificare; senza email non riceverai conferme.';
           } else if (notifications.studio_sent && notifications.customer_sent) {
             emailStatus = 'Abbiamo inviato un’email allo studio e una ricevuta al tuo indirizzo.';
           } else if (!notifications.studio_sent && !notifications.customer_sent) {

@@ -8,7 +8,8 @@ function voucherByToken(PDO $pdo, string $token): ?array
         throw new InvalidArgumentException('Codice di accesso al voucher non valido.');
     }
     $stmt = $pdo->prepare(
-        'SELECT gv.*, s.nome AS studio_name FROM gift_vouchers gv
+        'SELECT gv.*, s.nome AS studio_name, s.indirizzo AS studio_address,
+                s.citta AS studio_city, s.cap AS studio_postal_code FROM gift_vouchers gv
          INNER JOIN studi s ON s.id = gv.id_studio WHERE gv.token = :token'
     );
     $stmt->execute([':token' => $token]);
@@ -126,7 +127,8 @@ function voucherVerify(PDO $pdo, array $voucher): array
 function voucherPublic(array $voucher): array
 {
     return array_intersect_key($voucher, array_flip([
-        'status', 'recipient_name', 'service_name', 'duration_minutes', 'sessions_per_item',
+        'status', 'recipient_name', 'recipient_title', 'service_name', 'duration_minutes', 'sessions_per_item',
         'quantity', 'total_sessions', 'remaining_sessions', 'amount', 'voucher_code', 'valid_until', 'studio_name',
+        'studio_address', 'studio_city', 'studio_postal_code',
     ]));
 }

@@ -136,7 +136,7 @@ require_once __DIR__ . '/admin-auth.php';
         <div class="grid">
           <article class="card">
             <h2>Voucher regalo</h2>
-            <p>Verifica gli acquisti, consulta codici e scadenze e registra le sedute utilizzate. I voucher non creano appuntamenti online.</p>
+            <p>Emetti voucher per pagamenti al centro, verifica gli acquisti online e consulta codici, scadenze e sedute utilizzate.</p>
             <a href="vouchers-admin.php">Apri registro voucher</a>
           </article>
           <article class="card">

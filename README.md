@@ -1,8 +1,13 @@
-# Thai Tik Massage — Site Ver 20.0
+# Thai Tik Massage — Site Ver 21.0
 
 Sito statico multipagina per Thai Tik Massage, con backend PHP/MySQL predisposto per l'hosting Aruba.
 
-Note del rilascio corrente: [Site Ver 20.0](RELEASE_NOTES_V20.md).
+Note del rilascio corrente: [Site Ver 21.0](RELEASE_NOTES_V21.md).
+
+La versione 21.0 introduce l'emissione manuale dei voucher, migliora
+prenotazione, annullamento e comunicazioni e aggiorna la grafica del voucher.
+Richiede migrazioni del database prima della pubblicazione: consultare le
+[note di rilascio](RELEASE_NOTES_V21.md).
 
 La versione 20.0 aggiorna i collegamenti WhatsApp e rende robusta la
 sincronizzazione Google Calendar: gestisce gli eventi gia eliminati e recupera
@@ -125,7 +130,11 @@ Il destinatario prenota dal normale calendario scegliendo **Prenota con voucher
 regalo** e inserendo il codice. Una seduta viene scalata alla registrazione della
 richiesta; l'annullamento dall'admin la restituisce automaticamente.
 Prima di pubblicare importare `backend-aruba-vouchers.sql` e poi
-`backend-aruba-voucher-bookings.sql`, anche sui database nuovi.
+`backend-aruba-voucher-bookings.sql` e `backend-aruba-voucher-manuali.sql`, anche
+sui database nuovi. Dal registro admin si possono inoltre emettere voucher per
+pagamenti ricevuti al centro, con prezzo modificabile non mostrato nel PDF.
+Per disattivare voucher conservando lo storico, importare anche
+`backend-aruba-voucher-disattivazione.sql` una sola volta.
 
 ## Footer condiviso
 

@@ -348,7 +348,7 @@ unset($_SESSION['calendar_sync_notice']);
                       <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['admin_csrf'], ENT_QUOTES, 'UTF-8') ?>" />
                       <input type="hidden" name="action" value="cancel" />
                       <input type="hidden" name="id" value="<?= (int)$booking['id'] ?>" />
-                      <button class="btn cancel" type="submit">Annulla</button>
+                      <button class="btn cancel" type="submit"><?= $booking['metodo_pagamento'] === 'voucher' ? 'Annulla e restituisci seduta' : 'Annulla' ?></button>
                     </form>
                     <?php if (($booking['stato'] ?? '') === 'confermato' && $booking['metodo_pagamento'] !== 'voucher'): ?>
                       <form method="post" action="fattura-da-pagamento.php">
@@ -358,12 +358,14 @@ unset($_SESSION['calendar_sync_notice']);
                         <button class="btn invoice" type="submit">Genera fattura</button>
                       </form>
                     <?php endif; ?>
+                    <?php if ($booking['metodo_pagamento'] !== 'voucher'): ?>
                     <form method="post" action="booking-admin-advanced.php" onsubmit="return confirm('Eliminare definitivamente dal database questo appuntamento? L’azione è consentita solo se non è collegato a pagamenti, fatture, SumUp o voucher.');">
                       <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['admin_csrf'], ENT_QUOTES, 'UTF-8') ?>" />
                       <input type="hidden" name="action" value="delete" />
                       <input type="hidden" name="id" value="<?= (int)$booking['id'] ?>" />
                       <button class="btn cancel" type="submit">Elimina</button>
                     </form>
+                    <?php endif; ?>
                   </div>
                 </td>
               </tr>

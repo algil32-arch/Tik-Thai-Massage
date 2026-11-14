@@ -44,6 +44,12 @@ try {
                 || strlen($input[$key]) > 150 || preg_match('/[\x00-\x1f]/', $input[$key])) {
                 throw new InvalidArgumentException('Inserisci il destinatario e seleziona un trattamento.');
             }
+            foreach (['studio_address', 'studio_city', 'studio_postal_code'] as $key) {
+                $value = $input[$key] ?? '';
+                if (!is_string($value) || strlen($value) > 255 || preg_match('/[\x00-\x1f\x7f]/', $value)) {
+                    throw new InvalidArgumentException('Indirizzo della sede non valido.');
+                }
+            }
         }
         $sessions = filter_var($input['sessions_per_item'] ?? null, FILTER_VALIDATE_INT);
         $quantity = filter_var($input['quantity'] ?? null, FILTER_VALIDATE_INT);
@@ -54,7 +60,11 @@ try {
         $quote = voucherQuote($input['price'], $sessions, $quantity);
         voucherSendPdf([
             'recipient_name' => trim($input['recipient_name']), 'service_name' => trim($input['service_name']),
+            'recipient_title' => voucherRecipientTitle($input['recipient_title'] ?? null),
             'studio_name' => trim($input['studio_name']),
+            'studio_address' => trim($input['studio_address'] ?? ''),
+            'studio_city' => trim($input['studio_city'] ?? ''),
+            'studio_postal_code' => trim($input['studio_postal_code'] ?? ''),
             'duration_minutes' => $duration, 'sessions_per_item' => $sessions, 'quantity' => $quantity,
             'total_sessions' => $quote['total_sessions'], 'amount' => $quote['amount'],
         ], true);
@@ -82,7 +92,7 @@ try {
         $voucher = bookingVoucherByCode($pdo, $code);
         bookingVoucherValidate($voucher, $studioId, $serviceId, (int)$duration, $appointment, new DateTimeImmutable('now'));
         voucherResponse(200, ['success' => true, 'remaining_sessions' => (int)$voucher['remaining_sessions'],
-            'valid_until' => $voucher['valid_until'],
+            'valid_until' => $voucher['valid_until'], 'billing_required' => bookingVoucherRequiresBilling($voucher),
             'message' => 'Voucher riconosciuto. La seduta verrà scalata solo quando la richiesta di prenotazione sarà registrata.']);
     }
     if (!in_array($method, ['GET', 'POST'], true)) {
@@ -99,7 +109,7 @@ try {
     $pdo = dbConnection();
     $voucher = voucherByToken($pdo, $token);
     if ($action === 'pdf') {
-        if (!$voucher || $voucher['status'] !== 'paid') {
+        if (!$voucher || $voucher['status'] !== 'paid' || ($voucher['disabled_at'] ?? null) !== null) {
             voucherResponse(409, ['success' => false, 'message' => 'Voucher non disponibile: pagamento non confermato.']);
         }
         voucherSendPdf($voucher, false);
@@ -122,8 +132,9 @@ try {
         || trim($recipient) === '' || strlen($recipient) > 150 || preg_match('/[\x00-\x1f]/', $recipient)) {
         throw new InvalidArgumentException('Controlla servizio, destinatario e quantità.');
     }
+    $title = voucherRecipientTitle($input['recipient_title'] ?? null);
     $customer = voucherCustomer($input);
-    $payloadHash = hash('sha256', json_encode([$serviceId, $sessions, $quantity, trim($recipient), $customer], JSON_THROW_ON_ERROR));
+    $payloadHash = hash('sha256', json_encode([$serviceId, $sessions, $quantity, trim($recipient), $customer, $title], JSON_THROW_ON_ERROR));
     if ($voucher) {
         if (!hash_equals($voucher['payload_hash'], $payloadHash)) {
             voucherResponse(409, ['success' => false, 'message' => 'Questo acquisto ha già un checkout. Verificalo prima di modificare il voucher.']);
@@ -150,15 +161,15 @@ try {
         $pdo->beginTransaction();
         $stmt = $pdo->prepare(
             'INSERT INTO gift_vouchers (token, payload_hash, id_studio, id_servizio, service_name, duration_minutes,
-             recipient_name, sessions_per_item, quantity, total_sessions, amount, customer_data,
+             recipient_name, recipient_title, sessions_per_item, quantity, total_sessions, amount, customer_data,
              checkout_reference, checkout_expires_at)
-             VALUES (:token, :hash, :studio, :service, :name, :duration, :recipient, :sessions, :quantity,
+             VALUES (:token, :hash, :studio, :service, :name, :duration, :recipient, :title, :sessions, :quantity,
              :total, :amount, :customer, :reference, :expires)'
         );
         $stmt->execute([
             ':token' => $token, ':hash' => $payloadHash, ':studio' => $service['id_studio'],
             ':service' => $serviceId, ':name' => $service['nome'], ':duration' => $service['durata_minuti'],
-            ':recipient' => trim($recipient), ':sessions' => $sessions, ':quantity' => $quantity,
+            ':recipient' => trim($recipient), ':title' => $title, ':sessions' => $sessions, ':quantity' => $quantity,
             ':total' => $quote['total_sessions'], ':amount' => $quote['amount'],
             ':customer' => json_encode($customer, JSON_THROW_ON_ERROR), ':reference' => $reference,
             ':expires' => (new DateTimeImmutable('+15 minutes'))->format('Y-m-d H:i:s'),
